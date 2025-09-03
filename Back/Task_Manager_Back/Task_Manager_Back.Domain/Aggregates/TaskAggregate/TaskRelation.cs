@@ -10,4 +10,10 @@ public class TaskRelation
 {
     public Guid FromTaskId { get; set; }
     public Guid ToTaskId { get; set; }
+    public TaskRelation(Guid fromTaskId, Guid toTaskId)
+    {
+        FromTaskId = fromTaskId;
+        ToTaskId = toTaskId;
+    }
+
 }

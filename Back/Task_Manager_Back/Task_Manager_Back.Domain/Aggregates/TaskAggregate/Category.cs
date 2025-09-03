@@ -8,14 +8,14 @@ namespace Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 
 public class Category
 {
-    public Guid Id { get; set; }
-    public Guid UserId { get; set; }
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
     public string Title { get; set; }
     public string Description { get; set; }
     public Guid? ParentCategoryId {  get; set; }
-    public Category(Guid id, Guid userId, string title, string description, Guid? parentCategoryId)
+    public Category(Guid userId, string title, string description, Guid? parentCategoryId)
     {
-        Id = id;
+        Id = Guid.NewGuid();
         UserId = userId;
         Title = title ?? throw new ArgumentNullException(nameof(title));
         Description = description;

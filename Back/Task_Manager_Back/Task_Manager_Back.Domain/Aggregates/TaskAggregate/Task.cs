@@ -4,8 +4,8 @@ namespace Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 public class Task
 {
 
-    public Guid Id { get; set; }
-    public Guid UserId { get; set; }
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
     public string Title { get; set; }
     public string? Description { get; set; }
     public Guid StatusId { get; set; }
@@ -13,9 +13,9 @@ public class Task
     public DateTime? Deadline { get; set; }
     public bool IsCompleted { get; set; }
     public bool IsFailed { get; set; }
-    public Task(Guid id, Guid userId, string title, string description, Guid statusId, Guid categoryId, DateTime deadline, bool isCompleted, bool isFailed)
+    public Task(Guid userId, string title, string description, Guid statusId, Guid categoryId, DateTime deadline, bool isCompleted, bool isFailed)
     {
-        Id = id;
+        Id = Guid.NewGuid();
         UserId = userId;
         Title = title ?? throw new ArgumentNullException(nameof(title));
         Description = description;

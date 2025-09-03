@@ -8,8 +8,15 @@ namespace Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 
 public class Status
 {
-    public Guid Id { get; set; }
-    public Guid UserId { get; set; }
+    public Guid Id { get; private set; }
+    public Guid UserId { get; private set; }
     public string Title {  get; set; }
     public string? Description { get; set; }
+    public Status(Guid userId, string title, string? description)
+    {
+        Id = Guid.NewGuid();
+        UserId = userId;
+        Title = title ?? throw new ArgumentNullException(nameof(title));
+        Description = description;
+    }
 }
