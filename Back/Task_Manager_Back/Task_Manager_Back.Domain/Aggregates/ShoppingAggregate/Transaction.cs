@@ -17,10 +17,10 @@ namespace Task_Manager_Back.Domain.Aggregates.ShoppingAggregate
         public string Comment { get; private set; }
         public DateTime DateTime { get; private set; }
 
-        public Transaction(Guid id, Guid userId, string product, decimal amount, decimal price, bool isIncome,
+        public Transaction(Guid userId, string product, decimal amount, decimal price, bool isIncome,
                            Guid categoryId, Guid locationId, string comment, DateTime dateTime)
         {
-            Id = id;
+            Id = Guid.NewGuid();
             UserId = userId;
             Product = product ?? throw new ArgumentNullException(nameof(product));
             Amount = amount;
