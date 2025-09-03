@@ -5,6 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Task_Manager_Back.Application.IRepositories;
-public class ITransactionCategoryRepository
+public interface ITransactionCategoryRepository
 {
 }
