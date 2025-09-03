@@ -1,4 +1,5 @@
-﻿
+﻿using Task_Manager_Back.Domain.Aggregates.ShoppingAggregate;
+
 namespace Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 
 public class Task
