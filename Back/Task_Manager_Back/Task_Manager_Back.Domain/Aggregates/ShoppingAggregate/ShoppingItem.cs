@@ -1,7 +1,6 @@
 ﻿using System.Transactions;
-using Task_Manager_Back.Domain.Aggregates.ShoppingAggregate;
 
-namespace Task_Manager_Back.Domain.Aggregates.FinanceAggregate
+namespace Task_Manager_Back.Domain.Aggregates.ShoppingAggregate
 {
     public class ShoppingItem
     {
