@@ -5,6 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Task_Manager_Back.Application.IServices.IExpense;
-internal class IExpenseCalculationService
+public class IExpenseCalculationService
 {
 }

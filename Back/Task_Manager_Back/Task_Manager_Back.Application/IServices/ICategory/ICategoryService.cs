@@ -5,6 +5,6 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Task_Manager_Back.Application.IServices.ICategory;
-internal class ICategoryService
+public class ICategoryService
 {
 }
