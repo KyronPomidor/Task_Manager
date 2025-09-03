@@ -17,10 +17,10 @@ namespace Task_Manager_Back.Domain.Aggregates
             // Could reference Task, ShoppingItem, or Transaction
             public object EntityRef { get; private set; }
 
-            public Node(Guid id, Guid userId, float posX, float posY, float radius, object entityRef)
+            public Node(Guid userId, float posX, float posY, float radius, object entityRef)
             {
-                Id = id;
-                UserId = userId;
+            Id = Guid.NewGuid();
+            UserId = userId;
                 PosX = posX;
                 PosY = posY;
                 Radius = radius;

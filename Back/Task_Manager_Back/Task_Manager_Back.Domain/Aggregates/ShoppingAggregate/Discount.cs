@@ -8,13 +8,13 @@ namespace Task_Manager_Back.Domain.Aggregates.ShoppingAggregate
 {
     public class Discount
     {
-        public Guid Id { get; private set; }
+        public Guid Id { get; set; }
         public string Name { get; private set; }
         public decimal Amount { get; private set; }
 
-        public Discount(Guid id, string name, decimal amount)
+        public Discount(string name, decimal amount)
         {
-            Id = id;
+            Id = Guid.NewGuid();
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Amount = amount;
         }

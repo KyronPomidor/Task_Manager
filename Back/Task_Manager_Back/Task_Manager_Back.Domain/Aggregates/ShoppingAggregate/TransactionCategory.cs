@@ -8,9 +8,9 @@ namespace Task_Manager_Back.Domain.Aggregates.ShoppingAggregate
         public Guid Id { get; private set; }
         public string Title { get; private set; }
 
-        public TransactionCategory(Guid id, string title)
+        public TransactionCategory(string title)
         {
-            Id = id;
+            Id = Guid.NewGuid();
             Title = title ?? throw new ArgumentNullException(nameof(title));
         }
     }

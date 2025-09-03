@@ -13,9 +13,9 @@ namespace Task_Manager_Back.Domain.Aggregates.FinanceAggregate
         public bool IsBought { get; private set; }
         public List<Transaction> Transactions { get; private set; } = new();
 
-        public ShoppingItem(Guid id, string name, decimal amount, decimal price, bool isInCart, bool isBought)
+        public ShoppingItem(string name, decimal amount, decimal price, bool isInCart, bool isBought)
         {
-            Id = id;
+            Id = Guid.NewGuid();
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Amount = amount;
             Price = price;
