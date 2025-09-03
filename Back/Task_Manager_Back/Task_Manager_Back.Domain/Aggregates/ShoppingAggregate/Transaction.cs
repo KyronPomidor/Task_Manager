@@ -1,7 +1,6 @@
 ﻿using System.Transactions;
-using Task_Manager_Back.Domain.Aggregates.ShoppingAggregate;
 
-namespace Task_Manager_Back.Domain.Aggregates.FinanceAggregate
+namespace Task_Manager_Back.Domain.Aggregates.ShoppingAggregate
 {
     public class Transaction
     {
@@ -37,7 +36,7 @@ namespace Task_Manager_Back.Domain.Aggregates.FinanceAggregate
         public void ApplyDiscount(Discount discount)
         {
             DiscountId = discount.Id;
-            Total = (Amount * Price) - discount.Amount;
+            Total = Amount * Price - discount.Amount;
         }
 
         public void ChangeCategory(TransactionCategory category)
