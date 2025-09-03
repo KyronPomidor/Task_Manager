@@ -11,7 +11,7 @@ public class Category
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
     public string Title { get; set; }
-    public string Description { get; set; }
+    public string? Description { get; set; }
     public Guid? ParentCategoryId {  get; set; }
     public Category(Guid userId, string title, string description, Guid? parentCategoryId)
     {
