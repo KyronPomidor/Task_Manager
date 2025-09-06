@@ -9,12 +9,14 @@ namespace Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 public class Reminder
 {
     public Guid Id { get; private set; }
+    public Guid TaskId { get; private set; }
     public Guid UserId { get; private set; }
     public DateTime Time { get; private set; }
     public string Message { get; private set; }
-    public Reminder(Guid userId, DateTime time, string message)
+    public Reminder(Guid taskId, Guid userId, DateTime time, string message)
     {
         Id = Guid.NewGuid();
+        TaskId = taskId;
         UserId = userId;
         Time = time;
         Message = message ?? throw new ArgumentNullException(nameof(message));

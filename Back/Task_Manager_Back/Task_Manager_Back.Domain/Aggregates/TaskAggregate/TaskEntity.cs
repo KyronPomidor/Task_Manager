@@ -28,7 +28,6 @@ public class TaskEntity
         IsFailed = false;
     }
 
-    // Бизнес-методы
     public void Rename(string newTitle)
     {
         if (string.IsNullOrWhiteSpace(newTitle))
@@ -75,7 +74,6 @@ public class TaskEntity
     {
 
     }
-    // Дополнительные методы
     public void AddAttachment(Attachment attachment) { /* логика */ }
     public void RemoveAttachment(Attachment attachment) { /* логика */ }
     public void AddReminder(Reminder reminder) { /* логика */ }

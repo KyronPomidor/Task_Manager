@@ -10,18 +10,20 @@ using Task_Manager_Back.Domain.IServices.ITask;
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 public class AddTaskRelationUseCase
 {
+    private readonly ITaskRelationRepository _taskRepository;
     private readonly ITaskRelationRepository _taskRelationRepository;
     private readonly ITaskGraphService _taskGraphService;
-    public AddTaskRelationUseCase(ITaskRelationRepository taskRelationRepository, ITaskGraphService taskGraphService)
+    public AddTaskRelationUseCase(ITaskRelationRepository taskRelationRepository, ITaskGraphService taskGraphService, ITaskRelationRepository taskRepository)
     {
         _taskRelationRepository = taskRelationRepository;
         _taskGraphService = taskGraphService;
+        _taskRepository = taskRepository;
     }
     public async Task ExecuteAsync(Guid fromTaskId, Guid ToTaskId)
     {
-        TaskEntity fromTask = await _taskRepository.GetByIdAsync(fromTaskId) ?? throw new KeyNotFoundException($"Task with Id '{fromTaskId}' not found.");
-        TaskEntity ToTask = await _taskRepository.GetByIdAsync(ToTaskId) ?? throw new KeyNotFoundException($"Task with Id '{ToTaskId}' not found.");
+        var fromTask = await _taskRepository.GetByIdAsync(fromTaskId) ?? throw new KeyNotFoundException($"Task with Id '{fromTaskId}' not found.");
+        var ToTask = await _taskRepository.GetByIdAsync(ToTaskId) ?? throw new KeyNotFoundException($"Task with Id '{ToTaskId}' not found.");
         var taskRelation = _taskGraphService.UnlinkTasks(fromTask, ToTask);
-        await _taskRelationRepository.Create(taskRelation);
+        await _taskRelationRepository.DeleteAsync(taskRelation);
     }
 }
