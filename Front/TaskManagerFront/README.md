@@ -1,70 +1,55 @@
-# Getting Started with Create React App
+# Task & Expense Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Description
+A productivity system that combines **GTD-style task management**.  
+Users can organize their tasks into categories, visualize dependencies between tasks/projects, and at the same time keep track of personal or project-related expenses with budget control.  
+The system also provides interactive graph visualization to better understand relationships between tasks, expenses, and projects.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+### Task Management
+- Organize tasks into categories (Inbox, Next Actions, Projects, Someday)
+- Task status tracking (open, in progress, completed, failed)
+- Attachments, reminders, and relations between tasks
+- Graph view of tasks and dependencies
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Expense Management
+- Record transactions with amount, category, location
+- Categorize expenses (e.g., Food, Travel, Utilities)
+- Set and monitor budgets per category
+- Analytics of expenses per category and per period
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### Visualization
+- Interactive graph view of tasks, shopping items, and transactions
+- Filtering options (show/hide tasks, expenses, links, categories)
+- Relationship visualization between tasks and financial operations
 
-### `npm test`
+---
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Use Cases
 
-### `npm run build`
+1. **Task Planning (Student / Professional)**
+   - Add a project → break it down into tasks
+   - Link tasks together (dependencies)
+   - Get reminders before deadlines
+   - Track completion status on the graph
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+2. **Expense Tracking (Individual / Team)**
+   - Add a new transaction (e.g., bought software license)
+   - Assign it to a project or category
+   - Check if total expenses are still within the budget
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+3. **Combined Workflow (Project Manager)**
+   - Create a project with multiple tasks
+   - Assign each task budget-linked shopping items or expenses
+   - Use graph visualization to see project progress and financial health together
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Tech Stack
+- **Frontend:** React
+- **Backend:** .NET / ASP.NET Core
+- **Database:** SQL-based (PostgreSQL / MS SQL)
+- **Visualization:** D3.js or Cytoscape.js
