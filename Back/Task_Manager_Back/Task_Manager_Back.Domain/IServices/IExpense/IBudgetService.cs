@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Task_Manager_Back.Domain.Aggregates.ShoppingAggregate;
 
-namespace Task_Manager_Back.Application.IServices.IExpense;
+namespace Task_Manager_Back.Domain.IServices.IExpense;
 public interface IBudgetService
 {
     bool IsWithinBudget(Transaction transaction, decimal budgetLimit);

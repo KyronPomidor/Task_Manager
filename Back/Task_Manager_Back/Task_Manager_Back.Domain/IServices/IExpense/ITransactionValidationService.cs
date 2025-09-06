@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 
-namespace Task_Manager_Back.Application.IServices.IExpense;
+namespace Task_Manager_Back.Domain.IServices.IExpense;
 public interface ITransactionValidationService
 {
     void Validate(Transaction transaction);
