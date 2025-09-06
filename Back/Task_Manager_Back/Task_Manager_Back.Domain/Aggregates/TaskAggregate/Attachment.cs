@@ -10,9 +10,9 @@ public class Attachment //consider taking attachment functionality from Ticketin
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
-    public string FilePath { get; set; }
-    public string FileType { get; set; }
-    public long Size { get; set; }
+    public string FilePath { get; private set; }
+    public string FileType { get; private set; }
+    public long Size { get; private set; }
     public Attachment(Guid userId, string filePath, string fileType, long size)
     {
         Id = Guid.NewGuid();

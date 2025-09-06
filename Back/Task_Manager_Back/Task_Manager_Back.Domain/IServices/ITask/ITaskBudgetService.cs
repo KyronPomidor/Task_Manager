@@ -8,5 +8,5 @@ using Task_Manager_Back.Domain.IServices.IExpense;
 namespace Task_Manager_Back.Domain.IServices.ITask;
 public interface ITaskBudgetService
 {
-    bool CanCompleteTask(Aggregates.TaskAggregate.Task task, IBudgetService budgetService);
+    bool CanCompleteTask(TaskEntity task, IBudgetService budgetService);
 }

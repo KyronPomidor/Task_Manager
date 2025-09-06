@@ -7,6 +7,6 @@ using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 namespace Task_Manager_Back.Domain.IServices.ITask;
 public interface ITaskSchedulingService
 {
-    bool IsOverdue(Aggregates.TaskAggregate.Task task, DateTime currentTime);
-    TimeSpan? GetRemainingTime(Aggregates.TaskAggregate.Task task, DateTime currentTime);
+    bool IsOverdue(TaskEntity task, DateTime currentTime);
+    TimeSpan? GetRemainingTime(TaskEntity task, DateTime currentTime);
 }

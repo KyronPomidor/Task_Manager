@@ -10,8 +10,8 @@ public class Status
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
-    public string Title {  get; set; }
-    public string? Description { get; set; }
+    public string Title {  get; private set; }
+    public string? Description { get; private set; }
     public Status(Guid userId, string title, string? description)
     {
         Id = Guid.NewGuid();

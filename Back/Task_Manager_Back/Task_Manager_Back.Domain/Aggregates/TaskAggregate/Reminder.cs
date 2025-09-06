@@ -10,8 +10,8 @@ public class Reminder
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
-    public DateTime Time { get; set; }
-    public string Message { get; set; }
+    public DateTime Time { get; private set; }
+    public string Message { get; private set; }
     public Reminder(Guid userId, DateTime time, string message)
     {
         Id = Guid.NewGuid();

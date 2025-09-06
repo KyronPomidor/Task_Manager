@@ -8,6 +8,6 @@ using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 namespace Task_Manager_Back.Domain.IServices.ICategory;
 public interface ICategoryService
 {
-    void MoveTaskToCategory(Aggregates.TaskAggregate.Task task, Category targetCategory);
+    void MoveTaskToCategory(TaskEntity task, Category targetCategory);
     bool IsSubCategory(Category parent, Category child);
 }
