@@ -15,13 +15,14 @@ public class CreateTaskUseCase
         _taskRepository = taskRepository;
     }
     public async Task ExecuteAsync
+        //TODO: use CreateTaskRequest
         (
         Guid userId,
         string title,
         string description,
         Guid statusId,
         Guid categoryId,
-        DateTime deadline
+        DateTime? deadline
         )
     {
         TaskEntity task = new TaskEntity

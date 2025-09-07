@@ -1,4 +1,4 @@
-﻿using Task_Manager_Back.Domain.Aggregates.ShoppingAggregate;
+﻿using Task_Manager_Back.Domain.Aggregates.ShopAggregate;
 
 namespace Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 
@@ -77,5 +77,5 @@ public class TaskEntity
     public void AddAttachment(Attachment attachment) { /* логика */ }
     public void RemoveAttachment(Attachment attachment) { /* логика */ }
     public void AddReminder(Reminder reminder) { /* логика */ }
-    public void AddShoppingItem(ShoppingItem item) { /* логика */ }
+    public void AddShopItem(ShopItem item) { /* логика */ }
 }

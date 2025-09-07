@@ -14,7 +14,7 @@ namespace Task_Manager_Back.Domain.Graph
             public float PosY { get; private set; }
             public float Radius { get; private set; }
 
-            // Could reference Task, ShoppingItem, or Transaction
+            // Could reference Task, ShopItem, or Transaction
             public object EntityRef { get; private set; }
 
             public Node(Guid userId, float posX, float posY, float radius, object entityRef)

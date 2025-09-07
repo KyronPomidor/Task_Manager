@@ -14,7 +14,8 @@ public class UpdateTaskUseCase
         _taskRepository = taskRepository;
     }
 
-    public async Task ExecuteAsync(
+    public async Task ExecuteAsync
+        (
         Guid taskId,
         Guid userId,
         string? newTitle,
@@ -23,7 +24,8 @@ public class UpdateTaskUseCase
         Guid? newCategoryId,
         DateTime? newDeadline,
         bool? isCompleted,
-        bool? isFailed)
+        bool? isFailed
+        )
     {
         TaskEntity task = await _taskRepository.GetByIdAsync(taskId)
                           ?? throw new KeyNotFoundException($"Task with Id '{taskId}' not found.");

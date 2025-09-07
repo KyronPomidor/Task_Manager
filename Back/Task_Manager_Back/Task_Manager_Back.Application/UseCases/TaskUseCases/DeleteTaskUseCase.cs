@@ -15,6 +15,7 @@ public class DeleteTaskUseCase
     {
         _taskRepository = taskRepository;
     }
+    //TODO: use DeleteTaskByIdRequest
     public async Task ExecuteAsync(Guid taskId)
     {
         TaskEntity task = await _taskRepository.GetByIdAsync(taskId) ?? throw new KeyNotFoundException($"Task with Id '{taskId}' not found.");

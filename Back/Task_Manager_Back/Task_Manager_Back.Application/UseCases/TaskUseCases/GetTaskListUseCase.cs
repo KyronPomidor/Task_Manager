@@ -15,6 +15,7 @@ public class GetTaskListUseCase
     {
         _taskRepository = taskRepository;
     }
+    //TODO: use GetTasksRequest
     public async Task<List<TaskEntity>> ExecuteAsync()
     {
         return await _taskRepository.GetAllAsync();

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Task_Manager_Back.Domain.Aggregates.ShoppingAggregate
+namespace Task_Manager_Back.Domain.Aggregates.ShopAggregate
 {
     public class TransactionCategory
     {

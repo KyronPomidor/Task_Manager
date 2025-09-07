@@ -1,8 +1,8 @@
 ﻿using System.Transactions;
 
-namespace Task_Manager_Back.Domain.Aggregates.ShoppingAggregate
+namespace Task_Manager_Back.Domain.Aggregates.ShopAggregate
 {
-    public class ShoppingItem
+    public class ShopItem
     {
         public Guid Id { get; private set; }
         public string Name { get; private set; }
@@ -12,7 +12,7 @@ namespace Task_Manager_Back.Domain.Aggregates.ShoppingAggregate
         public bool IsBought { get; private set; }
         public List<Transaction> Transactions { get; private set; } = new();
 
-        public ShoppingItem(string name, decimal amount, decimal price, bool isInCart, bool isBought)
+        public ShopItem(string name, decimal amount, decimal price, bool isInCart, bool isBought)
         {
             Id = Guid.NewGuid();
             Name = name ?? throw new ArgumentNullException(nameof(name));
