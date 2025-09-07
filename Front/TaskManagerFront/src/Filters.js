@@ -1,50 +1,63 @@
 import './App.css';
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Filters({ onFilterSelect }) {
-  const filters = ["Completed", "Can Start", "Deadline"];
-  const [activeFilters, setActiveFilters] = useState([]);
+  const OPTIONS = [
+    { id: "completed", label: "Completed", value: "Completed" },
+    { id: "canstart",  label: "Can Start", value: "Can Start" },
+    { id: "deadline",  label: "Deadline",  value: "Deadline" },
+  ];
 
-  const handleClick = (filter) => {
-    let updatedFilters;
-    if (activeFilters.includes(filter)) {
-     
-      updatedFilters = activeFilters.filter(f => f !== filter);
-    } else {
+  const [activeFilters, setActiveFilters] = useState(["Can Start"]);
 
-      updatedFilters = [...activeFilters, filter];
-    }
-    setActiveFilters(updatedFilters);
-    if (onFilterSelect) onFilterSelect(updatedFilters);
+  const toggle = (value) => {
+    const next = activeFilters.includes(value)
+      ? activeFilters.filter(v => v !== value)
+      : [...activeFilters, value];
+
+    setActiveFilters(next);
+    onFilterSelect?.(next);
   };
 
+  useEffect(() => {
+  onFilterSelect?.(["Can Start"]);
+  }, []);
+
   return (
-    <div style={{
-      display: "flex",
-      justifyContent: "center",
-      gap: "3vw",
-      marginBottom: "2vh",
-      marginTop:"7vh"
-    }}>
-      {filters.map((filter) => (
-        <button
-          key={filter}
-          onClick={() => handleClick(filter)}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        gap: "2rem",
+        marginBottom: "2vh",
+      }}
+    >
+      {OPTIONS.map(opt => (
+        <label
+          key={opt.id}
+          htmlFor={opt.id}
           style={{
-            padding: "0.5em 1.5em",
-            borderRadius: "20px",
-            border: activeFilters.includes(filter) ? "1px solid #d0b71bff" : "1px solid #ccc",
-            backgroundColor: activeFilters.includes(filter) ? "#f2d03bff" : "#fff",
-            color: activeFilters.includes(filter) ? "#fff" : "#000",
+            display: "flex",
+            alignItems: "center",
+            gap: ".5rem",
             cursor: "pointer",
-            fontWeight: "500",
-            whiteSpace: "nowrap",
             fontSize: "clamp(14px, 2vw, 16px)",
-            transition: "all 0.2s ease",
           }}
         >
-          {filter}
-        </button>
+          <input
+            id={opt.id}
+            type="checkbox"
+            checked={activeFilters.includes(opt.value)}
+            onChange={() => toggle(opt.value)}
+            style={{
+              width: 16,
+              height: 16,
+              accentColor: "#f2d03bff",
+              cursor: "pointer",
+            }}
+          />
+          {opt.label}
+        </label>
       ))}
     </div>
   );

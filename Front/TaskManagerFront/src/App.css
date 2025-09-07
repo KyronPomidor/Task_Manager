@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  background-color: rgb(246, 246, 246);
+  background-color: #FAF9F6;
 }
 
 .App-logo {
@@ -99,6 +99,120 @@
 .App-link {
   color: #61dafb;
 }
+
+/* Make the header's user-section a button without default button chrome */
+.user-section {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.user-section:focus-visible {
+  outline: 2px solid #3b82f6; /* accessible focus ring */
+  border-radius: 8px;
+}
+
+.user-name {
+  font-weight: 700;
+}
+
+.backdrop-dim {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1050;
+}
+
+.modal-center {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 520px);
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+  padding: 20px;
+  z-index: 1060;
+}
+
+.modal-title {
+  margin: 0 0 12px 0;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  gap: 6px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.form-input {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.form-input.has-error {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+
+.error-text {
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.checkbox-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* Optional: body scroll lock when modal is open */
+.no-scroll {
+  overflow: hidden;
+  height: 100vh;
+}
+
+/* Simple button presets (if you’re not using Bootstrap) */
+.btn {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-light {
+  background: #fafafa;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: white;
+  border-color: #3b82f6;
+}
+
 
 @keyframes App-logo-spin {
   from {

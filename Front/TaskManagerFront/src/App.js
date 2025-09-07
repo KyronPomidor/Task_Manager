@@ -15,7 +15,7 @@ function App() {
         <Welcome />
         <Tasks />
       </div>
-  </div>
+    </div>
   );
 }
 
