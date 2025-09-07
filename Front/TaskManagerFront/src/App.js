@@ -272,7 +272,6 @@ function Tasks() {
     { id: "2", text: "Second task", completed: false, highlighted: false, dependsOn: [] },
   ]);
   const [newTask, setNewTask] = useState("");
-  const [newDeps, setNewDeps] = useState([]); // array of task IDs selected as dependencies
 
   // helpers
   const byId = (id) => tasks.find(t => t.id === id);
@@ -286,11 +285,10 @@ function Tasks() {
       text: newTask.trim(),
       completed: false,
       highlighted: false,
-      dependsOn: newDeps.slice(),
+      dependsOn: [], // no deps at creation; set via ⛓ button
     };
     setTasks(prev => [...prev, newItem]);
     setNewTask("");
-    setNewDeps([]);
   };
 
   const toggleComplete = (id) => {
@@ -301,18 +299,23 @@ function Tasks() {
       // If trying to mark complete, ensure all deps are completed
       if (!t.completed && !canComplete(t)) {
         const missing = unmetDeps(t).map(did => byId(did)?.text || did);
-        alert(`You can’t complete this yet.\nUnmet dependencies:\n- ${missing.join("\n- ")}`);
+        window.alert(
+          `You can’t complete this yet.\nUnmet dependencies:\n- ${missing.join("\n- ")}`
+        );
         return prev;
       }
 
       // If trying to mark incomplete and others depend on this, warn
       if (t.completed) {
         const dependents = prev.filter(x => (x.dependsOn || []).includes(id) && x.completed);
-        if (dependents.length > 0 && !window.confirm(
-          `This task is a dependency for ${dependents.length} completed task(s).\n` +
-          `Marking it incomplete will make those tasks logically inconsistent.\n` +
-          `Proceed anyway?`
-        )) {
+        if (
+          dependents.length > 0 &&
+          !window.confirm(
+            `This task is a dependency for ${dependents.length} completed task(s).\n` +
+            `Marking it incomplete may make those tasks inconsistent.\n` +
+            `Proceed anyway?`
+          )
+        ) {
           return prev;
         }
       }
@@ -333,19 +336,27 @@ function Tasks() {
     setTasks(reordered);
   };
 
-  // Edit dependencies after creation
+  // Edit dependencies (only via button)
   const editDeps = (taskId) => {
     const others = tasks.filter(t => t.id !== taskId);
-    const lines = others.map((t, i) => `${i + 1}. ${t.text}`).join("\n");
-    const input = prompt(
-      `Enter comma-separated numbers to depend on:\n\n${lines}\n\nLeave empty for none.`,
+    if (others.length === 0) {
+      window.alert("No other tasks available to depend on.");
+      return;
+    }
+
+    const lines = others.map((t, i) => `${i + 1}. ${t.text}${t.completed ? " (✓)" : ""}`).join("\n");
+    const input = window.prompt(
+      `Enter comma-separated numbers to set dependencies:\n\n${lines}\n\nLeave empty for none.`,
       ""
     );
-    if (input === null) return;
-    const indices = input.split(",").map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
-    const ids = indices
-      .map(n => others[n - 1]?.id)
-      .filter(Boolean);
+    if (input === null) return; // cancelled
+
+    const indices = input
+      .split(",")
+      .map(s => parseInt(s.trim(), 10))
+      .filter(n => !isNaN(n));
+
+    const ids = indices.map(n => others[n - 1]?.id).filter(Boolean);
 
     setTasks(prev => prev.map(t => t.id === taskId ? { ...t, dependsOn: ids } : t));
   };
@@ -385,8 +396,8 @@ function Tasks() {
     <div style={{ padding: "20px", marginTop: "10vh" }}>
       <Sections />
 
-      {/* Composer */}
-      <div style={{ display: "flex", gap: "10px", marginBottom: "10px", flexWrap: "wrap", alignItems: "center" }}>
+      {/* Composer (no dependency menu here) */}
+      <div style={{ display: "flex", gap: "10px", marginBottom: "20px" }}>
         <input
           type="text"
           value={newTask}
@@ -394,41 +405,11 @@ function Tasks() {
           placeholder="Enter new task..."
           style={{
             flex: 1,
-            minWidth: 240,
             padding: "8px",
             borderRadius: "5px",
             border: "1px solid #ccc",
           }}
         />
-
-        {/* Depends on multi-select */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <label style={{ fontSize: 12, color: "#555" }}>Depends on</label>
-          <select
-            multiple
-            value={newDeps}
-            onChange={(e) => {
-              const opts = Array.from(e.target.selectedOptions).map(o => o.value);
-              setNewDeps(opts);
-            }}
-            style={{
-              minWidth: 180,
-              maxWidth: 260,
-              height: 36,
-              padding: 4,
-              borderRadius: 6,
-              border: "1px solid #ccc",
-            }}
-            title="Hold Ctrl/Cmd to select multiple"
-          >
-            {tasks.map(t => (
-              <option key={t.id} value={t.id}>
-                {t.text} {t.completed ? "(✓)" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-
         <button
           onClick={handleAddTask}
           style={{
@@ -519,7 +500,7 @@ function Tasks() {
                             ⋮⋮
                           </span>
 
-                          {/* Dollar button */}
+                          {/* Highlight */}
                           <button
                             onClick={() => toggleHighlight(task.id)}
                             style={{
@@ -538,7 +519,7 @@ function Tasks() {
                             $
                           </button>
 
-                          {/* Edit deps */}
+                          {/* Set dependencies (only entry point) */}
                           <button
                             onClick={() => editDeps(task.id)}
                             style={{
