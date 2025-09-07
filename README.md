@@ -87,7 +87,7 @@ Users can structure tasks into categories, visualize and edit dependencies in an
 
 ## 🖼 Example Graph View
 
-![Graph View Example]([https://yourdomain.com/graph.png](https://www.researchgate.net/profile/Alena-Otto/publication/254426268/figure/fig1/AS:341749919698955@1458490939270/Example-of-a-precedence-graph.png))
+![Graph View Example](https://www.researchgate.net/profile/Alena-Otto/publication/254426268/figure/fig1/AS:341749919698955@1458490939270/Example-of-a-precedence-graph.png)
 
 -   **Blue arrows** = task dependencies
     
