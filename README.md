@@ -18,9 +18,7 @@ Users can structure tasks into categories, visualize and edit dependencies in an
     -   via **drag-and-drop in list view** (using the star handle), or
         
     -   directly inside the **graph view** by connecting two nodes.
-        
--   Configurable **dependency arrow direction** (task → dependency or dependency → task).
-    
+            
 -   Switch seamlessly between **list view** and **interactive graph view**.
     
 -   Add shopping lists inside tasks with the **$ button**.
@@ -60,11 +58,11 @@ Users can structure tasks into categories, visualize and edit dependencies in an
 
 1.  **Personal Task Planning**
     
-    -   Create a project and break it into tasks.
+    -   When some task appears, immidiatly add it in the inbox
+  
+    -   Organize tasks into nested categories.
         
     -   Link tasks together in the graph to define dependencies.
-        
-    -   Organize tasks into nested categories.
         
 2.  **Expense Tracking**
     
@@ -88,12 +86,7 @@ Users can structure tasks into categories, visualize and edit dependencies in an
 ## 🖼 Example Graph View
 
 ![Graph View Example](./graph-example.png)
-
--   **Blue arrows** = task dependencies
     
--   **Nodes with 🛒** = purchases linked to tasks
-    
-
 ---
 
 ## 🛠 Tech Stack
