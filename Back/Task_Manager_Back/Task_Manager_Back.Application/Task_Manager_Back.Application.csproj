@@ -6,4 +6,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Task_Manager_Back.Domain\Task_Manager_Back.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Requests\ShopRequests\" />
+    <Folder Include="UseCases\ShopUseCases\" />
+  </ItemGroup>
+
 </Project>
