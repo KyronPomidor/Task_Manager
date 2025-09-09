@@ -4,7 +4,7 @@ namespace Task_Manager_Back.Api.Controllers;
 
 [ApiController]
 [Route("api/cart")]
-public class ShopItemController : ControllerBase
+public class ShopItemsController : ControllerBase
 {
     [HttpPost]
     [HttpGet("{guid}")]

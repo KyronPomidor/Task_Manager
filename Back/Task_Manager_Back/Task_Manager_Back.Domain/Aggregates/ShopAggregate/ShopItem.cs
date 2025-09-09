@@ -1,41 +1,51 @@
-﻿using System.Transactions;
-
-namespace Task_Manager_Back.Domain.Aggregates.ShopAggregate
+﻿namespace Task_Manager_Back.Domain.Aggregates.ShopAggregate;
+public class ShopItem
 {
-    public class ShopItem
+    public Guid Id { get; private set; }
+    public string Name { get; private set; }
+    public double Amount { get; private set; }
+    public double? Price { get; private set; }
+    public Guid? ProductCategoryId { get; private set; }
+
+    public ShopItem(string name, double amount, double? price, Guid? productCategoryId)
     {
-        public Guid Id { get; private set; }
-        public string Name { get; private set; }
-        public decimal Amount { get; private set; }
-        public decimal Price { get; private set; }
-        public bool IsInCart { get; private set; }
-        public bool IsBought { get; private set; }
-        public List<Transaction> Transactions { get; private set; } = new();
-
-        public ShopItem(string name, decimal amount, decimal price, bool isInCart, bool isBought)
+        Id = Guid.NewGuid();
+        Name = string.IsNullOrEmpty(name) || name.Length > 100 ? throw new ArgumentException("Name must be 1-100 chars", nameof(name)) : name;
+        Amount = amount <= 0 ? throw new ArgumentException("Amount must be positive", nameof(amount)) : amount;
+        Price = price < 0 ? throw new ArgumentException("Price cannot be negative", nameof(price)) : price;
+        ProductCategoryId = productCategoryId;
+    }
+    private ShopItem() { }
+    public static ShopItem LoadFromPersistence(Guid id, string name, double amount, double? price, Guid? productCategoryId)
+    {
+        return new ShopItem
         {
-            Id = Guid.NewGuid();
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Amount = amount;
-            Price = price;
-            IsInCart = isInCart;
-            IsBought = isBought;
-        }
+            Id = id,
+            Name = name,
+            Amount = amount,
+            Price = price,
+            ProductCategoryId = productCategoryId
+        };
+    }
 
-        public Transaction ConvertToTransaction(Guid userId, Location location, TransactionCategory category)
-        {
-            return new Transaction(
-                Guid.NewGuid(),
-                userId,
-                Name,
-                Amount,
-                Price,
-                false,
-                category.Id,
-                location.Id,
-                string.Empty,
-                DateTime.UtcNow
-            );
-        }
+    public void UpdateName(string name)
+    {
+        Name = string.IsNullOrEmpty(name) || name.Length > 100
+            ? throw new ArgumentException("Name must be 1-100 chars", nameof(name)) : name;
+    }
+
+    public void UpdateAmount(double amount)
+    {
+        Amount = amount <= 0 ? throw new ArgumentException("Amount must be positive", nameof(amount)) : amount;
+    }
+
+    public void UpdatePrice(double? price)
+    {
+        Price = price < 0 ? throw new ArgumentException("Price cannot be negative", nameof(price)) : price;
+    }
+
+    public void UpdateProductCategory(Guid? productCategoryId)
+    {
+        ProductCategoryId = productCategoryId;
     }
 }
