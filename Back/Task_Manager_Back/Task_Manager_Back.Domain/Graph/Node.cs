@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Task_Manager_Back.Domain.Common;
 
 namespace Task_Manager_Back.Domain.Graph
     {
@@ -35,11 +31,8 @@ namespace Task_Manager_Back.Domain.Graph
 
             public void Resize(float radius)
             {
-                if (radius <= 0)
-                {
-                    throw new ArgumentException("Radius must be greater than zero.");
-                }
-                Radius = radius;
+
+                Radius = ValidationHelper.ValidateNonNegative<float>(radius, nameof(radius));
             }
         }
     }

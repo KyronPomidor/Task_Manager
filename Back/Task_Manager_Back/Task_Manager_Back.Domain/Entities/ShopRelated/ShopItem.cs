@@ -1,4 +1,7 @@
-﻿namespace Task_Manager_Back.Domain.Aggregates.ShopAggregate;
+﻿using Task_Manager_Back.Domain.Common;
+
+namespace Task_Manager_Back.Domain.Entities.ShopRelated;
+
 public class ShopItem
 {
     public Guid Id { get; private set; }
@@ -10,12 +13,14 @@ public class ShopItem
     public ShopItem(string name, double amount, double? price, Guid? productCategoryId)
     {
         Id = Guid.NewGuid();
-        Name = string.IsNullOrEmpty(name) || name.Length > 100 ? throw new ArgumentException("Name must be 1-100 chars", nameof(name)) : name;
-        Amount = amount <= 0 ? throw new ArgumentException("Amount must be positive", nameof(amount)) : amount;
-        Price = price < 0 ? throw new ArgumentException("Price cannot be negative", nameof(price)) : price;
+        Name = ValidationHelper.ValidateStringField(name, 1, 100, nameof(name));
+        Amount = ValidationHelper.ValidateNonNegative(amount, nameof(amount));
+        Price = price.HasValue ? ValidationHelper.ValidateNonNegative(price.Value, nameof(price)) : null;
         ProductCategoryId = productCategoryId;
     }
+
     private ShopItem() { }
+
     public static ShopItem LoadFromPersistence(Guid id, string name, double amount, double? price, Guid? productCategoryId)
     {
         return new ShopItem
@@ -30,18 +35,17 @@ public class ShopItem
 
     public void UpdateName(string name)
     {
-        Name = string.IsNullOrEmpty(name) || name.Length > 100
-            ? throw new ArgumentException("Name must be 1-100 chars", nameof(name)) : name;
+        Name = ValidationHelper.ValidateStringField(name, 1, 100, nameof(name));
     }
 
     public void UpdateAmount(double amount)
     {
-        Amount = amount <= 0 ? throw new ArgumentException("Amount must be positive", nameof(amount)) : amount;
+        Amount = ValidationHelper.ValidateNonNegative(amount, nameof(amount));
     }
 
     public void UpdatePrice(double? price)
     {
-        Price = price < 0 ? throw new ArgumentException("Price cannot be negative", nameof(price)) : price;
+        Price = price.HasValue ? ValidationHelper.ValidateNonNegative(price.Value, nameof(price)) : null;
     }
 
     public void UpdateProductCategory(Guid? productCategoryId)

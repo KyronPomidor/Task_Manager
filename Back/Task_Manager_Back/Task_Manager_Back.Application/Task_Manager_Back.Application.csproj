@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="UseCases\TaskUseCases\NewFolder\**" />
+    <EmbeddedResource Remove="UseCases\TaskUseCases\NewFolder\**" />
+    <None Remove="UseCases\TaskUseCases\NewFolder\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Task_Manager_Back.Domain\Task_Manager_Back.Domain.csproj" />
   </ItemGroup>
 

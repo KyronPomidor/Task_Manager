@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
+﻿using Task_Manager_Back.Application.IRepositories;
+using Task_Manager_Back.Application.Requests.TaskRequests;
+using Task_Manager_Back.Domain.Entities.TaskRelated;
 
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
+
 public class GetTaskListUseCase
 {
     private readonly ITaskRepository _taskRepository;
@@ -15,9 +12,11 @@ public class GetTaskListUseCase
     {
         _taskRepository = taskRepository;
     }
-    //TODO: use GetTasksRequest
-    public async Task<List<TaskEntity>> ExecuteAsync()
+
+    public async Task<IReadOnlyList<TaskEntity>> ExecuteAsync(GetTasksRequest request)
     {
+        // Позже тут можно будет добавить фильтрацию
         return await _taskRepository.GetAllAsync();
     }
 }
+

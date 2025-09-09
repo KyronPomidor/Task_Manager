@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
+﻿using Task_Manager_Back.Application.IRepositories;
+using Task_Manager_Back.Application.Requests.TaskRequests;
+using Task_Manager_Back.Domain.Entities.TaskRelated;
+
 
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 public class CreateTaskUseCase
@@ -14,26 +12,19 @@ public class CreateTaskUseCase
     {
         _taskRepository = taskRepository;
     }
-    public async Task ExecuteAsync
-        //TODO: use CreateTaskRequest
-        (
-        Guid userId,
-        string title,
-        string description,
-        Guid statusId,
-        Guid categoryId,
-        DateTime? deadline
-        )
+
+    public async Task ExecuteAsync(CreateTaskRequest request)
     {
-        TaskEntity task = new TaskEntity
-        (
-        userId,
-        title,
-        description,
-        statusId,
-        categoryId,
-        deadline
-        );
+        var task = new TaskEntity(new TaskEntityCreateParams(
+            request.UserId,
+            request.Title,
+            request.Description,
+            request.StatusId,
+            request.PriorityId,
+            request.CategoryId,
+            request.Deadline
+        ));
+
         await _taskRepository.CreateAsync(task);
     }
 }

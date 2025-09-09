@@ -1,7 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
+﻿using Task_Manager_Back.Application.IRepositories;
+using Task_Manager_Back.Application.Requests.TaskRequests;
+using Task_Manager_Back.Domain.Entities.TaskRelated;
 
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 
@@ -14,42 +13,31 @@ public class UpdateTaskUseCase
         _taskRepository = taskRepository;
     }
 
-    public async Task ExecuteAsync
-        (
-        Guid taskId,
-        Guid userId,
-        string? newTitle,
-        string? newDescription,
-        Guid? newStatusId,
-        Guid? newCategoryId,
-        DateTime? newDeadline,
-        bool? isCompleted,
-        bool? isFailed
-        )
+    public async Task ExecuteAsync(UpdateTaskRequest request)
     {
-        TaskEntity task = await _taskRepository.GetByIdAsync(taskId)
-                          ?? throw new KeyNotFoundException($"Task with Id '{taskId}' not found.");
+        TaskEntity task = await _taskRepository.GetByIdAsync(request.TaskId)
+            ?? throw new KeyNotFoundException($"Task with Id '{request.TaskId}' not found.");
 
         // Применяем изменения через доменные методы
-        if (!string.IsNullOrWhiteSpace(newTitle))
-            task.Rename(newTitle);
+        if (!string.IsNullOrWhiteSpace(request.NewTitle))
+            task.Rename(request.NewTitle);
 
-        if (newDescription != null)
-            task.UpdateDescription(newDescription);
+        if (request.NewDescription is not null)
+            task.UpdateDescription(request.NewDescription);
 
-        if (newStatusId.HasValue)
-            task.ChangeStatus(newStatusId.Value);
+        if (request.NewStatusId.HasValue)
+            task.ChangeStatus(request.NewStatusId.Value);
 
-        if (newCategoryId.HasValue)
-            task.ChangeCategory(newCategoryId.Value);
+        if (request.NewCategoryId.HasValue)
+            task.ChangeCategory(request.NewCategoryId.Value);
 
-        if (newDeadline.HasValue)
-            task.ChangeDeadline(newDeadline);
+        if (request.NewDeadline.HasValue)
+            task.ChangeDeadline(request.NewDeadline);
 
-        if (isCompleted == true)
+        if (request.IsCompleted == true)
             task.MarkCompleted();
 
-        if (isFailed == true)
+        if (request.IsFailed == true)
             task.MarkFailed();
 
         await _taskRepository.UpdateAsync(task);

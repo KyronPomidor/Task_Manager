@@ -1,31 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
+﻿using Task_Manager_Back.Application.IRepositories;
+using Task_Manager_Back.Application.Requests.TaskRequests;
+using Task_Manager_Back.Domain.Entities.TaskRelated;
 
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
-public class AddReminderToTaskUseCase
+
+public class AddTaskReminderUseCase
 {
     private readonly ITaskRepository _taskRepository;
 
-    public AddReminderToTaskUseCase(ITaskRepository taskRepository)
+    public AddTaskReminderUseCase(ITaskRepository taskRepository)
     {
         _taskRepository = taskRepository;
     }
 
-    // shouldn't the implementation be in Domain (business logic?)
-    public async Task<Reminder> ExecuteAsync(Guid taskId, Guid userId, DateTime time, string message)
+    public async Task<TaskReminder> ExecuteAsync(AddTaskReminderRequest request)
     {
-        return new Reminder
-            (
-                taskId,
-                userId,
-                time,
-                message ?? throw new ArgumentNullException(nameof(message))
-            );
+        var task = await _taskRepository.GetByIdAsync(request.TaskId)
+                   ?? throw new KeyNotFoundException($"Task with Id '{request.TaskId}' not found.");
 
+        var reminder = new TaskReminder(new TaskReminderCreateParams(
+        
+            request.TaskId,
+            request.UserId,
+            request.Time,
+            request.Message
+        ));
+
+        task.AddReminder(reminder);
+        await _taskRepository.UpdateAsync(task);
+
+        return reminder;
     }
 }

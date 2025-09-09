@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
+﻿using Task_Manager_Back.Application.IRepositories;
+using Task_Manager_Back.Application.Requests.TaskRequests;
+using Task_Manager_Back.Domain.Entities.TaskRelated;
 
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
+
 public class GetTaskUseCase
 {
     private readonly ITaskRepository _taskRepository;
@@ -15,9 +12,13 @@ public class GetTaskUseCase
     {
         _taskRepository = taskRepository;
     }
-    //TODO: use GetTaskRequest
-    public async Task<TaskEntity> ExecuteAsync(Guid taskIdd)
+
+    public async Task<TaskEntity> ExecuteAsync(GetTaskByIdRequest request)
     {
-        return await _taskRepository.GetByIdAsync(taskIdd);
+        var task = await _taskRepository.GetByIdAsync(request.TaskId)
+                   ?? throw new KeyNotFoundException($"Task with Id '{request.TaskId}' not found.");
+
+        return task;
     }
 }
+

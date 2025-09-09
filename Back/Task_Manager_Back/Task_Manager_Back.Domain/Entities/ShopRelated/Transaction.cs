@@ -1,6 +1,4 @@
-﻿using System.Transactions;
-
-namespace Task_Manager_Back.Domain.Aggregates.ShopAggregate
+﻿namespace Task_Manager_Back.Domain.Entities.ShopRelated
 {
     public class Transaction
     {
