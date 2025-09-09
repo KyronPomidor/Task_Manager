@@ -1,24 +1,42 @@
-import './App.css';
-import Header from './Header.js';
-import SideBar from './SideBar.js';
-import Welcome from './Welcome.js';
-import Tasks from './Tasks.js';
+import "./App.css";
+import { useState } from "react";
+import Header from "./Header";
+import SideBar from "./SideBar";
+import Tasks from "./Tasks";
+import Welcome from "./Welcome";
 
+export default function App() {
+  // Categories live at the App level so both SideBar and Tasks can share them
+  const [categories, setCategories] = useState([
+    { id: "work", name: "Work", parentId: null },
+    { id: "personal", name: "Personal", parentId: null },
+    { id: "projA", name: "Project A", parentId: "work" },
+    { id: "projB", name: "Project B", parentId: "work" },
+    { id: "fun", name: "Fun", parentId: "personal" },
+  ]);
 
+  const [selectedCategory, setSelectedCategory] = useState("inbox");
 
-function App() {
   return (
     <div className="App">
       <Header />
-      <div style={{ display: "flex" }}>
-        <SideBar />
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", marginLeft:"10px", marginRight:"10px" }}>
+      <div className="AppBody">
+        <SideBar
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategorySelect={setSelectedCategory}
+          setCategories={setCategories}
+        />
+        <div className="MainPanel">
           <Welcome />
-          <Tasks />
+          <div className="MainScroll">
+            <Tasks
+              categories={categories}
+              selectedCategory={selectedCategory}
+            />
+          </div>
         </div>
       </div>
-  </div>
+    </div>
   );
 }
-
-export default App;
