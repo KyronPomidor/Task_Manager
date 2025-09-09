@@ -1,7 +1,7 @@
 import "./App.css";
 import { useMemo, useState } from "react";
 
-/* ============== palette + shared ============== */
+/* ========= colors & basic styles ========= */
 const COLORS = {
   blue: "#2563eb",
   blueText: "#ffffff",
@@ -27,7 +27,9 @@ const STYLES = {
     boxSizing: "border-box",
   },
   list: { flex: 1, overflowY: "auto", padding: "8px 0" },
-  actionsWrap: { display: "flex", alignItems: "center", gap: 6 },
+
+  // action buttons shown on hover/active
+  actionWrap: { display: "flex", alignItems: "center", gap: 6 },
   actionBtn: {
     width: 28,
     height: 28,
@@ -40,6 +42,7 @@ const STYLES = {
     cursor: "pointer",
     transition: "background 0.15s",
   },
+
   addBtn: {
     margin: "10px 12px",
     padding: "10px 12px",
@@ -50,14 +53,10 @@ const STYLES = {
     cursor: "pointer",
     fontWeight: 600,
   },
-  // Modal
-  modalBackdrop: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.45)",
-    zIndex: 999,
-  },
-  modalDialog: {
+
+  // modal
+  backdrop: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 999 },
+  dialog: {
     position: "fixed",
     top: "50%",
     left: "50%",
@@ -69,7 +68,7 @@ const STYLES = {
     padding: 20,
     zIndex: 1000,
   },
-  fieldWrap: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 },
+  field: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 },
   input: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit" },
   select: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", background: "#fff" },
   actions: { display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 },
@@ -77,37 +76,38 @@ const STYLES = {
   btnSave: { padding: "8px 12px", borderRadius: 8, border: "none", background: COLORS.blue, color: "#fff", cursor: "pointer", fontWeight: 600 },
 };
 
-function rowStyle({ active, level, shaded, hovered }) {
-  const base = {
+/* ========= one place to compute a row's style ========= */
+function getRowStyle({ isActive, level, isShaded, isHovered }) {
+  const s = {
     position: "relative",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
     gap: 8,
     padding: "10px 12px",
-    paddingLeft: 12 + level * 16,
+    paddingLeft: 12 + level * 16, // indent children
     cursor: "pointer",
     background: "transparent",
     color: "#111827",
     fontWeight: 500,
     borderBottom: `1px solid ${COLORS.rowBorder}`,
   };
-  if (active) {
-    base.background = COLORS.blue;
-    base.color = COLORS.blueText;
-    base.fontWeight = 600;
-  } else if (shaded) {
-    base.background = COLORS.groupBg;
-  } else if (hovered) {
-    base.background = COLORS.rowHover;
+  if (isActive) {
+    s.background = COLORS.blue;
+    s.color = COLORS.blueText;
+    s.fontWeight = 600;
+  } else if (isShaded) {
+    s.background = COLORS.groupBg;
+  } else if (isHovered) {
+    s.background = COLORS.rowHover;
   }
-  return base;
+  return s;
 }
 
-/* small presentational bits */
-function ActionButtons({ onEdit, onDelete }) {
+/* ========= tiny presentational bits ========= */
+function Actions({ onEdit, onDelete }) {
   return (
-    <div style={STYLES.actionsWrap} onClick={(e) => e.stopPropagation()}>
+    <div style={STYLES.actionWrap} onClick={(e) => e.stopPropagation()}>
       <button
         style={STYLES.actionBtn}
         title="Edit"
@@ -133,8 +133,8 @@ function ActionButtons({ onEdit, onDelete }) {
 function Row({
   label,
   level,
-  active,
-  shaded,
+  isActive,
+  isShaded,
   showActions,
   onClick,
   onEdit,
@@ -143,10 +143,11 @@ function Row({
   onMouseEnter,
   onMouseLeave,
   isInbox = false,
+  extraStyle = {}, // <— lets us add the Inbox margin easily
 }) {
   return (
     <div
-      style={rowStyle({ active, level, shaded, hovered: showActions && !active })}
+      style={{ ...getRowStyle({ isActive, level, isShaded, isHovered: showActions && !isActive }), ...extraStyle }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -167,25 +168,26 @@ function Row({
       <span className="truncate" title={label} style={{ position: "relative", zIndex: 1 }}>
         {label}
       </span>
-      {!isInbox && (showActions || active) && <ActionButtons onEdit={onEdit} onDelete={onDelete} />}
+      {!isInbox && (showActions || isActive) && <Actions onEdit={onEdit} onDelete={onDelete} />}
     </div>
   );
 }
 
-/* ============== main ============== */
+/* ========= main component ========= */
 export default function SideBar({ categories, selectedCategory, onCategorySelect, setCategories }) {
   const [hoverId, setHoverId] = useState(null);
 
-  // Modal state
+  // modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState("add"); // "add" | "edit"
+  const [mode, setMode] = useState("add"); // "add" | "edit"
   const [editingId, setEditingId] = useState(null);
 
-  // Form
-  const [catName, setCatName] = useState("");
+  // form state
+  const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
 
-  const childrenMap = useMemo(() => {
+  /* ----- build a parent->children map for rendering a tree ----- */
+  const childrenByParent = useMemo(() => {
     const map = new Map();
     categories.forEach((c) => {
       const key = c.parentId ?? null;
@@ -196,7 +198,8 @@ export default function SideBar({ categories, selectedCategory, onCategorySelect
     return map;
   }, [categories]);
 
-  function isDescendantOf(nodeId, ancestorId) {
+  /* ----- true if nodeId is inside ancestorId's subtree ----- */
+  function isDescendant(nodeId, ancestorId) {
     if (!ancestorId || ancestorId === "inbox") return false;
     let current = categories.find((c) => c.id === nodeId)?.parentId ?? null;
     while (current) {
@@ -206,11 +209,12 @@ export default function SideBar({ categories, selectedCategory, onCategorySelect
     return false;
   }
 
-  function renderBranch(parentId, level = 0) {
-    const nodes = childrenMap.get(parentId ?? null) || [];
-    return nodes.map((cat) => {
-      const active = selectedCategory === cat.id;
-      const shaded = isDescendantOf(cat.id, selectedCategory);
+  /* ----- recursive renderer for the tree ----- */
+  function renderTree(parent, level = 0) {
+    const items = childrenByParent.get(parent ?? null) || [];
+    return items.map((cat) => {
+      const isActive = selectedCategory === cat.id;
+      const isShaded = isDescendant(cat.id, selectedCategory);
       const showActions = hoverId === cat.id;
 
       return (
@@ -218,35 +222,36 @@ export default function SideBar({ categories, selectedCategory, onCategorySelect
           <Row
             label={cat.name}
             level={level}
-            active={active}
-            shaded={shaded}
+            isActive={isActive}
+            isShaded={isShaded}
             showActions={showActions}
             onClick={() => onCategorySelect(cat.id)}
-            onEdit={() => openEditModal(cat)}
-            onDelete={() => deleteCategory(cat.id)}
-            showGroupBar={shaded}
+            onEdit={() => openEdit(cat)}
+            onDelete={() => removeCategory(cat.id)}
+            showGroupBar={isShaded}
             onMouseEnter={() => setHoverId(cat.id)}
             onMouseLeave={() => setHoverId(null)}
           />
-          {renderBranch(cat.id, level + 1)}
+          {renderTree(cat.id, level + 1)}
         </div>
       );
     });
   }
 
-  function openAddModal() {
-    setModalMode("add");
+  /* ----- modal helpers ----- */
+  function openAdd() {
+    setMode("add");
     setEditingId(null);
-    setCatName("");
+    setName("");
     setParentId("");
     setIsModalOpen(true);
     document.body.classList.add("no-scroll");
   }
 
-  function openEditModal(cat) {
-    setModalMode("edit");
+  function openEdit(cat) {
+    setMode("edit");
     setEditingId(cat.id);
-    setCatName(cat.name);
+    setName(cat.name);
     setParentId(cat.parentId || "");
     setIsModalOpen(true);
     document.body.classList.add("no-scroll");
@@ -257,80 +262,104 @@ export default function SideBar({ categories, selectedCategory, onCategorySelect
     document.body.classList.remove("no-scroll");
   }
 
-  function onSave() {
-    const name = catName.trim();
-    if (!name) {
+  function saveCategory() {
+    const trimmed = name.trim();
+    if (!trimmed) {
       alert("Category name is required.");
       return;
     }
-    if (modalMode === "edit") {
+    if (mode === "edit") {
       if (parentId && parentId === editingId) {
         alert("A category cannot be its own parent.");
         return;
       }
-      setCategories((prev) => prev.map((c) => (c.id === editingId ? { ...c, name, parentId: parentId || null } : c)));
+      setCategories((prev) =>
+        prev.map((c) => (c.id === editingId ? { ...c, name: trimmed, parentId: parentId || null } : c))
+      );
     } else {
-      const newCat = { id: Date.now().toString(), name, parentId: parentId || null };
+      const newCat = { id: Date.now().toString(), name: trimmed, parentId: parentId || null };
       setCategories((prev) => [...prev, newCat]);
     }
     closeModal();
   }
 
-  function deleteCategory(id) {
+  function removeCategory(id) {
     const target = categories.find((c) => c.id === id);
     if (!target) return;
     if (!window.confirm(`Delete category "${target.name}"?`)) return;
+
+    // simple delete: category + its direct children
     setCategories((prev) => prev.filter((c) => c.id !== id && c.parentId !== id));
     if (selectedCategory === id) onCategorySelect("inbox");
   }
 
-  const parentOptions = useMemo(() => {
-    return categories.filter((c) => (modalMode === "edit" ? c.id !== editingId : true));
-  }, [categories, modalMode, editingId]);
+  const parentChoices = useMemo(
+    () => categories.filter((c) => (mode === "edit" ? c.id !== editingId : true)),
+    [categories, mode, editingId]
+  );
 
+  /* ----- render ----- */
   return (
     <div className="SideBar" style={STYLES.sidebar}>
       <div style={STYLES.list}>
-        <Row
-          label="Inbox"
-          level={0}
-          active={selectedCategory === "inbox"}
-          shaded={false}
-          showActions={false}
-          onClick={() => onCategorySelect("inbox")}
-          onEdit={null}
-          onDelete={null}
-          showGroupBar={false}
-          isInbox
-        />
-        {renderBranch(null, 0)}
-        <button onClick={openAddModal} style={STYLES.addBtn}>+ Add Category</button>
+        {/* Inbox row with extra bottom margin (10vh) */}
+        <div style={{ marginBottom: "5vh" }}>
+          <Row
+            label="Inbox"
+            level={0}
+            isActive={selectedCategory === "inbox"}
+            isShaded={false}
+            showActions={false}
+            onClick={() => onCategorySelect("inbox")}
+            onEdit={null}
+            onDelete={null}
+            showGroupBar={false}
+            isInbox
+          />
+        </div>
+
+        {/* Category tree */}
+        {renderTree(null, 0)}
+
+        {/* Add category */}
+        <button onClick={openAdd} style={STYLES.addBtn}>+ Add Category</button>
       </div>
 
+      {/* Add/Edit modal */}
       {isModalOpen && (
         <>
-          <div className="backdrop-dim" onClick={closeModal} style={STYLES.modalBackdrop} />
-          <div role="dialog" aria-modal="true" style={STYLES.modalDialog}>
-            <h3 style={{ margin: "0 0 12px 0" }}>{modalMode === "edit" ? "Edit Category" : "Add Category"}</h3>
+          <div className="backdrop-dim" onClick={closeModal} style={STYLES.backdrop} />
+          <div role="dialog" aria-modal="true" style={STYLES.dialog}>
+            <h3 style={{ margin: "0 0 12px 0" }}>{mode === "edit" ? "Edit Category" : "Add Category"}</h3>
 
-            <label style={STYLES.fieldWrap}>
-              <span>Category name <span style={{ color: "#b91c1c" }}>*</span></span>
-              <input type="text" value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="Enter category name" style={STYLES.input} />
+            <label style={STYLES.field}>
+              <span>
+                Category name <span style={{ color: "#b91c1c" }}>*</span>
+              </span>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter category name"
+                style={STYLES.input}
+              />
             </label>
 
-            <label style={STYLES.fieldWrap}>
+            <label style={STYLES.field}>
               <span>Parent category</span>
               <select value={parentId} onChange={(e) => setParentId(e.target.value)} style={STYLES.select}>
                 <option value="">None</option>
-                {parentOptions.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
+                {parentChoices.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
               </select>
             </label>
 
             <div style={STYLES.actions}>
               <button onClick={closeModal} style={STYLES.btnCancel}>Cancel</button>
-              <button onClick={onSave} style={STYLES.btnSave}>Save</button>
+              <button onClick={saveCategory} style={STYLES.btnSave}>Save</button>
             </div>
           </div>
         </>
