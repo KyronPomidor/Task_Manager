@@ -1,0 +1,4 @@
+﻿namespace Task_Manager_Back.Application.Requests.TaskRequests;
+public record GetTasksRequest(
+    
+);

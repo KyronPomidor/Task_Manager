@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Aggregates\ShopAggregate\" />
+    <Folder Include="Aggregates\TaskAggregate\" />
+  </ItemGroup>
+
 </Project>
