@@ -1,55 +1,107 @@
-# Task & Expense Management System
+# GTD Graph Task & Budget Manager
 
-## Description
-A productivity system that combines **GTD-style task management**.  
-Users can organize their tasks into categories, visualize dependencies between tasks/projects, and at the same time keep track of personal or project-related expenses with budget control.  
-The system also provides interactive graph visualization to better understand relationships between tasks, expenses, and projects.
+## 📌 Description
 
----
-
-## Features
-
-### Task Management
-- Organize tasks into categories (Inbox, Next Actions, Projects, Someday)
-- Task status tracking (open, in progress, completed, failed)
-- Attachments, reminders, and relations between tasks
-- Graph view of tasks and dependencies
-
-### Expense Management
-- Record transactions with amount, category, location
-- Categorize expenses (e.g., Food, Travel, Utilities)
-- Set and monitor budgets per category
-- Analytics of expenses per category and per period
-
-### Visualization
-- Interactive graph view of tasks, shopping items, and transactions
-- Filtering options (show/hide tasks, expenses, links, categories)
-- Relationship visualization between tasks and financial operations
+A productivity system that combines **GTD-style task management** with **Zettelkasten-inspired graph visualization** and a built-in **budget manager**.  
+Users can structure tasks into categories, visualize and edit dependencies in an interactive graph, and track expenses directly inside the same workflow.
 
 ---
 
-## Use Cases
+## ✨ Features
 
-1. **Task Planning (Student / Professional)**
-   - Add a project → break it down into tasks
-   - Link tasks together (dependencies)
-   - Get reminders before deadlines
-   - Track completion status on the graph
+### 📝 Task Management
 
-2. **Expense Tracking (Individual / Team)**
-   - Add a new transaction (e.g., bought software license)
-   - Assign it to a project or category
-   - Check if total expenses are still within the budget
+-   Organize tasks into categories with hierarchical nesting (including a special **Inbox**).
+    
+-   Create dependencies between tasks:
+    
+    -   via **drag-and-drop in list view** (using the star handle), or
+        
+    -   directly inside the **graph view** by connecting two nodes.
+            
+-   Switch seamlessly between **list view** and **interactive graph view**.
+    
+-   Add shopping lists inside tasks with the **$ button**.
+    
+-   Filter and sort tasks by category or dependency.
+    
 
-3. **Combined Workflow (Project Manager)**
-   - Create a project with multiple tasks
-   - Assign each task budget-linked shopping items or expenses
-   - Use graph visualization to see project progress and financial health together
+### 🌐 Graph Visualization
+
+-   Interactive graph view of tasks, categories, and dependencies.
+    
+-   Customize display options (categories, dependency arrows, cross-category links).
+    
+-   Node positions are persistent across sessions and devices.
+    
+-   Unified visualization: tasks, expenses, categories, and transactions can all appear in the graph.
+    
+
+### 💰 Budget Management
+
+-   Switch to **Budget Manager** mode with one click.
+    
+-   Collect purchases into a shopping list across categories.
+    
+-   Manage **Cart** (pending items) and **Transactions** (completed purchases).
+    
+-   Assign prices and locations to purchases.
+    
+-   Track spending history and view detailed analytics by time period and category.
+    
+-   Graph mode also supports **purchases, transactions, and categories** as nodes.
+    
 
 ---
 
-## Tech Stack
-- **Frontend:** React
-- **Backend:** .NET / ASP.NET Core
-- **Database:** SQL-based (PostgreSQL / MS SQL)
-- **Visualization:** D3.js or Cytoscape.js
+## 🔎 Use Cases
+
+1.  **Personal Task Planning**
+    
+    -   When some task appears, immidiatly add it in the inbox
+  
+    -   Organize tasks into nested categories.
+        
+    -   Link tasks together in the graph to define dependencies.
+        
+2.  **Expense Tracking**
+    
+    -   Add purchases and attach them to tasks or categories.
+        
+    -   Move items from **Cart → Transactions**.
+        
+    -   Track money spent per category and per time period.
+        
+3.  **Combined Productivity & Finance**
+    
+    -   Manage both tasks and expenses in one workflow.
+        
+    -   Use graphs to visualize project structure and financial flows together.
+        
+    -   Explore relationships between tasks, dependencies, and related purchases.
+        
+
+---
+
+## 🖼 Example Graph View
+
+![Graph View Example](./graph-example.png)
+    
+---
+
+## 🛠 Tech Stack
+
+-   **Frontend:** React
+    
+-   **Backend:** .NET 9 with Clean Architecture (Domain, Application, Repository, API)
+    
+-   **Database:** SQLite
+    
+-   **Visualization:** Customizable interactive graph rendering
+    
+
+---
+
+## 📜 License
+
+This project is released with no **License**.
