@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  background-color: #FAF9F6;
+  background-color: #ffffff;
 }
 
 .App-logo {
@@ -20,6 +20,7 @@
   align-items: center;
   padding: 10px;
   padding-left: 0px;
+  background-color: white;
   border-bottom: 1px solid #eee;
 }
 
@@ -92,7 +93,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  width: 18vw;
+  width: 15vw;
 }
 
 
