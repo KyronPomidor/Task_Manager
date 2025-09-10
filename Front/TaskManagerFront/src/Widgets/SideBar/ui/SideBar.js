@@ -1,4 +1,3 @@
-import "./App.css";
 import { useMemo, useState } from "react";
 
 /* ========= colors & basic styles ========= */
@@ -174,7 +173,7 @@ function Row({
 }
 
 /* ========= main component ========= */
-export default function SideBar({ categories, selectedCategory, onCategorySelect, setCategories }) {
+export function SideBar({ categories, selectedCategory, onCategorySelect, setCategories }) {
   const [hoverId, setHoverId] = useState(null);
 
   // modal state

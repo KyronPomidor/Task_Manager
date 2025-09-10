@@ -1,8 +1,8 @@
-import "./App.css";
+import "../Tasks.css";
 import { useEffect, useMemo, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
-export default function Tasks({ categories, selectedCategory }) {
+export function Tasks({ categories, selectedCategory }) {
   /* ========== Styles ========== */
   const CONTAINER = { padding: 20 };
 

@@ -1,7 +1,6 @@
-import './App.css';
 import { useState, useEffect } from "react";
 
-export default function Welcome() {
+export function Welcome() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {

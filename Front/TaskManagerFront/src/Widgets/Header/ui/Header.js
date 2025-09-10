@@ -1,6 +1,4 @@
-import './App.css';
 import { useState, useEffect } from 'react';
-
 
 function StatusFilter({ onChange }) {
   const [status, setStatus] = useState("All");
@@ -11,7 +9,7 @@ function StatusFilter({ onChange }) {
   };
   
   return (
-    <div className="status-filter">
+    <div>
       <label htmlFor="status" style={{ marginRight: "8px" }}>
         Status:
       </label>
@@ -385,7 +383,7 @@ function DollarButton() {
   );
 }
 
-export default function Header() {
+export function Header() {
   // Локальное состояние (только в памяти)
   const [settings, setSettings] = useState({
     name: 'John Smith',

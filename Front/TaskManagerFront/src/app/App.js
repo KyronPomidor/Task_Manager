@@ -1,10 +1,10 @@
-import "./App.css";
+import "./styles/App.css";
 import { useState } from "react";
-import Header from "./Header";
-import SideBar from "./SideBar";
-import Tasks from "./Tasks";
-import Welcome from "./Welcome";
-import GraphsPage from "./GraphsPage";
+import { Header } from "../Widgets/Header";
+import { SideBar } from "../Widgets/SideBar";
+import { Tasks } from "../pages/TaskPage";
+import { Welcome } from "../Widgets/Welcome";
+import { GraphsPage } from "../pages/GraphPage";
 
 export default function App() {
   const [categories, setCategories] = useState([

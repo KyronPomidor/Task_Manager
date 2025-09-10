@@ -1,7 +1,7 @@
 import React from "react";
 import { ForceGraph2D } from "react-force-graph";
 
-export default function GraphsPage() {
+export function GraphsPage() {
   const data = {
     nodes: [
       { id: "Note 1" },
