@@ -25,6 +25,18 @@ export default function GraphsPage() {
         graphData={data}
         nodeLabel="id"
         nodeAutoColorBy="id"
+        nodeCanvasObjectMode={() => "after"} // run after circles
+        nodeCanvasObject={(node, ctx, globalScale) => {
+          const label = node.id;
+          const fontSize = 12 / globalScale;
+          ctx.font = `${fontSize}px Sans-Serif`;
+          ctx.fillStyle = "#111";
+          ctx.textAlign = "center";
+          ctx.fillText(label, node.x, node.y - 8); // draw above circle
+        }}
+        linkDirectionalArrowLength={6}       // arrow size
+        linkDirectionalArrowRelPos={1}       // position (1 = at end of link)
+        linkColor={() => "gray"}             // color of links
       />
     </div>
   );
