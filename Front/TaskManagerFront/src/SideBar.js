@@ -327,8 +327,9 @@ export default function SideBar({ categories, selectedCategory, onCategorySelect
           showGroupBar={false}
           isInbox
         />
-        {renderBranch(null, 0)}
-        <button onClick={openAddModal} style={STYLES.addBtn}>+ Add Category</button>
+        {renderTree(null, 0)}
+        <button onClick={openAdd} style={STYLES.addBtn}>+ Add Category</button>
+
       </div>
 
       {/* Add/Edit modal */}
