@@ -1,5 +1,3 @@
-import './App.css';
-
 export default function CardButton({ title, value, icon }) {
   return (
     <button
