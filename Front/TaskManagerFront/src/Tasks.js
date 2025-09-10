@@ -73,12 +73,11 @@ export default function Tasks({ categories, selectedCategory }) {
   const CHIP = { marginLeft: 8, padding: "2px 8px", borderRadius: 12, border: "1px solid #e0e0e0", fontSize: 12, whiteSpace: "nowrap" };
   const CHIP_DEADLINE = { color: "white", background: "#2563eb" };
   const CHIP_PRIORITY = (color) => ({ background: "#fff", color, fontWeight: 600 });
-  const BLOCKED_NOTE = { marginLeft: 8, fontSize: 12, color: "#ff3d3dff" };
 
   const DEPS_WRAP = { display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 };
-  const DEP_CHIP = (missing) => ({ padding: "2px 8px", borderRadius: 12, border: "1px solid #e0e0e0", color: "white", background: missing ? "#2563eb" : "#f5f5f5", fontSize: 12, whiteSpace: "nowrap" });
+  const DEP_CHIP = (missing) => ({ padding: "2px 8px", borderRadius: 12, border: "1px solid #e0e0e0", color: "white", background: missing ? "#2563eb" : "#2563eb", fontSize: 12, whiteSpace: "nowrap" });
 
-  const BACKDROP = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 999 };
+  const BACKDROP = { position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)" };
   const MODAL = { position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "min(92vw, 520px)", background: "#fff", borderRadius: 12, boxShadow: "0 10px 30px rgba(0,0,0,0.2)", padding: 20, zIndex: 1000 };
   const MODAL_TITLE = { margin: "0 0 12px 0" };
   const MODAL_FIELD = { display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 };
@@ -478,7 +477,6 @@ export default function Tasks({ categories, selectedCategory }) {
                             <span style={TEXT(rootTask.completed)} title={!canComplete(rootTask) ? "Has unmet dependencies" : ""}>
                               <span style={CHIP_PRI(rootTask.priority)}>⬤ {rootTask.priority}</span>
                               {rootTask.deadline && <span style={{ ...CHIP, ...CHIP_DEADLINE }}>📅 {rootTask.deadline}</span>}
-                              {!canComplete(rootTask) && <span style={BLOCKED_NOTE}>• blocked by {unmetDeps(rootTask).length}</span>}
                             </span>
 
                             <span
@@ -565,7 +563,6 @@ export default function Tasks({ categories, selectedCategory }) {
                                 <span style={TEXT(task.completed)} title={blocked ? "Has unmet dependencies" : ""}>
                                   <span style={CHIP_PRI(task.priority)}>⬤ {task.priority}</span>
                                   {task.deadline && <span style={{ ...CHIP, ...CHIP_DEADLINE }}>📅 {task.deadline}</span>}
-                                  {blocked && <span style={BLOCKED_NOTE}>• blocked by {unmetDeps(task).length}</span>}
                                 </span>
 
                                 <button
@@ -582,7 +579,8 @@ export default function Tasks({ categories, selectedCategory }) {
                                   onClick={(e) => { e.stopPropagation(); openEditTask(task.id); }}
                                   style={BTN_SMALL}
                                   title="Edit"
-                                  onMouseEnter={(e) => { e.currentTarget.style.filter = "brightness(0.97)"; e.currentTarget.style.borderColor = "#bbb"; e.currentTarget.style.background = "#f2f2f2"; }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.filter = "brightness(0.97)"; e.currentTarget.style.borderColor = 
+                                    "#bbb"; e.currentTarget.style.background = "#f2f2f2"; }}
                                   onMouseLeave={(e) => { e.currentTarget.style.filter = "none"; e.currentTarget.style.borderColor = "#ccc"; e.currentTarget.style.background = "#fafafa"; }}
                                 >
                                   ✎

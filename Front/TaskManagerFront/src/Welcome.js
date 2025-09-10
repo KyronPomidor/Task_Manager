@@ -31,7 +31,7 @@ export default function Welcome() {
   const time = `${hours}:${minutes} ${ampm}`;
 
   return (
-    <div style={{ display: "flex", justifyContent: "space-between" }}>
+    <div style={{ display: "flex", justifyContent: "space-between", marginLeft:"1.5vw" }}>
       <section>
         <h2 style={{ display: "flex" }}>Today</h2>
         <b>{day} {date} {month} {year} | {time}</b>
