@@ -4,9 +4,9 @@ import Header from "./Header";
 import SideBar from "./SideBar";
 import Tasks from "./Tasks";
 import Welcome from "./Welcome";
+import GraphsPage from "./GraphsPage";
 
 export default function App() {
-  // Categories live at the App level so both SideBar and Tasks can share them
   const [categories, setCategories] = useState([
     { id: "work", name: "Work", parentId: null },
     { id: "personal", name: "Personal", parentId: null },
@@ -27,14 +27,23 @@ export default function App() {
           onCategorySelect={setSelectedCategory}
           setCategories={setCategories}
         />
+
         <div className="MainPanel">
-          <Welcome />
-          <div className="MainScroll">
-            <Tasks
-              categories={categories}
-              selectedCategory={selectedCategory}
-            />
-          </div>
+          {/* show Welcome + Tasks for categories */}
+          {selectedCategory !== "graphs" && (
+            <>
+              <Welcome />
+              <div className="MainScroll">
+                <Tasks
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                />
+              </div>
+            </>
+          )}
+
+          {/* show GraphsPage when "Graphs" tab is selected */}
+          {selectedCategory === "graphs" && <GraphsPage />}
         </div>
       </div>
     </div>

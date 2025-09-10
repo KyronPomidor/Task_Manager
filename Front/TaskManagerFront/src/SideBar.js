@@ -303,6 +303,19 @@ export default function SideBar({ categories, selectedCategory, onCategorySelect
           showGroupBar={false}
           isInbox
         />
+
+        <Row
+          label="Graphs"
+          level={0}
+          active={selectedCategory === "graphs"}
+          shaded={false}
+          showActions={false}
+          onClick={() => onCategorySelect("graphs")}
+          onEdit={null}
+          onDelete={null}
+          showGroupBar={false}
+          isInbox
+        />
         {renderBranch(null, 0)}
         <button onClick={openAddModal} style={STYLES.addBtn}>+ Add Category</button>
       </div>
