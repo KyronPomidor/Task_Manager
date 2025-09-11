@@ -16,10 +16,13 @@ export default function App() {
   ]);
 
   const [selectedCategory, setSelectedCategory] = useState("inbox");
+  // const [a, b] = useState("AAAAAAAAAA");
 
   return (
     <div className="App">
       <Header />
+      {/* <p>{ a }</p>
+      <button onClick={a === "AAAAAAAAAA" ? () => b("OLNDSDWD") : b("AAAAAAAAAA")}> New Text </button> */}
       <div className="AppBody">
         <SideBar
           categories={categories}

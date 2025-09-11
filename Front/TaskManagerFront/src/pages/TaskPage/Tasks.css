@@ -1,9 +1,88 @@
-/* Truncate long task/category names with ellipsis */
-.truncate {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 180px; /* Adjust as needed for your layout */
-  display: inline-block;
-  vertical-align: bottom;
+.task-card {
+  background-color: var(--card-bg, white);
+  min-height: 30vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-card-done {
+  background-color: #555;
+  min-height: 30vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.task-desc {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.task-meta {
+  display: flex;
+  gap: 8px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  gap: 4px;
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.tasks-container {
+  padding: 20px;
+}
+
+/* Composer row (input + button) */
+.composer {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Card visuals */
+.task-card .title {
+  font-weight: 600;
+}
+.task-card .title.done {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.task-card .ml-8 {
+  margin-left: 8px;
+}
+
+.task-card .desc {
+  color: #555;
+}
+
+/* Slight lift on hover */
+.task-card.ant-card-hoverable:hover {
+  transform: translateY(-2px);
+  transition: transform 0.15s ease;
+}
+
+/* While dragging */
+.task-card.dragging {
+  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
 }
