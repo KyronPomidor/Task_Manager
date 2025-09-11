@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 
+
+// Too much time to implement file storage, so just not use this class for now
 public class Attachment //consider taking attachment functionality from TicketingSystem
 {
     public Guid Id { get; private set; }
