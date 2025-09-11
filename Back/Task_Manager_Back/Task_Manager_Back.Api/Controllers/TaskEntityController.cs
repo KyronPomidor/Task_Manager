@@ -4,7 +4,7 @@ namespace Task_Manager_Back.Api.Controllers;
 
 [ApiController]
 [Route("api/tasks")]
-public class TaskEntitiesController : ControllerBase
+public class TaskEntityController : ControllerBase
 {
     [HttpPost]
     [HttpGet("{guid}")]
