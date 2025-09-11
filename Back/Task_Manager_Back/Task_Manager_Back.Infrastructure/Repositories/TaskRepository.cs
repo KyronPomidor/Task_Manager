@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 using Task_Manager_Back.Application.IRepositories;
 using Task_Manager_Back.Domain.Entities.TaskRelated;
 using Task_Manager_Back.Infrastructure.DbContext;
