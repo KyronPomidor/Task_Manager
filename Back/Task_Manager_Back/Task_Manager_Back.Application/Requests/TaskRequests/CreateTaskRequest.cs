@@ -1,4 +1,6 @@
-﻿namespace Task_Manager_Back.Application.Requests.TaskRequests;
+﻿using MediatR;
+
+namespace Task_Manager_Back.Application.Requests.TaskRequests;
 public record CreateTaskRequest(
     Guid UserId,
     string Title,
@@ -7,4 +9,4 @@ public record CreateTaskRequest(
     Guid PriorityId,
     Guid CategoryId,
     DateTime? Deadline
-);
+) : IRequest;

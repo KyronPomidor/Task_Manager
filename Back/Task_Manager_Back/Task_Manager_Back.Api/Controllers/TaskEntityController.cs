@@ -7,6 +7,7 @@ namespace Task_Manager_Back.Api.Controllers;
 public class TaskEntityController : ControllerBase
 {
     [HttpPost]
+    public Task<IActionResult> Create([FromBody] Create)
     [HttpGet("{guid}")]
     [HttpGet]
     [HttpPut("{guid}")]

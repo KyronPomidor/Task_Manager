@@ -4,11 +4,11 @@ using Task_Manager_Back.Domain.Entities.TaskRelated;
 
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 
-public class DeleteTaskUseCase
+public class DeleteTaskByIdUseCase
 {
-    private readonly ITaskRepository _taskRepository;
+    private readonly ITaskEntityRepository _taskRepository;
 
-    public DeleteTaskUseCase(ITaskRepository taskRepository)
+    public DeleteTaskByIdUseCase(ITaskEntityRepository taskRepository)
     {
         _taskRepository = taskRepository;
     }

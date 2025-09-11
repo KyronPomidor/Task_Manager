@@ -6,9 +6,9 @@ namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 
 public class UpdateTaskUseCase
 {
-    private readonly ITaskRepository _taskRepository;
+    private readonly ITaskEntityRepository _taskRepository;
 
-    public UpdateTaskUseCase(ITaskRepository taskRepository)
+    public UpdateTaskUseCase(ITaskEntityRepository taskRepository)
     {
         _taskRepository = taskRepository;
     }

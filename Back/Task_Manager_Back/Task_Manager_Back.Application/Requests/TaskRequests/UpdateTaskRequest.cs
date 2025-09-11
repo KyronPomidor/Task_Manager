@@ -1,4 +1,6 @@
-﻿namespace Task_Manager_Back.Application.Requests.TaskRequests;
+﻿using MediatR;
+
+namespace Task_Manager_Back.Application.Requests.TaskRequests;
 public record UpdateTaskRequest(
     Guid TaskId,
     Guid UserId,
@@ -9,4 +11,4 @@ public record UpdateTaskRequest(
     DateTime? NewDeadline,
     bool? IsCompleted,
     bool? IsFailed
-);
+) : IRequest;
