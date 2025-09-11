@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Task_Manager_Back.Application.Requests.TaskRequests;
 
 namespace Task_Manager_Back.Api.Controllers;
 
@@ -6,8 +8,19 @@ namespace Task_Manager_Back.Api.Controllers;
 [Route("api/tasks")]
 public class TaskController : ControllerBase
 {
+    private readonly IMediator _mediator;
+
+    public TaskController(IMediator mediator)
+    {
+        _mediator = mediator;
+    }
+
     [HttpPost]
-    public Task<IActionResult> Create([FromBody] Create)
+    public async Task<IActionResult> Create([FromBody] CreateTaskRequest request)
+    {
+        await _mediator.Send(request);
+        return CreatedAtAction("s", new { guid = request.UserId }, request);
+    }
     [HttpGet("{guid}")]
     [HttpGet]
     [HttpPut("{guid}")]

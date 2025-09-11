@@ -6,11 +6,11 @@ using Task_Manager_Back.Domain.Entities.TaskRelated;
 
 namespace Task_Manager_Back.Application.Handlers.TaskHandlers;
 
-public class AddReminderToTaskHandler : IRequestHandler<AddTaskReminderRequest>
+public class AddTaskReminderHandler : IRequestHandler<AddTaskReminderRequest>
 {
     private readonly AddTaskReminderUseCase _addTaskReminderUseCase;
 
-    public AddReminderToTaskHandler(AddTaskReminderUseCase addTaskReminderUseCase)
+    public AddTaskReminderHandler(AddTaskReminderUseCase addTaskReminderUseCase)
     {
         _addTaskReminderUseCase=addTaskReminderUseCase;
     }
