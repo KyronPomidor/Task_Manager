@@ -5,14 +5,14 @@ using Task_Manager_Back.Domain.IServices.ITask;
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 public class AddTaskRelationUseCase
 {
-    private readonly ITaskRepository _taskRepository;
+    private readonly ITaskEntityRepository _taskRepository;
     private readonly ITaskRelationRepository _taskRelationRepository;
     private readonly ITaskGraphService _taskGraphService;
 
     public AddTaskRelationUseCase(
         ITaskRelationRepository taskRelationRepository,
         ITaskGraphService taskGraphService,
-        ITaskRepository taskRepository)
+        ITaskEntityRepository taskRepository)
     {
         _taskRelationRepository = taskRelationRepository;
         _taskGraphService = taskGraphService;

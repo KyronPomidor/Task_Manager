@@ -4,11 +4,11 @@ using Task_Manager_Back.Domain.Entities.TaskRelated;
 
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 
-public class GetTaskListUseCase
+public class GetTasksUseCase
 {
-    private readonly ITaskRepository _taskRepository;
+    private readonly ITaskEntityRepository _taskRepository;
 
-    public GetTaskListUseCase(ITaskRepository taskRepository)
+    public GetTasksUseCase(ITaskEntityRepository taskRepository)
     {
         _taskRepository = taskRepository;
     }
