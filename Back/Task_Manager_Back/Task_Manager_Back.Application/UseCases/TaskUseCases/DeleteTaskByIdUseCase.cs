@@ -6,9 +6,9 @@ namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 
 public class DeleteTaskByIdUseCase
 {
-    private readonly ITaskEntityRepository _taskRepository;
+    private readonly ITaskRepository _taskRepository;
 
-    public DeleteTaskByIdUseCase(ITaskEntityRepository taskRepository)
+    public DeleteTaskByIdUseCase(ITaskRepository taskRepository)
     {
         _taskRepository = taskRepository;
     }

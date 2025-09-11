@@ -6,9 +6,9 @@ using Task_Manager_Back.Domain.Entities.TaskRelated;
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 public class CreateTaskUseCase
 {
-    private readonly ITaskEntityRepository _taskRepository;
+    private readonly ITaskRepository _taskRepository;
 
-    public CreateTaskUseCase(ITaskEntityRepository taskRepository)
+    public CreateTaskUseCase(ITaskRepository taskRepository)
     {
         _taskRepository = taskRepository;
     }

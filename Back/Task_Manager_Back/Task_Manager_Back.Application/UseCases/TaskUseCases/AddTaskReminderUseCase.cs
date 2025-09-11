@@ -6,9 +6,9 @@ namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 
 public class AddTaskReminderUseCase
 {
-    private readonly ITaskEntityRepository _taskRepository;
+    private readonly ITaskRepository _taskRepository;
 
-    public AddTaskReminderUseCase(ITaskEntityRepository taskRepository)
+    public AddTaskReminderUseCase(ITaskRepository taskRepository)
     {
         _taskRepository = taskRepository;
     }

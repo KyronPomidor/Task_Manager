@@ -6,12 +6,12 @@ namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 
 public class RemoveTaskRelationUseCase
 {
-    private readonly ITaskEntityRepository _taskRepository;
+    private readonly ITaskRepository _taskRepository;
     private readonly ITaskRelationRepository _taskRelationRepository;
     private readonly ITaskGraphService _taskGraphService;
 
     public RemoveTaskRelationUseCase(
-        ITaskEntityRepository taskRepository,
+        ITaskRepository taskRepository,
         ITaskRelationRepository taskRelationRepository,
         ITaskGraphService taskGraphService)
     {
