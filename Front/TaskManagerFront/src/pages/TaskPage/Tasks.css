@@ -12,7 +12,7 @@
 
 /* Styles for completed task cards */
 .task-card-done {
-  background-color: #555;
+  background-color: #bebebe;
   min-height: 30vh;
   display: flex;
   flex-direction: column;
@@ -89,7 +89,6 @@
 .task-card .desc {
   color: #555;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
