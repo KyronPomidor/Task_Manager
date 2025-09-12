@@ -104,5 +104,17 @@ public class TaskRepository : ITaskRepository
         task.RemoveAttachment(attachmentId);
         await UpdateAsync(task);
     }
+    public async Task AddTaskLabelAsync(Guid taskId, TaskLabel label)
+    {
+        var task = await GetByIdAsync(taskId) ?? throw new KeyNotFoundException("Task not found");
+        task.AddLabel(label);
+        await UpdateAsync(task);
+    }
+    public async Task RemoveTaskLabel(Guid taskId, Guid labelId)
+    {
+        var task = await GetByIdAsync(taskId) ?? throw new KeyNotFoundException("Task not found");
+        task.RemoveLabel(labelId);
+        await UpdateAsync(task);
+    }
 
 }

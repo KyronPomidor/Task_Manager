@@ -4,40 +4,39 @@ namespace Task_Manager_Back.Domain.Entities.Categories;
 
 public class UserCategory : Category
 {
-    public string Title { get; private set; } = string.Empty;
-    public string? Description { get; private set; }
     public Guid? ParentCategoryId { get; private set; }
     public string Color { get; private set; } = string.Empty;
     public int Order { get; private set; }
 
-    public UserCategory(Guid userId, string title, string? description, Guid? parentCategoryId, string color) : base(userId)
+    public UserCategory(UserCategoryCreateParams createParams)
+        : base(createParams.UserId, createParams.Title, createParams.Description)
     {
-        Title = ValidationHelper.ValidateStringField(title, 1, 100, nameof(title), "Category name");
-        Description = description;
-        ParentCategoryId = parentCategoryId;
-        Color = ValidationHelper.ValidateHexColor(color, nameof(color));
+        Title = ValidationHelper.ValidateStringField(createParams.Title, 1, 100, nameof(createParams.Title), "Category name");
+        Description = createParams.Description;
+        ParentCategoryId = createParams.ParentCategoryId;
+        Color = ValidationHelper.ValidateHexColor(createParams.Color, nameof(createParams.Color));
         Order = 0;
     }
 
     private UserCategory() { }
 
-    public static UserCategory LoadFromPersistence(Guid id, Guid userId, string title, string? description, Guid? parentCategoryId, string color, int order)
+    public static UserCategory LoadFromPersistence(UserCategoryState state)
     {
         return new UserCategory
         {
-            Id = id,
-            UserId = userId,
-            Title = title,
-            Description = description,
-            ParentCategoryId = parentCategoryId,
-            Color = color,
-            Order = order
+            Id = state.Id,
+            UserId = state.UserId,
+            Title = state.Title,
+            Description = state.Description,
+            ParentCategoryId = state.ParentCategoryId,
+            Color = state.Color,
+            Order = state.Order
         };
     }
 
     public void Rename(string title)
     {
-        Title = ValidationHelper.ValidateStringField(title, 1, 100, "Category name");
+        Title = ValidationHelper.ValidateStringField(title, 1, 100, nameof(title), "Category name");
     }
 
     public void UpdateDescription(string? description)
@@ -61,3 +60,21 @@ public class UserCategory : Category
         Order = order;
     }
 }
+
+public record UserCategoryCreateParams(
+    Guid UserId,
+    string Title,
+    string? Description,
+    Guid? ParentCategoryId,
+    string Color
+);
+
+public record UserCategoryState(
+    Guid Id,
+    Guid UserId,
+    string Title,
+    string? Description,
+    Guid? ParentCategoryId,
+    string Color,
+    int Order
+);

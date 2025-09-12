@@ -25,6 +25,7 @@ public class TaskEntity
     private List<TaskRelation> TaskRelations { get; set; } = new();
     private List<ShopItem> ShopItems { get; set; } = new();
 
+    public IReadOnlyList<TaskLabel> GetLabels() => Labels.AsReadOnly();
     public IReadOnlyList<TaskAttachment> GetAttachments() => Attachments.AsReadOnly();
     public IReadOnlyList<TaskReminder> GetReminders() => Reminders.AsReadOnly();
     public IReadOnlyList<TaskRelation> GetTaskRelations() => TaskRelations.AsReadOnly();
@@ -33,15 +34,22 @@ public class TaskEntity
     public TaskEntity(TaskEntityCreateParams @params)
     {
         Id = Guid.NewGuid();
-        UserId = ValidationHelper.ValidateGuid(@params.UserId, nameof(@params));
-        StatusId = ValidationHelper.ValidateGuid(@params.StatusId, nameof(@params));
-        PriorityId = ValidationHelper.ValidateGuid(@params.PriorityId, nameof(@params));
-        CategoryId = ValidationHelper.ValidateGuid(@params.CategoryId, nameof(@params));
-        Title = ValidationHelper.ValidateStringField(@params.Title, 1, 100, nameof(@params), "Title");
+
+        UserId = ValidationHelper.ValidateGuid(@params.UserId, nameof(@params.UserId));
+        StatusId = ValidationHelper.ValidateGuid(@params.StatusId, nameof(@params.StatusId));
+        PriorityId = ValidationHelper.ValidateGuid(@params.PriorityId, nameof(@params.PriorityId));
+        CategoryId = ValidationHelper.ValidateGuid(@params.CategoryId, nameof(@params.CategoryId));
+
+        Title = ValidationHelper.ValidateStringField(@params.Title, 1, 100, nameof(@params.Title), "Title");
         Description = @params.Description;
-        Deadline = @params.Deadline.HasValue ? ValidationHelper.ValidateNotPast(@params.Deadline.Value, nameof(@params)) : null;
+
+        Deadline = @params.Deadline.HasValue
+            ? ValidationHelper.ValidateNotPast(@params.Deadline.Value, nameof(@params.Deadline))
+            : null;
+
         PositionOrder = 0;
     }
+
 
     private TaskEntity() { }
 
@@ -92,7 +100,7 @@ public class TaskEntity
         else
             Deadline = null;
     }
-
+    public void UpdatePositionOrder(int positionOrder) => PositionOrder = positionOrder;
     public void MarkCompleted()
     {
         if (IsCompleted) throw new InvalidOperationException("Task is already completed");
@@ -107,7 +115,7 @@ public class TaskEntity
         IsFailed = true;
     }
 
-    public void UpdatePositionOrder(int positionOrder) => PositionOrder = positionOrder;
+
     public void AddAttachment(TaskAttachment attachment)
     {
         ArgumentNullException.ThrowIfNull(attachment);
@@ -162,7 +170,7 @@ public class TaskEntity
 
     public void AddLabel(TaskLabel label)
     {
-        if (label == null) throw new ArgumentNullException(nameof(label));
+        ArgumentNullException.ThrowIfNull(label);
         Labels.Add(label);
     }
 

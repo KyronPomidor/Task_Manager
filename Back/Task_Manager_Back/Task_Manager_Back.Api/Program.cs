@@ -52,7 +52,7 @@ builder.Services.AddScoped<RemoveTaskRelationUseCase>();
 builder.Services.AddScoped<AddTaskReminderUseCase>();
 builder.Services.AddScoped<AttachTaskFileUseCase>();
 builder.Services.AddScoped<PatchTaskUseCase>();
-
+builder.Services.AddScoped<AddTaskLabelUseCase>();
 // OpenAPI / Swagger
 builder.Services.AddOpenApi();
 

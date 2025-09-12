@@ -18,8 +18,8 @@ public static partial class ValidationHelper
         string value,
         int minLength,
         int maxLength,
-        string paramName,
-        string? fieldName = null
+        string paramName, // actual name of the parameter, how it is in code
+        string? fieldName = null // user-friendly name for error messages
     )
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length < minLength || value.Length > maxLength)
