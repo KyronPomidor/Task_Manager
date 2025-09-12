@@ -1,6 +1,5 @@
+import React, { useState, useRef, useEffect } from "react";
 import { ForceGraph2D } from "react-force-graph";
-import React, { useState } from "react";
-
 
 export function GraphsPage() {
   const [graphData, setGraphData] = useState({
@@ -10,6 +9,8 @@ export function GraphsPage() {
       { id: "Note 3" },
       { id: "Note 4" },
       { id: "Note 5" },
+      { id: "Note 6" },
+      { id: "Note 7" },
     ],
     links: [
       { source: "Note 1", target: "Note 2" },
@@ -17,13 +18,52 @@ export function GraphsPage() {
       { source: "Note 2", target: "Note 5" },
       { source: "Note 3", target: "Note 4" },
       { source: "Note 4", target: "Note 1" },
+      { source: "Note 6", target: "Note 7" },
+      { source: "Note 5", target: "Note 6" },
+      { source: "Note 7", target: "Note 2" }
     ]
   });
 
   const [selectedNode, setSelectedNode] = useState(null);
   const [addingRelationFrom, setAddingRelationFrom] = useState(null);
+  const dragging = useRef(false);
+  const fgRef = useRef();
 
-  // Delete node and its relations
+  // Load saved positions from localStorage on component mount
+  useEffect(() => {
+    const savedPositions = localStorage.getItem('graphNodePositions');
+    if (savedPositions) {
+      const positions = JSON.parse(savedPositions);
+      
+      setGraphData(prev => ({
+        ...prev,
+        nodes: prev.nodes.map(node => {
+          if (positions[node.id]) {
+            return { 
+              ...node, 
+              x: positions[node.id].x, 
+              y: positions[node.id].y,
+              vx: 0, // Reset velocity to prevent movement
+              vy: 0
+            };
+          }
+          return node;
+        })
+      }));
+    }
+  }, []);
+
+  // Save positions to localStorage when they change
+  const savePositions = () => {
+    const positions = {};
+    graphData.nodes.forEach(node => {
+      if (node.x !== undefined && node.y !== undefined) {
+        positions[node.id] = { x: node.x, y: node.y };
+      }
+    });
+    localStorage.setItem('graphNodePositions', JSON.stringify(positions));
+  };
+
   const handleDelete = () => {
     if (!selectedNode) return;
     setGraphData(prev => ({
@@ -32,50 +72,70 @@ export function GraphsPage() {
         l => l.source.id !== selectedNode.id && l.target.id !== selectedNode.id
       )
     }));
+    
+    // Also remove from saved positions
+    const savedPositions = localStorage.getItem('graphNodePositions');
+    if (savedPositions) {
+      const positions = JSON.parse(savedPositions);
+      delete positions[selectedNode.id];
+      localStorage.setItem('graphNodePositions', JSON.stringify(positions));
+    }
+    
     setSelectedNode(null);
   };
 
   const handleAddRelation = () => {
     if (!selectedNode) return;
     setAddingRelationFrom(selectedNode);
-    setSelectedNode(null); // hide buttons until second click
+    setSelectedNode(null);
   };
 
   const handleNodeClick = node => {
+    if (dragging.current) return;
+
     if (addingRelationFrom) {
-      // create link from first node -> clicked node
       setGraphData(prev => ({
         ...prev,
         links: [...prev.links, { source: addingRelationFrom.id, target: node.id }]
       }));
       setAddingRelationFrom(null);
     } else {
-      // normal selection
       setSelectedNode(node);
     }
+  };
+
+  // Handle node drag end and save positions
+  const handleNodeDragEnd = node => {
+    setTimeout(() => {
+      dragging.current = false;
+      savePositions(); // Save positions after dragging
+    }, 0);
   };
 
   return (
     <div style={{ width: "100vw", height: "100vh", background: "#fff", position: "relative" }}>
       <ForceGraph2D
+        ref={fgRef}
         graphData={graphData}
+        onNodeClick={handleNodeClick}
+        onNodeDrag={() => (dragging.current = true)}
+        onNodeDragEnd={handleNodeDragEnd}
         nodeLabel="id"
         nodeAutoColorBy="id"
-        nodeCanvasObjectMode={() => "after"} // run after circles
+        nodeCanvasObjectMode={() => "after"}
         nodeCanvasObject={(node, ctx, globalScale) => {
           const label = node.id;
           const fontSize = 12 / globalScale;
           ctx.font = `${fontSize}px Sans-Serif`;
           ctx.fillStyle = "#111";
           ctx.textAlign = "center";
-          ctx.fillText(label, node.x, node.y - 8); // draw above circle
+          ctx.fillText(label, node.x, node.y - 8);
         }}
-        linkDirectionalArrowLength={6}       // arrow size
-        linkDirectionalArrowRelPos={1}       // position (1 = at end of link)
-        linkColor={() => "gray"}             // color of links
+        linkDirectionalArrowLength={6}
+        linkDirectionalArrowRelPos={1}
+        linkColor={() => "gray"}
       />
 
-      {/* Action buttons when a node is selected */}
       {selectedNode && (
         <div
           style={{
@@ -95,7 +155,7 @@ export function GraphsPage() {
           <button onClick={handleAddRelation}>Add Relation</button>
         </div>
       )}
-      {/* Info when waiting for relation */}
+
       {addingRelationFrom && (
         <div
           style={{
