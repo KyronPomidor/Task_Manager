@@ -1,230 +1,282 @@
 import React, { useMemo, useState } from "react";
 import "../Tasks.css";
+import { Row, Col, Card, Tag, Modal, Form, Input, Select, DatePicker, Button } from "antd";
+import dayjs from "dayjs";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { SortableContext, useSortable, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
-/* ================================
- * Ant Design (UI library) imports
- * ================================ */
-import { Row, Col, Card, Modal, Form, Input, Select, DatePicker, Tag, Button } from "antd";
-/* Row/Col = grid layout, Card = card UI,
-   Modal = dialogs, Form/Input/Select/DatePicker = form controls,
-   Tag = small labels, Button = buttons. */
-
-/* Drag & Drop (pangea/dnd = maintained fork of react-beautiful-dnd) */
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-
-const { TextArea } = Input;
-const { Option } = Select;
-
-/** Simple color helpers */
+// Helper to get tag color based on priority
 const priorityColor = (p) => (p === "High" ? "red" : p === "Low" ? "default" : "blue");
 
-/** Props:
- *  - categories: [{id, name}]
- *  - selectedCategory: "inbox" | <categoryId>
- */
-export function Tasks({ categories, selectedCategory }) {
-  /* ========= Sample data & state ========= */
-  const [tasks, setTasks] = useState([
-    { id: "1", title: "First task",  completed: false, highlighted: false, dependsOn: [],       deadline: null,          priority: "Medium", description: "Short description for the first task.", categoryId: "work" },
-    { id: "2", title: "Second task", completed: false, highlighted: false, dependsOn: ["1"],    deadline: "2025-09-15",  priority: "High",   description: "Depends on First task, has a deadline.", categoryId: "work" },
-    { id: "3", title: "Review PR",   completed: false, highlighted: false, dependsOn: ["1"],    deadline: "2025-09-12",  priority: "High",   description: "Review code after First task is done.", categoryId: "personal" },
-    { id: "4", title: "Refactor UI", completed: false, highlighted: false, dependsOn: ["3"],    deadline: null,          priority: "Low",    description: "Longer description to demonstrate trimming.", categoryId: "personal" },
-  ]);
+// Component for a single draggable task
+function SortableTask({ task, children, onCardClick }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: task.id });
 
-  const [composer, setComposer] = useState("");
+  // Style for draggable task, ensuring dragged task is above all others
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 9999 : 1, // High z-index when dragging
+  };
 
-  // Edit modal
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} onClick={() => onCardClick(task)}>
+      {children}
+    </div>
+  );
+}
+
+export function Tasks({
+  tasks: initialTasks = [
+    { id: "1", title: "First task", description: "Short description for the first task.", priority: "Medium", deadline: null, categoryId: "inbox", completed: false, parentIds: [] },
+    { id: "2", title: "Second task", description: "Depends on First task, has a deadline.", priority: "High", deadline: "2025-09-15", categoryId: "inbox", completed: false, parentIds: ["1"] },
+    { id: "3", title: "Review PR", description: "Review code after First task is done.", priority: "High", deadline: "2025-09-12", categoryId: "personal", completed: false, parentIds: ["1"] },
+    { id: "4", title: "Refactor UI", description: "Longer description to demonstrate trimming that will be cut off because it is too long to fit in the card properly.", priority: "Low", deadline: null, categoryId: "personal", completed: false, parentIds: [] },
+  ],
+  selectedCategory = "inbox",
+}) {
+  // State for tasks and modals
+  const [tasks, setTasks] = useState(initialTasks);
   const [editOpen, setEditOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
+  const [addOpen, setAddOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
 
-  // Info modal
-  const [infoOpen, setInfoOpen] = useState(false);
-  const [infoTaskId, setInfoTaskId] = useState(null);
+  // Filter tasks by selected category
+  const filtered = useMemo(
+    () => tasks.filter((t) => t.categoryId === selectedCategory),
+    [tasks, selectedCategory]
+  );
 
-  /* ========= Derived (filter by category) =========
-   * Inbox -> show all; otherwise only tasks from selected category.
-   */
-  const filtered = useMemo(() => {
-    return selectedCategory === "inbox"
-      ? tasks
-      : tasks.filter((t) => t.categoryId === selectedCategory);
-  }, [tasks, selectedCategory]);
+  // Handle drag end to reorder tasks
+  function handleDragEnd(event) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setTasks((prev) => {
+      const oldIndex = prev.findIndex((t) => t.id === active.id);
+      const newIndex = prev.findIndex((t) => t.id === over.id);
+      return arrayMove(prev, oldIndex, newIndex);
+    });
+  }
 
-  /* ========= Helpers ========= */
-  const byId = (id) => tasks.find((t) => t.id === id);
-  const trim = (s, max = 100) => (!s ? "" : s.length > max ? s.slice(0, max) + "..." : s);
+  // Toggle task completion, prevent if incomplete children exist
+  function toggleComplete(id) {
+    const task = tasks.find((t) => t.id === id);
+    const hasIncompleteChildren = tasks.some(
+      (t) => t.parentIds.includes(id) && !t.completed
+    );
+    if (hasIncompleteChildren && !task.completed) {
+      Modal.error({
+        title: "Cannot complete task",
+        content: "This task has incomplete child tasks.",
+      });
+      return;
+    }
+    setTasks((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+    );
+  }
 
-  /* ========= Add task (quick composer -> then edit modal) ========= */
-  const handleAdd = () => {
-    const text = composer.trim();
-    if (!text) return;
+  // Open edit modal with task data
+  function startEdit(task) {
+    setEditTask({ ...task });
+    setEditOpen(true);
+  }
+
+  // Save edited task
+  function handleSaveEdit() {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === editTask.id ? editTask : t))
+    );
+    setEditOpen(false);
+    setEditTask(null);
+  }
+
+  // Open add task modal with default values
+  function handleAddNew() {
     const newTask = {
-      id: Date.now().toString(),
-      title: text,
-      completed: false,
-      highlighted: false,
-      dependsOn: [],
-      deadline: null,
-      priority: "Medium",
+      id: `${Date.now()}`,
+      title: "",
       description: "",
-      categoryId: selectedCategory !== "inbox" ? selectedCategory : "",
+      priority: "Medium",
+      deadline: null,
+      categoryId: "inbox",
+      completed: false,
+      parentIds: [],
     };
     setEditTask(newTask);
-    setEditOpen(true);
-    setComposer("");
-  };
+    setAddOpen(true);
+  }
 
-  /* ========= Save new or edited task ========= */
-  const handleSaveEdit = () => {
-    setTasks((prev) => {
-      const exists = prev.some((t) => t.id === editTask.id);
-      return exists
-        ? prev.map((t) => (t.id === editTask.id ? { ...editTask } : t)) // update
-        : [...prev, editTask];                                         // create
-    });
+  // Save new task
+  function handleSaveNew() {
+    if (!editTask.title) {
+      Modal.error({ title: "Title is required" });
+      return;
+    }
+    setTasks((prev) => [...prev, editTask]);
+    setAddOpen(false);
     setEditTask(null);
-    setEditOpen(false);
-  };
+  }
 
-  /* ========= Info modal ========= */
-  const openInfo = (id) => {
-    setInfoTaskId(id);
-    setInfoOpen(true);
-  };
+  // Open details modal for a task
+  function handleCardClick(task) {
+    setSelectedTask(task);
+    setDetailsOpen(true);
+  }
 
-  /* ========= Drag & Drop =========
-   * Reorders cards in the *current* filtered view.
-   * Internally we reorder the full tasks array by mapping filtered order
-   * back to absolute indices.
-   */
-  const onDragEnd = (result) => {
-    const { source, destination } = result;
-    if (!destination) return;
+  // Get valid parent tasks, excluding self and descendants
+  function getValidParents(taskId) {
+    if (!taskId) return tasks.filter((t) => !t.completed);
+    const descendants = new Set();
+    function collectDescendants(id) {
+      tasks.forEach((t) => {
+        if (t.parentIds.includes(id)) {
+          descendants.add(t.id);
+          collectDescendants(t.id);
+        }
+      });
+    }
+    collectDescendants(taskId);
+    return tasks.filter((t) => t.id !== taskId && !descendants.has(t.id) && !t.completed);
+  }
 
-    // Reorder only within filtered list
-    const newFiltered = Array.from(filtered);
-    const [moved] = newFiltered.splice(source.index, 1);
-    newFiltered.splice(destination.index, 0, moved);
-
-    // Merge back into full list order by replacing filtered positions
-    setTasks((prev) => {
-      const filteredIds = new Set(filtered.map((t) => t.id));
-      const others = prev.filter((t) => !filteredIds.has(t.id));
-      return [...others, ...newFiltered]; // "others" keep original order, filtered section reordered
-    });
-  };
-
-  /* ========= Card actions ========= */
-  const toggleComplete = (id) => {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
-  };
-
-  const startEdit = (task) => {
-    setEditTask(task);
-    setEditOpen(true);
-  };
-  
-  /* ========= Render ========= */
   return (
     <div className="tasks-container">
-      {/* Quick composer (add new card) */}
+      {/* Add task button */}
       <div className="composer">
-        <Input
-          placeholder="Enter new task..."
-          value={composer}
-          onChange={(e) => setComposer(e.target.value)}
-          onPressEnter={handleAdd}
-        />
-        <Button type="primary" onClick={handleAdd}>
+        <Button type="primary" onClick={handleAddNew}>
           Add
         </Button>
       </div>
-
-      {/* DragDropContext wraps the droppable grid */}
-      <DragDropContext onDragEnd={onDragEnd}>
-        {/* AntD grid: Row (with gutter) + Col.
-            We make the whole grid a single Droppable */}
-        <Droppable droppableId="grid" direction="horizontal">
-          {(dropProvided) => (
-            <Row
-              gutter={[16, 16]}
-              ref={dropProvided.innerRef}
-              {...dropProvided.droppableProps}
-            >
-              {filtered.map((task, index) => (
-                <Draggable key={task.id} draggableId={task.id} index={index}>
-                  {(dragProvided, snapshot) => {
-                    // decide the background for THIS task
-                    const bg = task.completed ? "#ececec" : "white";
-
-                    return (
-                      <Col
-                        xs={24}
-                        sm={24}
-                        md={12}
-                        lg={8}   // 3 per row at ≥992px
-                        xl={8}   // also 3 per row at ≥1200px
-                        ref={dragProvided.innerRef}
-                        {...dragProvided.draggableProps}
-                        {...dragProvided.dragHandleProps}
-                      >
-                        <Card
-                          className={`task-card ${snapshot.isDragging ? "dragging" : ""}`}
-                          // inject CSS variable for this card
-                          style={{ "--card-bg": bg }}
-                          title={
-                            <div className="card-title">
-                              <span className={`title ${task.completed ? "done" : ""}`}>
-                                {task.title}
-                              </span>
-                              <Tag color={priorityColor(task.priority)} className="ml-8">
-                                {task.priority}
-                              </Tag>
-                              {task.deadline && (
-                                <Tag color="blue" className="ml-8">📅 {task.deadline}</Tag>
-                              )}
-                            </div>
-                          }
-                          hoverable
-                          onClick={() => openInfo(task.id)}
-                          extra={
-                            <div className="card-actions" onClick={(e) => e.stopPropagation()}>
-                              <Button size="small" onClick={() => toggleComplete(task.id)}>
-                                {task.completed ? "Undo" : "Done"}
-                              </Button>
-                              <Button size="small" onClick={() => startEdit(task)} style={{ marginLeft: 8 }}>
-                                Edit
-                              </Button>
-                            </div>
-                          }
+      {/* Drag and drop context for task reordering */}
+      <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={filtered.map((t) => t.id)}>
+          <Row gutter={[16, 16]}>
+            {filtered.map((task) => {
+              const bg = task.completed ? "#ececec" : "white";
+              const children = tasks.filter((t) => t.parentIds.includes(task.id));
+              const parents = tasks.filter((t) => task.parentIds.includes(t.id));
+              return (
+                <Col key={task.id} span={8}>
+                  <SortableTask task={task} onCardClick={handleCardClick}>
+                    <Card
+                      className="task-card"
+                      style={{ "--card-bg": bg }}
+                      title={
+                        <div className="card-title">
+                          <span className={`title ${task.completed ? "done" : ""}`}>
+                            {task.title}
+                          </span>
+                          <Tag color={priorityColor(task.priority)} className="ml-8">
+                            {task.priority}
+                          </Tag>
+                          {task.deadline && (
+                            <Tag color="blue" className="ml-8">📅 {task.deadline}</Tag>
+                          )}
+                        </div>
+                      }
+                      hoverable
+                      extra={
+                        <div
+                          className="card-actions"
+                          onClick={(e) => e.stopPropagation()}
+                          onPointerDown={(e) => e.stopPropagation()}
                         >
-                          <div className="desc">{trim(task.description, 120) || "No description"}</div>
-                        </Card>
-                      </Col>
-                    );
-                  }}
-                </Draggable>
-              ))}
-              {dropProvided.placeholder /* space holder while dragging */}
-            </Row>
-      
-          )}
-        </Droppable>
-      </DragDropContext>
+                          <Button size="small" onClick={() => toggleComplete(task.id)}>
+                            {task.completed ? "Undo" : "Done"}
+                          </Button>
+                          <Button
+                            size="small"
+                            style={{ marginLeft: 8 }}
+                            onClick={() => startEdit(task)}
+                          >
+                            Edit
+                          </Button>
+                        </div>
+                      }
+                    >
+                      <div className="desc">{task.description || "No description"}</div>
+                      {parents.length > 0 && (
+                        <div className="parent-tasks">
+                          <h4>Parent Tasks:</h4>
+                          <ul>
+                            {parents.map((parent) => (
+                              <li key={parent.id}>{parent.title}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {children.length > 0 && (
+                        <div className="children-tasks">
+                          <h4>Subtasks:</h4>
+                          <ul>
+                            {children.map((child) => (
+                              <li key={child.id}>{child.title}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </Card>
+                  </SortableTask>
+                </Col>
+              );
+            })}
+          </Row>
+        </SortableContext>
+      </DndContext>
 
-      {/* ===== AntD Modal (Edit) — centered ===== */}
+      {/* Details modal for viewing task info */}
       <Modal
-        title={editTask?.id && tasks.some(t => t.id === editTask.id) ? "Edit task" : "Add task"}
+        title="Task Details"
+        open={detailsOpen}
+        centered
+        destroyOnClose
+        onCancel={() => { setDetailsOpen(false); setSelectedTask(null); }}
+        footer={[
+          <Button key="edit" onClick={() => { setDetailsOpen(false); startEdit(selectedTask); }}>
+            Edit
+          </Button>,
+          <Button key="close" onClick={() => { setDetailsOpen(false); setSelectedTask(null); }}>
+            Close
+          </Button>,
+        ]}
+      >
+        {selectedTask && (
+          <div className="task-details">
+            <h2>{selectedTask.title}</h2>
+            {selectedTask.deadline && (
+              <p><strong>Deadline:</strong> {selectedTask.deadline}</p>
+            )}
+            <p><strong>Description:</strong> {selectedTask.description || "No description"}</p>
+            <p><strong>Priority:</strong> {selectedTask.priority}</p>
+            <p><strong>Category:</strong> {selectedTask.categoryId}</p>
+            {selectedTask.parentIds.length > 0 && (
+              <p><strong>Parent Tasks:</strong> {tasks
+                .filter(t => selectedTask.parentIds.includes(t.id))
+                .map(t => t.title)
+                .join(", ")}
+              </p>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Edit modal for updating task details */}
+      <Modal
+        title="Edit task"
         open={editOpen}
         centered
         destroyOnClose
         onCancel={() => { setEditOpen(false); setEditTask(null); }}
         onOk={handleSaveEdit}
         okText="Save"
-        >
+      >
         {editTask && (
           <Form layout="vertical">
-            {/* AntD Input */}
             <Form.Item label="Title" required>
               <Input
                 value={editTask.title}
@@ -232,73 +284,120 @@ export function Tasks({ categories, selectedCategory }) {
                 placeholder="Task title"
               />
             </Form.Item>
-
-            {/* AntD TextArea */}
             <Form.Item label="Description">
-              <TextArea
+              <Input.TextArea
                 value={editTask.description}
                 onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
                 placeholder="Describe the task…"
                 autoSize={{ minRows: 3, maxRows: 6 }}
               />
             </Form.Item>
-
-            {/* AntD Select */}
-            <Form.Item label="Category" required>
-              <Select
-                value={editTask.categoryId || undefined}
-                onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
-                placeholder="Select category"
-                allowClear={false}
-              >
-                {categories.map((c) => (
-                  <Option key={c.id} value={c.id}>
-                    {c.name}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-
-            {/* AntD DatePicker (we store YYYY-MM-DD) */}
-            <Form.Item label="Deadline">
-              <DatePicker
-                style={{ width: "100%" }}
-                value={editTask.deadline ? (window.dayjs ? window.dayjs(editTask.deadline) : null) : null}
-                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
-                placeholder="Select date"
-              />
-            </Form.Item>
-
-            {/* AntD Select for priority */}
             <Form.Item label="Priority">
               <Select
                 value={editTask.priority}
                 onChange={(val) => setEditTask({ ...editTask, priority: val })}
               >
-                <Option value="Low">Low</Option>
-                <Option value="Medium">Medium</Option>
-                <Option value="High">High</Option>
+                <Select.Option value="Low">Low</Select.Option>
+                <Select.Option value="Medium">Medium</Select.Option>
+                <Select.Option value="High">High</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item label="Deadline">
+              <DatePicker
+                style={{ width: "100%" }}
+                value={editTask.deadline ? dayjs(editTask.deadline) : null}
+                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
+                placeholder="Select date"
+              />
+            </Form.Item>
+            <Form.Item label="Parent Tasks">
+              <Select
+                mode="multiple"
+                value={editTask.parentIds}
+                onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
+                placeholder="Select parent tasks"
+              >
+                {getValidParents(editTask.id).map((t) => (
+                  <Select.Option key={t.id} value={t.id}>
+                    {t.title}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+            <Form.Item label="Category">
+              <Select
+                value={editTask.categoryId}
+                onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
+              >
+                <Select.Option value="inbox">Inbox</Select.Option>
+                <Select.Option value="work">Work</Select.Option>
+                <Select.Option value="personal">Personal</Select.Option>
               </Select>
             </Form.Item>
           </Form>
         )}
       </Modal>
 
-      {/* ===== AntD Modal (Info) — centered ===== */}
+      {/* Add modal for creating new tasks */}
       <Modal
-        title="Task info"
-        open={infoOpen}
+        title="Add new task"
+        open={addOpen}
         centered
-        footer={<Button onClick={() => setInfoOpen(false)}>Close</Button>}
-        onCancel={() => setInfoOpen(false)}
+        destroyOnClose
+        onCancel={() => { setAddOpen(false); setEditTask(null); }}
+        onOk={handleSaveNew}
+        okText="Save"
       >
-        {infoTaskId && (
-          <>
-            <p><b>Title:</b> {byId(infoTaskId)?.title}</p>
-            <p><b>Description:</b> {byId(infoTaskId)?.description || "—"}</p>
-            <p><b>Deadline:</b> {byId(infoTaskId)?.deadline || "—"}</p>
-            <p><b>Priority:</b> {byId(infoTaskId)?.priority || "—"}</p>
-          </>
+        {editTask && (
+          <Form layout="vertical">
+            <Form.Item label="Title" required>
+              <Input
+                value={editTask.title}
+                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                placeholder="Task title"
+              />
+            </Form.Item>
+            <Form.Item label="Description">
+              <Input.TextArea
+                value={editTask.description}
+                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                placeholder="Describe the task…"
+                autoSize={{ minRows: 3, maxRows: 6 }}
+              />
+            </Form.Item>
+            <Form.Item label="Priority">
+              <Select
+                value={editTask.priority}
+                onChange={(val) => setEditTask({ ...editTask, priority: val })}
+              >
+                <Select.Option value="Low">Low</Select.Option>
+                <Select.Option value="Medium">Medium</Select.Option>
+                <Select.Option value="High">High</Select.Option>
+              </Select>
+            </Form.Item>
+            <Form.Item label="Deadline">
+              <DatePicker
+                style={{ width: "100%" }}
+                value={editTask.deadline ? dayjs(editTask.deadline) : null}
+                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
+                placeholder="Select date"
+              />
+            </Form.Item>
+            <Form.Item label="Parent Tasks">
+              <Select
+                mode="multiple"
+                value={editTask.parentIds}
+                onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
+                placeholder="Select parent tasks"
+              >
+                {getValidParents(null).map((t) => (
+                  <Select.Option key={t.id} value={t.id}>
+                    {t.title}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Form>
         )}
       </Modal>
     </div>

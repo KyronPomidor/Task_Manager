@@ -1,3 +1,4 @@
+/* Styles for task cards */
 .task-card {
   background-color: var(--card-bg, white);
   min-height: 30vh;
@@ -5,8 +6,11 @@
   flex-direction: column;
   justify-content: space-between;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  width: 100%; /* Ensure consistent width */
 }
 
+/* Styles for completed task cards */
 .task-card-done {
   background-color: #555;
   min-height: 30vh;
@@ -16,22 +20,26 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
+/* Hover effect for cards */
 .task-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
+/* Task description styling */
 .task-desc {
   font-size: 14px;
   color: #555;
   margin-bottom: 8px;
 }
 
+/* Meta tags container */
 .task-meta {
   display: flex;
   gap: 8px;
 }
 
+/* Form field styling for modals */
 .form-field {
   display: flex;
   flex-direction: column;
@@ -39,6 +47,7 @@
   gap: 4px;
 }
 
+/* Input, textarea, and select styling */
 .form-field input,
 .form-field textarea,
 .form-field select {
@@ -48,41 +57,145 @@
   font-size: 14px;
 }
 
+/* Container for tasks */
 .tasks-container {
   padding: 20px;
 }
 
-/* Composer row (input + button) */
+/* Add task button row */
 .composer {
   display: flex;
   gap: 10px;
   margin-bottom: 16px;
 }
 
-/* Card visuals */
+/* Task title styling */
 .task-card .title {
   font-weight: 600;
 }
+
+/* Completed task title styling */
 .task-card .title.done {
   text-decoration: line-through;
   opacity: 0.6;
 }
 
+/* Margin for tags */
 .task-card .ml-8 {
   margin-left: 8px;
 }
 
+/* Task description with truncation */
 .task-card .desc {
   color: #555;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 60px;
 }
 
-/* Slight lift on hover */
+/* Hover effect for Ant Design cards */
 .task-card.ant-card-hoverable:hover {
   transform: translateY(-2px);
   transition: transform 0.15s ease;
 }
 
-/* While dragging */
+/* Dragging state for cards */
 .task-card.dragging {
-  box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3); /* Stronger shadow for prominence */
+  z-index: 9999; /* Ensure dragged card is above all others */
+  transform: scale(1.02); /* Slight scale for visual emphasis */
+  width: 100%; /* Maintain original width */
+  opacity: 0.95; /* Slight transparency to indicate dragging */
+}
+
+/* Styles for child tasks section */
+.children-tasks {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f5faff; /* Light blue background */
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.children-tasks h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2b6cb0; /* Blue header */
+}
+
+.children-tasks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.children-tasks li {
+  font-size: 13px;
+  color: #2d3748;
+  padding: 4px 0;
+  border-left: 2px solid #4299e1; /* Blue border */
+  padding-left: 12px;
+  margin-bottom: 4px;
+  background-color: #e6f0fa; /* Light blue item background */
+  border-radius: 3px;
+}
+
+/* Styles for parent tasks section */
+.parent-tasks {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #e6fffa; /* Light teal background */
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.parent-tasks h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2c7a7b; /* Teal header */
+}
+
+.parent-tasks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.parent-tasks li {
+  font-size: 13px;
+  color: #2d3748;
+  padding: 4px 0;
+  border-left: 2px solid #38b2ac; /* Teal border */
+  padding-left: 12px;
+  margin-bottom: 4px;
+  background-color: #d0f7ec; /* Light teal item background */
+  border-radius: 3px;
+}
+
+/* Styles for task details in modal */
+.task-details {
+  text-align: center;
+  padding: 16px;
+}
+
+.task-details h2 {
+  font-size: 20px;
+  margin-bottom: 16px;
+}
+
+.task-details p {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: #333;
+}
+
+.task-details p strong {
+  color: #1a202c;
 }

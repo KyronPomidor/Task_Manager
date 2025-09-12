@@ -1,4 +1,6 @@
+// SideBar.js
 import { useMemo, useState } from "react";
+import { useDroppable } from "@dnd-kit/core";
 
 /* ========= colors & basic styles ========= */
 const COLORS = {
@@ -142,7 +144,7 @@ function Row({
   onMouseEnter,
   onMouseLeave,
   isInbox = false,
-  extraStyle = {}, // <— lets us add the Inbox margin easily
+  extraStyle = {}, // lets us add the Inbox margin easily if needed
 }) {
   return (
     <div
@@ -164,7 +166,7 @@ function Row({
           }}
         />
       )}
-      <span className="truncate" title={label} style={{ position: "relative", zIndex: 1 }}>
+      <span title={label} style={{ position: "relative", zIndex: 1 }}>
         {label}
       </span>
       {!isInbox && (showActions || isActive) && <Actions onEdit={onEdit} onDelete={onDelete} />}
@@ -172,8 +174,34 @@ function Row({
   );
 }
 
+/* ========= droppable wrapper (for DnD) ========= */
+function DroppableRow({ categoryId, children, isEnabled, isActiveDrop = false }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `category:${categoryId}`,
+    disabled: !isEnabled,
+  });
+
+  const style = (isOver || isActiveDrop)
+    ? { outline: "2px dashed #2563eb", outlineOffset: -2, borderRadius: 6 }
+    : undefined;
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      {children}
+    </div>
+  );
+}
+
 /* ========= main component ========= */
-export function SideBar({ categories, selectedCategory, onCategorySelect, setCategories }) {
+export function SideBar({
+  categories,
+  selectedCategory,
+  onCategorySelect,
+  setCategories,
+  // Which category ids are valid drop targets. Pass e.g. new Set(["inbox", ...categories.map(c => c.id)])
+  droppableCategoryIds = new Set(),
+  hoverCategoryId = null
+}) {
   const [hoverId, setHoverId] = useState(null);
 
   // modal state
@@ -218,19 +246,21 @@ export function SideBar({ categories, selectedCategory, onCategorySelect, setCat
 
       return (
         <div key={cat.id}>
-          <Row
-            label={cat.name}
-            level={level}
-            isActive={isActive}
-            isShaded={isShaded}
-            showActions={showActions}
-            onClick={() => onCategorySelect(cat.id)}
-            onEdit={() => openEdit(cat)}
-            onDelete={() => removeCategory(cat.id)}
-            showGroupBar={isShaded}
-            onMouseEnter={() => setHoverId(cat.id)}
-            onMouseLeave={() => setHoverId(null)}
-          />
+          <DroppableRow categoryId={cat.id} isEnabled={droppableCategoryIds.has(cat.id)} isActiveDrop={hoverCategoryId === cat.id}>
+            <Row
+              label={cat.name}
+              level={level}
+              isActive={isActive}
+              isShaded={isShaded}
+              showActions={showActions}
+              onClick={() => onCategorySelect(cat.id)}
+              onEdit={() => openEdit(cat)}
+              onDelete={() => removeCategory(cat.id)}
+              showGroupBar={isShaded}
+              onMouseEnter={() => setHoverId(cat.id)}
+              onMouseLeave={() => setHoverId(null)}
+            />
+          </DroppableRow>
           {renderTree(cat.id, level + 1)}
         </div>
       );
@@ -299,26 +329,34 @@ export function SideBar({ categories, selectedCategory, onCategorySelect, setCat
 
   /* ----- render ----- */
   return (
-    <div className="SideBar" style={STYLES.sidebar}>
+    <div style={STYLES.sidebar}>
       <div style={STYLES.list}>
-        <Row
-          label="Inbox"
-          level={0}
-          active={selectedCategory === "inbox"}
-          shaded={false}
-          showActions={false}
-          onClick={() => onCategorySelect("inbox")}
-          onEdit={null}
-          onDelete={null}
-          showGroupBar={false}
-          isInbox
-        />
+        {/* Inbox (droppable) */}
+        <DroppableRow
+          categoryId="inbox"
+          isEnabled={droppableCategoryIds.has("inbox")}
+          isActiveDrop={hoverCategoryId === "inbox"}   // <-- add this
+        >
+          <Row
+            label="Inbox"
+            level={0}
+            isActive={selectedCategory === "inbox"}
+            isShaded={false}
+            showActions={false}
+            onClick={() => onCategorySelect("inbox")}
+            onEdit={null}
+            onDelete={null}
+            showGroupBar={false}
+            isInbox
+          />
+        </DroppableRow>
 
+        {/* Graphs (not droppable by default) */}
         <Row
           label="Graphs"
           level={0}
-          active={selectedCategory === "graphs"}
-          shaded={false}
+          isActive={selectedCategory === "graphs"}
+          isShaded={false}
           showActions={false}
           onClick={() => onCategorySelect("graphs")}
           onEdit={null}
@@ -326,15 +364,17 @@ export function SideBar({ categories, selectedCategory, onCategorySelect, setCat
           showGroupBar={false}
           isInbox
         />
-        {renderTree(null, 0)}
-        <button onClick={openAdd} style={STYLES.addBtn}>+ Add Category</button>
 
+        {/* Category tree (each row is droppable) */}
+        {renderTree(null, 0)}
+
+        <button onClick={openAdd} style={STYLES.addBtn}>+ Add Category</button>
       </div>
 
       {/* Add/Edit modal */}
       {isModalOpen && (
         <>
-          <div className="backdrop-dim" onClick={closeModal} style={STYLES.backdrop} />
+          <div onClick={closeModal} style={STYLES.backdrop} />
           <div role="dialog" aria-modal="true" style={STYLES.dialog}>
             <h3 style={{ margin: "0 0 12px 0" }}>{mode === "edit" ? "Edit Category" : "Add Category"}</h3>
 
