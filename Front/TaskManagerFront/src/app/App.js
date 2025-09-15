@@ -7,13 +7,9 @@ import { Welcome } from "../Widgets/Welcome";
 import { GraphsPage } from "../pages/GraphPage";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
-import AFRAME from "aframe";
 
-window.AFRAME = AFRAME;
-
-// Main App component to integrate Header, SideBar, and Tasks or GraphsPage
+// Main App component
 export default function App() {
-  // State for categories, initialized with default hierarchy
   const [categories, setCategories] = useState([
     { id: "work", name: "Work", parentId: null },
     { id: "personal", name: "Personal", parentId: null },
@@ -24,7 +20,6 @@ export default function App() {
 
   const [hoveredCategory, setHoveredCategory] = useState(null);
 
-  // State for tasks, initialized with default tasks
   const [tasks, setTasks] = useState([
     {
       id: "1",
@@ -68,10 +63,8 @@ export default function App() {
     },
   ]);
 
-  // State for the currently selected category
   const [selectedCategory, setSelectedCategory] = useState("inbox");
 
-  // Set of category IDs that can accept dropped tasks
   const droppableCategoryIds = new Set([
     "inbox",
     ...categories.map((c) => c.id),
@@ -80,50 +73,69 @@ export default function App() {
   // Handle drag end to reorder tasks or move to a category
   function handleDragEnd(event) {
     const { active, over } = event;
-    if (!over) return; // No valid drop target
+    if (!over) return;
 
     if (over.id.startsWith("category:")) {
-      // Dropped on a category
+      // Move to another category
       const categoryId = over.id.replace("category:", "");
       setTasks((prev) =>
         prev.map((t) => (t.id === active.id ? { ...t, categoryId } : t))
       );
-    } else if (active.id !== over.id) {
-      // Reorder within the task list
+      setHoveredCategory(null); // Remove blue color after drop
+      return;
+    }
+
+    // Reorder inside the same category
+    if (active.id !== over.id) {
       setTasks((prev) => {
-        const oldIndex = prev.findIndex((t) => t.id === active.id);
-        const newIndex = prev.findIndex((t) => t.id === over.id);
-        return arrayMove(prev, oldIndex, newIndex);
+        // Find the category of the dragged task
+        const activeTask = prev.find((t) => t.id === active.id);
+        if (!activeTask) return prev;
+
+        // Get all tasks in the same category
+        const categoryTasks = prev.filter(
+          (t) => t.categoryId === activeTask.categoryId
+        );
+        const oldIndex = categoryTasks.findIndex((t) => t.id === active.id);
+        const newIndex = categoryTasks.findIndex((t) => t.id === over.id);
+
+        // If not in the same category, do nothing
+        if (oldIndex === -1 || newIndex === -1) return prev;
+
+        // Reorder only tasks in the same category
+        const reordered = arrayMove(categoryTasks, oldIndex, newIndex);
+
+        // Merge back into the full tasks array
+        let result = [];
+        let i = 0;
+        for (const t of prev) {
+          if (t.categoryId === activeTask.categoryId) {
+            result.push(reordered[i]);
+            i++;
+          } else {
+            result.push(t);
+          }
+        }
+        return result;
       });
+      setHoveredCategory(null); // Remove blue color after drop
     }
   }
 
   return (
-    // Main app container
     <div className="App">
-      {/* Header component */}
       <Header />
-      {/* Body with sidebar and main content */}
       <div className="AppBody">
         <DndContext
           collisionDetection={closestCenter}
           onDragOver={({ over }) => {
             if (over && over.id.startsWith("category:")) {
-              const categoryId = over.id.replace("category:", "");
-              setHoveredCategory(categoryId); // 👈 update state
+              setHoveredCategory(over.id.replace("category:", ""));
             } else {
               setHoveredCategory(null);
             }
           }}
-          onDragEnd={({ active, over }) => {
-            if (over && over.id.startsWith("category:")) {
-              const categoryId = over.id.replace("category:", "");
-              setTasks((prev) =>
-                prev.map((t) => (t.id === active.id ? { ...t, categoryId } : t))
-              );
-            }
-            setHoveredCategory(null);
-          }}
+          onDragEnd={handleDragEnd}
         >
           <SideBar
             categories={categories}
@@ -131,17 +143,13 @@ export default function App() {
             onCategorySelect={setSelectedCategory}
             setCategories={setCategories}
             droppableCategoryIds={droppableCategoryIds}
-            hoveredCategory={hoveredCategory} // pass down
+            hoveredCategory={hoveredCategory}
           />
 
-          {/* Main content panel */}
           <div className="MainPanel">
-            {/* Show Welcome and Tasks for non-graphs categories */}
-            {selectedCategory !== "graphs" && (
+            {selectedCategory !== "graphs" ? (
               <>
-                {/* Welcome message component */}
                 <Welcome />
-                {/* Scrollable container for tasks */}
                 <div className="MainScroll">
                   <Tasks
                     tasks={tasks}
@@ -151,10 +159,9 @@ export default function App() {
                   />
                 </div>
               </>
+            ) : (
+              <GraphsPage />
             )}
-
-            {/* Show GraphsPage when "graphs" is selected */}
-            {selectedCategory === "graphs" && <GraphsPage />}
           </div>
         </DndContext>
       </div>
