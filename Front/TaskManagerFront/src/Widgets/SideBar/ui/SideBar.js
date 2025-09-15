@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
+import { useDndContext } from "@dnd-kit/core";
 
 /* ========= Colors and basic styles for sidebar ========= */
 const COLORS = {
@@ -202,6 +203,7 @@ export function SideBar({
   onCategorySelect, // Callback to handle category selection
   setCategories, // Function to update categories
   droppableCategoryIds = new Set(["inbox"]), // IDs of droppable categories
+  hoveredCategory = null
 }) {
   // State for hover and modal interactions
   const [hoverId, setHoverId] = useState(null); // ID of category being hovered
@@ -210,6 +212,8 @@ export function SideBar({
   const [editingId, setEditingId] = useState(null); // ID of category being edited
   const [name, setName] = useState(""); // Category name in modal
   const [parentId, setParentId] = useState(""); // Parent category ID in modal
+  const { active } = useDndContext();
+  const isDragging = !!active;
 
   // Build a map of parent-to-children categories for tree rendering
   const childrenByParent = useMemo(() => {
@@ -252,15 +256,19 @@ export function SideBar({
             <Row
               label={cat.name}
               level={level}
-              isActive={isActive}
+              isActive={hoveredCategory === cat.id || selectedCategory === cat.id}
               isShaded={isShaded}
               showActions={showActions}
               onClick={() => onCategorySelect(cat.id)}
               onEdit={() => openEdit(cat)}
               onDelete={() => removeCategory(cat.id)}
               showGroupBar={isShaded}
-              onMouseEnter={() => setHoverId(cat.id)}
-              onMouseLeave={() => setHoverId(null)}
+              onMouseEnter={() => {
+                if (!isDragging) setHoverId(cat.id);   // only when not dragging
+              }}
+              onMouseLeave={() => {
+                if (!isDragging) setHoverId(null);    // only when not dragging
+              }}
             />
           </DroppableRow>
           {renderTree(cat.id, level + 1)}

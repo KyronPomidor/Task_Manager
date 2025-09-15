@@ -19,6 +19,8 @@ export default function App() {
     { id: "fun", name: "Fun", parentId: "personal" },
   ]);
 
+  const [hoveredCategory, setHoveredCategory] = useState(null);
+
   // State for tasks, initialized with default tasks
   const [tasks, setTasks] = useState([
     {
@@ -99,15 +101,35 @@ export default function App() {
       <Header />
       {/* Body with sidebar and main content */}
       <div className="AppBody">
-        {/* Drag-and-drop context wrapping sidebar and main panel */}
-        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          {/* Sidebar for category navigation */}
+        <DndContext
+          collisionDetection={closestCenter}
+          onDragOver={({ over }) => {
+            if (over && over.id.startsWith("category:")) {
+              const categoryId = over.id.replace("category:", "");
+              setHoveredCategory(categoryId);   // 👈 update state
+            } else {
+              setHoveredCategory(null);
+            }
+          }}
+          onDragEnd={({ active, over }) => {
+            if (over && over.id.startsWith("category:")) {
+              const categoryId = over.id.replace("category:", "");
+              setTasks((prev) =>
+                prev.map((t) =>
+                  t.id === active.id ? { ...t, categoryId } : t
+                )
+              );
+            }
+            setHoveredCategory(null);
+          }}
+        >
           <SideBar
             categories={categories}
             selectedCategory={selectedCategory}
             onCategorySelect={setSelectedCategory}
             setCategories={setCategories}
             droppableCategoryIds={droppableCategoryIds}
+            hoveredCategory={hoveredCategory}   // pass down
           />
 
           {/* Main content panel */}

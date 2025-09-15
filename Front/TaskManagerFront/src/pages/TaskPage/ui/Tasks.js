@@ -97,7 +97,7 @@ export function Tasks({
   function handleAddNew() {
     const newTask = {
       id: `${Date.now()}`, // Generate unique ID
-      title: "",
+      title: "New Task",
       description: "",
       priority: "Medium",
       deadline: null,
