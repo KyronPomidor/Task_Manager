@@ -4,11 +4,13 @@ namespace Task_Manager_Back.Domain.Entities.TaskRelated;
 
 public class TaskRelation
 {
+    public Guid Id { get; private set; }
     public Guid FromTaskId { get; private set; }
     public Guid ToTaskId { get; private set; }
 
     public TaskRelation(TaskRelationCreateParams @params)
     {
+        Id = Guid.NewGuid();
         FromTaskId = ValidationHelper.ValidateGuid(@params.FromTaskId, nameof(@params));
         ToTaskId = ValidationHelper.ValidateGuid(@params.ToTaskId, nameof(@params));
     }
