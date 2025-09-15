@@ -14,13 +14,13 @@ public class TaskCategoryRepository : ICategoryRepository
         _dbContext = dbContext;
     }
 
-    public async Task CreateAsync(Category entity)
+    public async Task CreateAsync(TaskCategory entity)
     {
-        if (entity is Inbox)
+        if (entity is TaskInbox)
         {
             // Optional: enforce only one inbox per user
             var existingInbox = await _dbContext.Categories
-                .OfType<Inbox>()
+                .OfType<TaskInbox>()
                 .FirstOrDefaultAsync(i => i.UserId == entity.UserId);
 
             if (existingInbox != null)
@@ -31,9 +31,9 @@ public class TaskCategoryRepository : ICategoryRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteAsync(Category entity)
+    public async Task DeleteAsync(TaskCategory entity)
     {
-        if (entity is Inbox)
+        if (entity is TaskInbox)
             throw new InvalidOperationException("Inbox category cannot be deleted");
 
         _dbContext.Categories.Remove(entity);
@@ -46,12 +46,12 @@ public class TaskCategoryRepository : ICategoryRepository
         await DeleteAsync(category);
     }
 
-    public async Task<List<Category>> GetAllAsync()
+    public async Task<List<TaskCategory>> GetAllAsync()
     {
         return await _dbContext.Categories.ToListAsync();
     }
 
-    public async Task<Category> GetByIdAsync(Guid entityId)
+    public async Task<TaskCategory> GetByIdAsync(Guid entityId)
     {
         var category = await _dbContext.Categories
             .FirstOrDefaultAsync(c => c.Id == entityId);
@@ -62,9 +62,9 @@ public class TaskCategoryRepository : ICategoryRepository
         return category;
     }
 
-    public async Task UpdateAsync(Category entity)
+    public async Task UpdateAsync(TaskCategory entity)
     {
-        if (entity is Inbox)
+        if (entity is TaskInbox)
             throw new InvalidOperationException("Inbox category cannot be updated");
 
         _dbContext.Categories.Update(entity);
@@ -74,16 +74,16 @@ public class TaskCategoryRepository : ICategoryRepository
     /// <summary>
     /// Gets the Inbox for a specific user. Creates it if it doesn't exist.
     /// </summary>
-    public async Task<Inbox> GetOrCreateInboxForUser(Guid userId)
+    public async Task<TaskInbox> GetOrCreateInboxForUser(Guid userId)
     {
         var inbox = await _dbContext.Categories
-            .OfType<Inbox>()
+            .OfType<TaskInbox>()
             .FirstOrDefaultAsync(i => i.UserId == userId);
 
         if (inbox != null) return inbox;
 
         // Create new inbox
-        inbox = new Inbox(userId);
+        inbox = new TaskInbox(userId);
         await CreateAsync(inbox);
         return inbox;
     }

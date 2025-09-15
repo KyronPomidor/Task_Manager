@@ -2,13 +2,13 @@
 
 namespace Task_Manager_Back.Domain.Entities.Categories;
 
-public class UserCategory : Category
+public class TaskUserCategory : TaskCategory
 {
     public Guid? ParentCategoryId { get; private set; }
     public string Color { get; private set; } = string.Empty;
     public int Order { get; private set; }
 
-    public UserCategory(UserCategoryCreateParams createParams)
+    public TaskUserCategory(TaskUserCategoryCreateParams createParams)
         : base(createParams.UserId, createParams.Title, createParams.Description)
     {
         Title = ValidationHelper.ValidateStringField(createParams.Title, 1, 100, nameof(createParams.Title), "Category name");
@@ -18,11 +18,11 @@ public class UserCategory : Category
         Order = 0;
     }
 
-    private UserCategory() { }
+    private TaskUserCategory() { }
 
-    public static UserCategory LoadFromPersistence(UserCategoryState state)
+    public static TaskUserCategory LoadFromPersistence(TaskUserCategoryState state)
     {
-        return new UserCategory
+        return new TaskUserCategory
         {
             Id = state.Id,
             UserId = state.UserId,
@@ -61,7 +61,7 @@ public class UserCategory : Category
     }
 }
 
-public record UserCategoryCreateParams(
+public record TaskUserCategoryCreateParams(
     Guid UserId,
     string Title,
     string? Description,
@@ -69,7 +69,7 @@ public record UserCategoryCreateParams(
     string Color
 );
 
-public record UserCategoryState(
+public record TaskUserCategoryState(
     Guid Id,
     Guid UserId,
     string Title,

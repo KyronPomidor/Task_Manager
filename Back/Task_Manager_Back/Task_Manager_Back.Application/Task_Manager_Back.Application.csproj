@@ -17,6 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Handlers\TaskCategoryHandlers\" />
+    <Folder Include="Requests\TaskCategoryRequests\" />
     <Folder Include="Requests\ShopRequests\" />
     <Folder Include="UseCases\CategoryUseCases\" />
     <Folder Include="UseCases\ShopUseCases\" />
