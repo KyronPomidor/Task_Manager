@@ -26,8 +26,8 @@ public class PatchTaskUseCase
         if (request.StatusId.HasValue)
             task.ChangeStatus(request.StatusId.Value);
 
-        if (request.PriorityId.HasValue)
-            task.ChangePriority(request.PriorityId.Value);
+        if (request.Priority.HasValue)
+            task.ChangePriority(request.Priority.Value);
 
         if (request.CategoryId.HasValue)
             task.ChangeCategory(request.CategoryId.Value);

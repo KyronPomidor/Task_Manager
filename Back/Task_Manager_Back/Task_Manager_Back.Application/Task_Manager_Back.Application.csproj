@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Folder Include="Requests\ShopRequests\" />
+    <Folder Include="UseCases\CategoryUseCases\" />
     <Folder Include="UseCases\ShopUseCases\" />
   </ItemGroup>
 

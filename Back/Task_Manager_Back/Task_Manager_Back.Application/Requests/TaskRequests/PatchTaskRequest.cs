@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Task_Manager_Back.Domain.Entities.Enums;
 
 namespace Task_Manager_Back.Application.Requests.TaskRequests;
 
@@ -7,7 +8,7 @@ public record PatchTaskRequest(
     string? Title = null,
     string? Description = null,
     Guid? StatusId = null,
-    Guid? PriorityId = null,
+    TaskPriority? Priority = null,
     Guid? CategoryId = null,
     DateTime? Deadline = null,
     bool? MarkCompleted = null,

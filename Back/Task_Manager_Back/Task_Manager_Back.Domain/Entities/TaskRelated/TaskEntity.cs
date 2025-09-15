@@ -1,4 +1,5 @@
 ﻿using Task_Manager_Back.Domain.Common;
+using Task_Manager_Back.Domain.Entities.Enums;
 using Task_Manager_Back.Domain.Entities.ShopRelated;
 
 namespace Task_Manager_Back.Domain.Entities.TaskRelated;
@@ -7,16 +8,16 @@ public class TaskEntity
 {
     public Guid Id { get; private set; }
     public Guid UserId { get; private set; }
-    public Guid StatusId { get; private set; }
-    public Guid PriorityId { get; private set; }
+    public Guid? StatusId { get; private set; }
     public Guid CategoryId { get; private set; }
 
     public string Title { get; private set; } = string.Empty;
     public string? Description { get; private set; }
+    public TaskPriority? Priority { get; private set; }
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
     public DateTime? Deadline { get; private set; }
-    public bool IsCompleted { get; private set; }
-    public bool IsFailed { get; private set; }
+    public bool? IsCompleted { get; private set; }
+    public bool? IsFailed { get; private set; }
     public int PositionOrder { get; private set; }
 
     private List<TaskLabel> Labels { get; set; } = new();
@@ -36,8 +37,8 @@ public class TaskEntity
         Id = Guid.NewGuid();
 
         UserId = ValidationHelper.ValidateGuid(@params.UserId, nameof(@params.UserId));
-        StatusId = ValidationHelper.ValidateGuid(@params.StatusId, nameof(@params.StatusId));
-        PriorityId = ValidationHelper.ValidateGuid(@params.PriorityId, nameof(@params.PriorityId));
+        StatusId = @params.StatusId;
+        Priority = @params.Priority;
         CategoryId = ValidationHelper.ValidateGuid(@params.CategoryId, nameof(@params.CategoryId));
 
         Title = ValidationHelper.ValidateStringField(@params.Title, 1, 100, nameof(@params.Title), "Title");
@@ -62,7 +63,7 @@ public class TaskEntity
             Title = state.Title,
             Description = state.Description,
             StatusId = state.StatusId,
-            PriorityId = state.PriorityId,
+            Priority = state.Priority,
             CategoryId = state.CategoryId,
             Deadline = state.Deadline,
             IsCompleted = state.IsCompleted,
@@ -89,8 +90,8 @@ public class TaskEntity
     public void Rename(string title) => Title = ValidationHelper.ValidateStringField(title, 1, 100, nameof(title), "Title");
     public void UpdateDescription(string? description) => Description = description;
 
-    public void ChangeStatus(Guid statusId) => StatusId = ValidationHelper.ValidateGuid(statusId, nameof(statusId));
-    public void ChangePriority(Guid priorityId) => PriorityId = ValidationHelper.ValidateGuid(priorityId, nameof(priorityId));
+    public void ChangeStatus(Guid? statusId) => StatusId = statusId;
+    public void ChangePriority(TaskPriority priority) => Priority = priority;
     public void ChangeCategory(Guid categoryId) => CategoryId = ValidationHelper.ValidateGuid(categoryId, nameof(categoryId));
 
     public void ChangeDeadline(DateTime? deadline)
@@ -103,15 +104,15 @@ public class TaskEntity
     public void UpdatePositionOrder(int positionOrder) => PositionOrder = positionOrder;
     public void MarkCompleted()
     {
-        if (IsCompleted) throw new InvalidOperationException("Task is already completed");
-        if (IsFailed) throw new InvalidOperationException("Cannot complete a failed task");
+        if (IsCompleted.HasValue) throw new InvalidOperationException("Task is already completed");
+        if (IsFailed.HasValue) throw new InvalidOperationException("Cannot complete a failed task");
         IsCompleted = true;
     }
 
     public void MarkFailed()
     {
-        if (IsFailed) throw new InvalidOperationException("Task is already failed");
-        if (IsCompleted) throw new InvalidOperationException("Cannot fail a completed task");
+        if (IsFailed.HasValue) throw new InvalidOperationException("Task is already failed");
+        if (IsCompleted.HasValue) throw new InvalidOperationException("Cannot fail a completed task");
         IsFailed = true;
     }
 
@@ -182,7 +183,7 @@ public class TaskEntity
     }
 }
 
-public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, Guid StatusId, Guid PriorityId, Guid CategoryId, DateTime? Deadline);
-public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, Guid StatusId, Guid PriorityId, Guid CategoryId, DateTime? Deadline,
-    bool IsCompleted, bool IsFailed, int PositionOrder,
+public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline);
+public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline,
+    bool? IsCompleted, bool? IsFailed, int PositionOrder,
     List<TaskAttachment> Attachments, List<TaskReminder> Reminders, List<TaskRelation> TaskRelations, List<ShopItem> ShopItems);

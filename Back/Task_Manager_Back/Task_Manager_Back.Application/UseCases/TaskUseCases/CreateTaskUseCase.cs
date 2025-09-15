@@ -20,7 +20,7 @@ public class CreateTaskUseCase
             request.Title,
             request.Description,
             request.StatusId,
-            request.PriorityId,
+            request.Priority,
             request.CategoryId,
             request.Deadline
         ));
