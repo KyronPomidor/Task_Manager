@@ -1,12 +1,15 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Task_Manager_Back.Application;
 using Task_Manager_Back.Application.IRepositories;
+using Task_Manager_Back.Application.UseCases.TaskCategoryUseCases;
 using Task_Manager_Back.Application.UseCases.TaskUseCases;
 using Task_Manager_Back.Domain.Graph.Services;
 using Task_Manager_Back.Domain.IServices.ITask;
 using Task_Manager_Back.Infrastructure.DbContext;
 using Task_Manager_Back.Infrastructure.Repositories;
+using Task_Manager_Back.Infrastructure.Seeds;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +33,12 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
+// Seeder
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
 // Add MediatR 
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(
@@ -40,19 +49,9 @@ builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 builder.Services.AddScoped<ITaskRelationRepository, TaskRelationRepository>();
 
 builder.Services.AddScoped<ITaskGraphService, TaskGraphService>();
-
-// Register use cases
-builder.Services.AddScoped<CreateTaskUseCase>();
-builder.Services.AddScoped<UpdateTaskUseCase>();
-builder.Services.AddScoped<DeleteTaskByIdUseCase>();
-builder.Services.AddScoped<GetTaskByIdUseCase>();
-builder.Services.AddScoped<GetTasksUseCase>();
-builder.Services.AddScoped<AddTaskRelationUseCase>();
-builder.Services.AddScoped<RemoveTaskRelationUseCase>();
-builder.Services.AddScoped<AddTaskReminderUseCase>();
-builder.Services.AddScoped<AttachTaskFileUseCase>();
-builder.Services.AddScoped<PatchTaskUseCase>();
-builder.Services.AddScoped<AddTaskLabelUseCase>();
+builder.Services.AddScoped<ITaskCategoryRepository, TaskCategoryRepository>();
+//// Register use cases
+builder.Services.AddApplicationServices();
 // OpenAPI / Swagger
 builder.Services.AddOpenApi();
 
@@ -61,6 +60,8 @@ builder.Services.AddOpenApi();
 // ---------------------
 var app = builder.Build();
 
+// --- Call seeding logic here ---
+await AppDbSeeder.SeedAsync(app.Services);
 // ---------------------
 // Configure the HTTP request pipeline
 // ---------------------

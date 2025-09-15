@@ -6,13 +6,11 @@ public class TaskUserCategory : TaskCategory
 {
     public Guid? ParentCategoryId { get; private set; }
     public string Color { get; private set; } = string.Empty;
-    public int Order { get; private set; }
+    public int Order { get; set; }
 
     public TaskUserCategory(TaskUserCategoryCreateParams createParams)
-        : base(createParams.UserId, createParams.Title, createParams.Description)
+        : base(createParams)
     {
-        Title = ValidationHelper.ValidateStringField(createParams.Title, 1, 100, nameof(createParams.Title), "Category name");
-        Description = createParams.Description;
         ParentCategoryId = createParams.ParentCategoryId;
         Color = ValidationHelper.ValidateHexColor(createParams.Color, nameof(createParams.Color));
         Order = 0;
@@ -22,32 +20,15 @@ public class TaskUserCategory : TaskCategory
 
     public static TaskUserCategory LoadFromPersistence(TaskUserCategoryState state)
     {
-        return new TaskUserCategory
-        {
-            Id = state.Id,
-            UserId = state.UserId,
-            Title = state.Title,
-            Description = state.Description,
-            ParentCategoryId = state.ParentCategoryId,
-            Color = state.Color,
-            Order = state.Order
-        };
+        var category = new TaskUserCategory();
+        LoadBaseFromPersistence(category, state);
+        category.ParentCategoryId = state.ParentCategoryId;
+        category.Color = state.Color;
+        category.Order = state.Order;
+        return category;
     }
 
-    public void Rename(string title)
-    {
-        Title = ValidationHelper.ValidateStringField(title, 1, 100, nameof(title), "Category name");
-    }
-
-    public void UpdateDescription(string? description)
-    {
-        Description = description;
-    }
-
-    public void ChangeParent(Guid? parentCategoryId)
-    {
-        ParentCategoryId = parentCategoryId;
-    }
+    public void ChangeParent(Guid? parentCategoryId) => ParentCategoryId = parentCategoryId;
 
     public void ChangeColor(string color)
     {
@@ -55,10 +36,7 @@ public class TaskUserCategory : TaskCategory
         Color = color;
     }
 
-    public void UpdateOrder(int order)
-    {
-        Order = order;
-    }
+    public void UpdateOrder(int order) => Order = order;
 }
 
 public record TaskUserCategoryCreateParams(
@@ -67,7 +45,7 @@ public record TaskUserCategoryCreateParams(
     string? Description,
     Guid? ParentCategoryId,
     string Color
-);
+) : TaskCategoryCreateParams(UserId, Title, Description);
 
 public record TaskUserCategoryState(
     Guid Id,
@@ -77,4 +55,4 @@ public record TaskUserCategoryState(
     Guid? ParentCategoryId,
     string Color,
     int Order
-);
+) : TaskCategoryState(Id, UserId, Title, Description);

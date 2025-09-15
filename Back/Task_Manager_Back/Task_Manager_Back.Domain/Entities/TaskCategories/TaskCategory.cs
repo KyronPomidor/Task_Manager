@@ -9,7 +9,6 @@ public abstract class TaskCategory
     public Guid UserId { get; protected set; }
     public string Title { get; protected set; } = string.Empty;
     public string? Description { get; protected set; }
-    public int Order { get; protected set; }
 
     private readonly List<TaskCategory> _categories = new();
     private readonly List<TaskEntity> _tasks = new();
@@ -17,13 +16,12 @@ public abstract class TaskCategory
     public IReadOnlyCollection<TaskCategory> Categories => _categories.AsReadOnly();
     public IReadOnlyCollection<TaskEntity> Tasks => _tasks.AsReadOnly();
 
-    protected TaskCategory(Guid userId, string title, string? description)
+    protected TaskCategory(TaskCategoryCreateParams @params)
     {
         Id = Guid.NewGuid();
-        UserId = ValidationHelper.ValidateGuid(userId, nameof(userId));
-        Title = ValidationHelper.ValidateStringField(title, 1, 100, nameof(title), "Title");
-        Description = description;
-        Order = 0;
+        UserId = ValidationHelper.ValidateGuid(@params.UserId, nameof(@params.UserId));
+        Title = ValidationHelper.ValidateStringField(@params.Title, 1, 100, nameof(@params.Title), "Title");
+        Description = @params.Description;
     }
 
     protected TaskCategory() { }
@@ -38,13 +36,34 @@ public abstract class TaskCategory
         Description = description;
     }
 
-    public virtual void UpdateOrder(int order)
-    {
-        Order = order;
-    }
-
     public void AddTask(TaskEntity task)
     {
         _tasks.Add(task);
     }
+
+    /// <summary>
+    /// Base LoadFromPersistence for all TaskCategory types
+    /// </summary>
+    protected static void LoadBaseFromPersistence(TaskCategory category, TaskCategoryState state)
+    {
+        category.Id = state.Id;
+        category.UserId = state.UserId;
+        category.Title = state.Title;
+        category.Description = state.Description;
+    }
 }
+
+/// Common params for creating any TaskCategory
+public record TaskCategoryCreateParams(
+    Guid UserId,
+    string Title,
+    string? Description
+);
+
+/// Common state for loading from persistence
+public record TaskCategoryState(
+    Guid Id,
+    Guid UserId,
+    string Title,
+    string? Description
+);

@@ -5,7 +5,7 @@ using Task_Manager_Back.Application.IRepositories;
 
 namespace Task_Manager_Back.Infrastructure.Repositories;
 
-public class TaskCategoryRepository : ICategoryRepository
+public class TaskCategoryRepository : ITaskCategoryRepository
 {
     private readonly AppDbContext _dbContext;
 

@@ -22,4 +22,19 @@ public class AppDbContext : IdentityDbContext
     public DbSet<ShopItem> ShopItems { get; set; } = null!;
 
     public DbSet<TaskCategory> Categories { get; set; } = null!;
+
+    protected override void OnModelCreating(ModelBuilder builder)
+    {
+        base.OnModelCreating(builder);
+
+        // ✅ Configure inheritance using Table-Per-Hierarchy (TPH)
+        builder.Entity<TaskCategory>()
+            .HasDiscriminator<string>("CategoryType")
+            .HasValue<TaskInbox>("Inbox")
+            .HasValue<TaskUserCategory>("UserCategory");
+
+        // Optional: constraints
+        builder.Entity<TaskInbox>().Property(c => c.Title).HasMaxLength(100);
+        builder.Entity<TaskUserCategory>().Property(c => c.Color).HasMaxLength(7); // e.g. #RRGGBB
+    }
 }
