@@ -7,6 +7,9 @@ import { Welcome } from "../Widgets/Welcome";
 import { GraphsPage } from "../pages/GraphPage";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import AFRAME from "aframe";
+
+window.AFRAME = AFRAME;
 
 // Main App component to integrate Header, SideBar, and Tasks or GraphsPage
 export default function App() {
@@ -69,7 +72,10 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState("inbox");
 
   // Set of category IDs that can accept dropped tasks
-  const droppableCategoryIds = new Set(["inbox", ...categories.map((c) => c.id)]);
+  const droppableCategoryIds = new Set([
+    "inbox",
+    ...categories.map((c) => c.id),
+  ]);
 
   // Handle drag end to reorder tasks or move to a category
   function handleDragEnd(event) {
@@ -80,9 +86,7 @@ export default function App() {
       // Dropped on a category
       const categoryId = over.id.replace("category:", "");
       setTasks((prev) =>
-        prev.map((t) =>
-          t.id === active.id ? { ...t, categoryId } : t
-        )
+        prev.map((t) => (t.id === active.id ? { ...t, categoryId } : t))
       );
     } else if (active.id !== over.id) {
       // Reorder within the task list
@@ -106,7 +110,7 @@ export default function App() {
           onDragOver={({ over }) => {
             if (over && over.id.startsWith("category:")) {
               const categoryId = over.id.replace("category:", "");
-              setHoveredCategory(categoryId);   // 👈 update state
+              setHoveredCategory(categoryId); // 👈 update state
             } else {
               setHoveredCategory(null);
             }
@@ -115,9 +119,7 @@ export default function App() {
             if (over && over.id.startsWith("category:")) {
               const categoryId = over.id.replace("category:", "");
               setTasks((prev) =>
-                prev.map((t) =>
-                  t.id === active.id ? { ...t, categoryId } : t
-                )
+                prev.map((t) => (t.id === active.id ? { ...t, categoryId } : t))
               );
             }
             setHoveredCategory(null);
@@ -129,7 +131,7 @@ export default function App() {
             onCategorySelect={setSelectedCategory}
             setCategories={setCategories}
             droppableCategoryIds={droppableCategoryIds}
-            hoveredCategory={hoveredCategory}   // pass down
+            hoveredCategory={hoveredCategory} // pass down
           />
 
           {/* Main content panel */}
