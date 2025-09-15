@@ -2,7 +2,7 @@
 /// Represents the Inbox category, a hardcoded category for tasks.
 public class Inbox : Category
 {
-    public Inbox(Guid userId) : base(userId, "Inbox", "Default category for new tasks")
+    public Inbox(Guid userId) : base(userId, "Inbox", "Add here any task or idea you have in mind")
     {
 
     }

@@ -21,5 +21,5 @@ public class AppDbContext : IdentityDbContext
 
     public DbSet<ShopItem> ShopItems { get; set; } = null!;
 
-    public DbSet<UserCategory> UserCategories { get; set; } = null!;
+    public DbSet<Category> Categories { get; set; } = null!;
 }

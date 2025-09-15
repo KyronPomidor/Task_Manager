@@ -11,8 +11,8 @@ public abstract class Category
     public string Title { get; protected set; } = string.Empty;
     public string? Description { get; protected set; }
 
-    private List<Category> _categories = new();
-    private List<TaskEntity> _tasks = new();
+    private readonly List<Category> _categories = new();
+    private readonly List<TaskEntity> _tasks = new();
 
     public IReadOnlyCollection<Category> Categories => _categories.AsReadOnly();
     public IReadOnlyCollection<TaskEntity> Tasks => _tasks.AsReadOnly();
