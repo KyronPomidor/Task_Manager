@@ -1,7 +1,6 @@
 /* Styles for task cards */
 .task-card {
   background-color: var(--card-bg, white);
-  min-height: 30vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

@@ -299,12 +299,6 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
                       title={
                         <motion.div
                           className="card-title"
-                          animate={{
-                            marginRight: menuOpenId === task.id ? 120 : 0, // pushes left when menu is open
-                            alignItems: menuOpenId === task.id ? "flex-start" : "center",
-                            textAlign: menuOpenId === task.id ? "left" : "center",
-                          }}
-                          transition={{ type: "spring", stiffness: 300, damping: 25 }}
                           onClick={(e) => e.stopPropagation()}
                           {...dragListeners}
                           style={{
@@ -312,41 +306,54 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
                             display: "flex",
                             flexDirection: "column",
                             width: "100%",
+                            alignItems: "center", // keep centered by default
+                            overflow: "hidden",
                           }}
                         >
                           {/* Title + priority row */}
-                          <div
+                          <motion.div
+                            animate={{
+                              x: menuOpenId === task.id ? -60 : 0, // slide left only when menu open
+                            }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 200,
+                              damping: 20,
+                            }}
                             style={{
                               display: "flex",
                               alignItems: "center",
                               gap: "8px",
-                              justifyContent: menuOpenId === task.id ? "flex-start" : "center",
-                              width: "100%",
                             }}
                           >
                             <span className={`title ${task.completed ? "done" : ""}`}>
                               {task.title}
                             </span>
                             <Tag color={priorityColor(task.priority)}>{task.priority}</Tag>
-                          </div>
+                          </motion.div>
 
                           {/* Deadline below */}
                           {task.deadline && (
-                            <div
+                            <motion.div
+                              animate={{
+                                x: menuOpenId === task.id ? -60 : 0,
+                              }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 100,
+                                damping: 20,
+                              }}
                               style={{
                                 fontSize: "0.85rem",
                                 color: "blue",
                                 marginTop: "2px",
-                                width: "100%",
-                                textAlign: menuOpenId === task.id ? "left" : "center",
                               }}
                             >
                               {task.deadline}
-                            </div>
+                            </motion.div>
                           )}
                         </motion.div>
                       }
-
                       hoverable
                       extra={
                         <TaskActions
@@ -369,6 +376,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
                           alignItems: "center",
                           textAlign: "center",
                           minHeight: "40px",
+                          width: "100%", // ensure full width
                         }}
                       >
                         {task.description || "No description"}
