@@ -8,7 +8,7 @@ const COLORS = {
   blueText: "#ffffff",
   rowHover: "#f3f4f6",
   rowBorder: "#e5e7eb",
-  bg: "#ffffff",
+  bg: "#d5d9e4ff",
   sidebarBorder: "#e5e7eb",
   actionBg: "#f3f4f6",
   actionHover: "#e5e7eb",
@@ -22,13 +22,12 @@ const STYLES = {
     flexDirection: "column",
     height: "100%",
     width: "15vw",
-    minWidth: 240,
+    minWidth: "10vw",
     background: COLORS.bg,
     borderRight: `1px solid ${COLORS.sidebarBorder}`,
     boxSizing: "border-box",
   },
   list: { flex: 1, overflowY: "auto", padding: "8px 0" },
-  // Action buttons shown on hover/active
   actionWrap: { display: "flex", alignItems: "center", gap: 6 },
   actionBtn: {
     width: 28,
@@ -52,7 +51,6 @@ const STYLES = {
     cursor: "pointer",
     fontWeight: 600,
   },
-  // Modal styles
   backdrop: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 999 },
   dialog: {
     position: "fixed",
@@ -83,7 +81,7 @@ function getRowStyle({ isActive, level, isShaded, isHovered }) {
     justifyContent: "space-between",
     gap: 8,
     padding: "10px 12px",
-    paddingLeft: 12 + level * 16, // Indent children
+    paddingLeft: 12 + level * 16,
     cursor: "pointer",
     background: "transparent",
     color: "#111827",
@@ -105,7 +103,6 @@ function getRowStyle({ isActive, level, isShaded, isHovered }) {
 /* ========= Renders action buttons (Edit/Delete) for a category row ========= */
 function Actions({ onEdit, onDelete }) {
   return (
-    // Container for action buttons
     <div style={STYLES.actionWrap} onClick={(e) => e.stopPropagation()}>
       <button
         style={STYLES.actionBtn}
@@ -146,14 +143,12 @@ function Row({
   extraStyle = {},
 }) {
   return (
-    // Category row with hover and active styles
     <div
       style={{ ...getRowStyle({ isActive, level, isShaded, isHovered: showActions && !isActive }), ...extraStyle }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      {/* Visual indicator for shaded (descendant) categories */}
       {showGroupBar && (
         <div
           style={{
@@ -177,19 +172,16 @@ function Row({
 
 /* ========= Droppable wrapper for a category row to accept dragged tasks ========= */
 function DroppableRow({ categoryId, children, isEnabled }) {
-  // Set up droppable properties
   const { setNodeRef, isOver } = useDroppable({
     id: `category:${categoryId}`,
     disabled: !isEnabled,
   });
 
-  // Apply visual feedback when a task is dragged over
   const style = isOver
     ? { outline: "2px dashed #2563eb", outlineOffset: -2, borderRadius: 6 }
     : undefined;
 
   return (
-    // Div wrapper for droppable functionality
     <div ref={setNodeRef} style={style}>
       {children}
     </div>
@@ -198,38 +190,34 @@ function DroppableRow({ categoryId, children, isEnabled }) {
 
 /* ========= Main SideBar component for managing categories ========= */
 export function SideBar({
-  categories = [], // List of categories
-  selectedCategory = "inbox", // Currently selected category
-  onCategorySelect, // Callback to handle category selection
-  setCategories, // Function to update categories
-  droppableCategoryIds = new Set(["inbox"]), // IDs of droppable categories
+  categories = [],
+  selectedCategory = "inbox",
+  onCategorySelect,
+  setCategories,
+  droppableCategoryIds = new Set(),
   hoveredCategory = null
 }) {
-  // State for hover and modal interactions
-  const [hoverId, setHoverId] = useState(null); // ID of category being hovered
-  const [isModalOpen, setIsModalOpen] = useState(false); // Modal visibility
-  const [mode, setMode] = useState("add"); // Modal mode: "add" or "edit"
-  const [editingId, setEditingId] = useState(null); // ID of category being edited
-  const [name, setName] = useState(""); // Category name in modal
-  const [parentId, setParentId] = useState(""); // Parent category ID in modal
+  const [hoverId, setHoverId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mode, setMode] = useState("add");
+  const [editingId, setEditingId] = useState(null);
+  const [name, setName] = useState("");
+  const [parentId, setParentId] = useState("");
   const { active } = useDndContext();
   const isDragging = !!active;
 
-  // Build a map of parent-to-children categories for tree rendering
   const childrenByParent = useMemo(() => {
     const map = new Map();
-    categories.forEach((c) => {
-      const key = c.parentId ?? null;
-      if (!map.has(key)) map.set(key, []);
-      map.get(key).push(c);
+    categories.forEach((cat) => {
+      const parent = cat.parentId ?? null;
+      if (!map.has(parent)) map.set(parent, []);
+      map.get(parent).push(cat);
     });
-    for (const list of map.values()) list.sort((a, b) => a.name.localeCompare(b.name));
     return map;
   }, [categories]);
 
-  // Check if nodeId is a descendant of ancestorId
   function isDescendant(nodeId, ancestorId) {
-    if (!ancestorId || ancestorId === "inbox") return false;
+    if (nodeId === ancestorId) return false;
     let current = categories.find((c) => c.id === nodeId)?.parentId ?? null;
     while (current) {
       if (current === ancestorId) return true;
@@ -238,7 +226,6 @@ export function SideBar({
     return false;
   }
 
-  // Recursively render category tree
   function renderTree(parent, level = 0) {
     const items = childrenByParent.get(parent ?? null) || [];
     return items.map((cat) => {
@@ -247,7 +234,6 @@ export function SideBar({
       const showActions = hoverId === cat.id;
 
       return (
-        // Category and its children
         <div key={cat.id}>
           <DroppableRow
             categoryId={cat.id}
@@ -264,11 +250,12 @@ export function SideBar({
               onDelete={() => removeCategory(cat.id)}
               showGroupBar={isShaded}
               onMouseEnter={() => {
-                if (!isDragging) setHoverId(cat.id);   // only when not dragging
+                if (!isDragging) setHoverId(cat.id);
               }}
               onMouseLeave={() => {
-                if (!isDragging) setHoverId(null);    // only when not dragging
+                if (!isDragging) setHoverId(null);
               }}
+              isInbox={cat.id === "inbox"}
             />
           </DroppableRow>
           {renderTree(cat.id, level + 1)}
@@ -277,7 +264,6 @@ export function SideBar({
     });
   }
 
-  // Open modal for adding a new category
   function openAdd() {
     setMode("add");
     setEditingId(null);
@@ -287,7 +273,6 @@ export function SideBar({
     document.body.classList.add("no-scroll");
   }
 
-  // Open modal for editing an existing category
   function openEdit(cat) {
     setMode("edit");
     setEditingId(cat.id);
@@ -297,13 +282,11 @@ export function SideBar({
     document.body.classList.add("no-scroll");
   }
 
-  // Close the add/edit modal
   function closeModal() {
     setIsModalOpen(false);
     document.body.classList.remove("no-scroll");
   }
 
-  // Save a new or edited category
   function saveCategory() {
     const trimmed = name.trim();
     if (!trimmed) {
@@ -325,7 +308,6 @@ export function SideBar({
     closeModal();
   }
 
-  // Remove a category and its direct children
   function removeCategory(id) {
     const target = categories.find((c) => c.id === id);
     if (!target) return;
@@ -335,39 +317,15 @@ export function SideBar({
     if (selectedCategory === id) onCategorySelect("inbox");
   }
 
-  // Filter parent choices for modal, excluding the category being edited
   const parentChoices = useMemo(
     () => categories.filter((c) => (mode === "edit" ? c.id !== editingId : true)),
     [categories, mode, editingId]
   );
 
   return (
-    // Sidebar container
     <div style={STYLES.sidebar}>
-      {/* List of categories */}
       <div style={STYLES.list}>
-        {/* Inbox row (droppable) */}
-        <DroppableRow
-          categoryId="inbox"
-          isEnabled={droppableCategoryIds.has("inbox")}
-        >
-          <Row
-            label="Inbox"
-            level={0}
-            isActive={selectedCategory === "inbox"}
-            isShaded={false}
-            showActions={false}
-            onClick={() => onCategorySelect("inbox")}
-            onEdit={null}
-            onDelete={null}
-            showGroupBar={false}
-            isInbox
-            onMouseEnter={() => setHoverId("inbox")}
-            onMouseLeave={() => setHoverId(null)}
-          />
-        </DroppableRow>
-
-        {/* Graphs row (not droppable) */}
+        {renderTree(null, 0)}
         <Row
           label="Graphs"
           level={0}
@@ -378,26 +336,16 @@ export function SideBar({
           onEdit={null}
           onDelete={null}
           showGroupBar={false}
-          isInbox
+          isInbox={false}
         />
-
-        {/* Render category tree */}
-        {renderTree(null, 0)}
-
-        {/* Button to add a new category */}
         <button onClick={openAdd} style={STYLES.addBtn}>+ Add Category</button>
       </div>
 
-      {/* Modal for adding/editing categories */}
       {isModalOpen && (
         <>
-          {/* Backdrop for modal */}
           <div onClick={closeModal} style={STYLES.backdrop} />
-          {/* Modal dialog */}
           <div role="dialog" aria-modal="true" style={STYLES.dialog}>
             <h3 style={{ margin: "0 0 12px 0" }}>{mode === "edit" ? "Edit Category" : "Add Category"}</h3>
-
-            {/* Category name input */}
             <label style={STYLES.field}>
               <span>
                 Category name <span style={{ color: "#b91c1c" }}>*</span>
@@ -410,8 +358,6 @@ export function SideBar({
                 style={STYLES.input}
               />
             </label>
-
-            {/* Parent category selector */}
             <label style={STYLES.field}>
               <span>Parent category</span>
               <select value={parentId} onChange={(e) => setParentId(e.target.value)} style={STYLES.select}>
@@ -423,8 +369,6 @@ export function SideBar({
                 ))}
               </select>
             </label>
-
-            {/* Modal action buttons */}
             <div style={STYLES.actions}>
               <button onClick={closeModal} style={STYLES.btnCancel}>Cancel</button>
               <button onClick={saveCategory} style={STYLES.btnSave}>Save</button>

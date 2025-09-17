@@ -1,16 +1,23 @@
 import "./styles/App.css";
 import { useState } from "react";
-import { Header } from "../Widgets/Header";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
 import { Welcome } from "../Widgets/Welcome";
 import { GraphsPage } from "../pages/GraphPage";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
+import Authorization from "../pages/authorization";
+import useAuth from "../hooks/useAuth";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase/firebase";
+import { Button } from "antd";
 
 // Main App component
 export default function App() {
+  const { user, loading } = useAuth();
+
   const [categories, setCategories] = useState([
+    { id: "inbox", name: "Inbox", parentId: null }, // Added to match tasks
     { id: "work", name: "Work", parentId: null },
     { id: "personal", name: "Personal", parentId: null },
     { id: "projA", name: "Project A", parentId: "work" },
@@ -19,6 +26,7 @@ export default function App() {
   ]);
 
   const [hoveredCategory, setHoveredCategory] = useState(null);
+  const [activeTaskId, setActiveTaskId] = useState(null);
 
   const [tasks, setTasks] = useState([
     {
@@ -65,10 +73,7 @@ export default function App() {
 
   const [selectedCategory, setSelectedCategory] = useState("inbox");
 
-  const droppableCategoryIds = new Set([
-    "inbox",
-    ...categories.map((c) => c.id),
-  ]);
+  const droppableCategoryIds = new Set(categories.map((c) => c.id));
 
   // Handle drag end to reorder tasks or move to a category
   function handleDragEnd(event) {
@@ -122,12 +127,26 @@ export default function App() {
     }
   }
 
+  if (loading) {
+    console.log("Showing loading screen");
+    return <div className="App">Loading...</div>;
+  }
+
+  if (!user) {
+    console.log("Showing authorization page");
+    return <Authorization />;
+  }
+
+  console.log("Rendering main app, logged in as:", user?.email ?? user?.uid);
+
   return (
     <div className="App">
-      <Header />
       <div className="AppBody">
         <DndContext
           collisionDetection={closestCenter}
+          onDragStart={({ active }) => {
+            setActiveTaskId(active.id);
+          }}
           onDragOver={({ over }) => {
             if (over && over.id.startsWith("category:")) {
               setHoveredCategory(over.id.replace("category:", ""));
@@ -135,7 +154,10 @@ export default function App() {
               setHoveredCategory(null);
             }
           }}
-          onDragEnd={handleDragEnd}
+          onDragEnd={(event) => {
+            setActiveTaskId(null); // Clear overlay
+            handleDragEnd(event);
+          }}
         >
           <SideBar
             categories={categories}
@@ -145,7 +167,6 @@ export default function App() {
             droppableCategoryIds={droppableCategoryIds}
             hoveredCategory={hoveredCategory}
           />
-
           <div className="MainPanel">
             {selectedCategory !== "graphs" ? (
               <>
@@ -163,6 +184,37 @@ export default function App() {
               <GraphsPage />
             )}
           </div>
+          <DragOverlay>
+            {activeTaskId && (
+              (() => {
+                const task = tasks.find((t) => t.id === activeTaskId);
+                if (!task) return null;
+                return (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "6px 12px",
+                      background: "#fff",
+                      border: "1px solid #2563eb",
+                      borderRadius: 8,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                      fontWeight: 500,
+                      maxWidth: "250px",
+                      color: "#2563eb",
+                      gap: 8,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <span role="img" aria-label="task" style={{ fontSize: 18 }}>
+                      📝
+                    </span>
+                    {task.title}
+                  </div>
+                );
+              })()
+            )}
+          </DragOverlay>
         </DndContext>
       </div>
     </div>
