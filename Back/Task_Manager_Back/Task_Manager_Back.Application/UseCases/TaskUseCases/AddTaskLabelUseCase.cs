@@ -17,6 +17,7 @@ public class AddTaskLabelUseCase
             ?? throw new KeyNotFoundException($"Task with Id '{request.TaskId}' not found.");
         var label = new TaskLabel(new TaskLabelCreateParams(
             request.UserId,
+            request.TaskId,
             request.Title,
             request.Description
             ));

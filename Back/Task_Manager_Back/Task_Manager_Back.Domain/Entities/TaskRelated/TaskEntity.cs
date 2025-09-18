@@ -1,4 +1,5 @@
-﻿using Task_Manager_Back.Domain.Common;
+﻿using System.Net.Mail;
+using Task_Manager_Back.Domain.Common;
 using Task_Manager_Back.Domain.Entities.Enums;
 using Task_Manager_Back.Domain.Entities.ShopRelated;
 

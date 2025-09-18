@@ -42,11 +42,14 @@ public class TaskRepository : ITaskRepository
     public async Task<TaskEntity> GetByIdAsync(Guid entityId)
     {
         var task = await _dbContext.Tasks
-            .Include(t => t.GetAttachments())
-            .Include(t => t.GetReminders())
-            .Include(t => t.GetTaskRelations())
-            .Include(t => t.GetShopItems())
+            .Include("Attachments")   // <-- string version for private field
+            .Include("Reminders")
+            .Include("TaskRelations")
+            .Include("ShopItems")
+            .Include("Labels")
             .FirstOrDefaultAsync(t => t.Id == entityId);
+
+
 
         return task ?? throw new KeyNotFoundException($"Task with Id '{entityId}' not found.");
     }
@@ -54,12 +57,14 @@ public class TaskRepository : ITaskRepository
 
     public async Task<List<TaskEntity>> GetAllAsync()
     {
-        return await _dbContext.Tasks
-            .Include(t => t.GetAttachments())
-            .Include(t => t.GetReminders())
-            .Include(t => t.GetTaskRelations())
-            .Include(t => t.GetShopItems())
+        var tasks = await _dbContext.Tasks
+            .Include("Attachments")   // <-- string version for private field
+            .Include("Reminders")
+            .Include("TaskRelations")
+            .Include("ShopItems")
+            .Include("Labels")
             .ToListAsync();
+        return tasks;
     }
 
 

@@ -41,10 +41,11 @@ public class TaskCategoryController : ControllerBase
     [HttpPost("user")]
     public async Task<IActionResult> CreateUserCategory([FromBody] CreateTaskUserCategoryRequest request)
     {
-        // need to return the Id of the entity 
-        await _mediator.Send(request);
-        return CreatedAtAction(nameof(GetById), new { userId = request.UserId }, request);
+        var categoryId = await _mediator.Send(request);
+
+        return CreatedAtAction(nameof(GetById), new { id = categoryId }, new { id = categoryId });
     }
+
 
     /// <summary>
     /// Rename a category.

@@ -1,6 +1,7 @@
 ﻿using MediatR;
 
 namespace Task_Manager_Back.Application.Requests.TaskCategoryRequests;
+
 /// <summary>Creates a new user-defined task category.</summary>
 public record CreateTaskUserCategoryRequest(
     Guid UserId,
@@ -8,4 +9,4 @@ public record CreateTaskUserCategoryRequest(
     string? Description,
     Guid? ParentCategoryId,
     string Color
-) : IRequest;
+) : IRequest<Guid>; // now returns Guid
