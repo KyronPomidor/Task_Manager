@@ -3,13 +3,12 @@ import { useState } from "react";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
 import { Welcome } from "../Widgets/Welcome";
-import { GraphsPage } from "../pages/GraphPage";
 import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import Authorization from "../pages/authorization";
 import useAuth from "../hooks/useAuth";
-import { TaskFilters } from "../Widgets/TaskFilters";
 import UserProfileMenu from "../Widgets/UserProfile";
+import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration"; 
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -36,26 +35,29 @@ export default function App() {
       categoryId: "inbox",
       completed: false,
       parentIds: [],
+      graphNode: { id: "First task", x: 100, y: 100 }, // ✅ added
     },
     {
       id: "2",
       title: "Second task",
       description: "Depends on First task, has a deadline.",
       priority: "High",
-      deadline: "2025-09-15",
+      deadline: "2025-09-17",
       categoryId: "inbox",
       completed: false,
       parentIds: ["1"],
+      graphNode: { id: "Second task", x: 200, y: 200 }, // ✅ added
     },
     {
       id: "3",
       title: "Review PR",
       description: "Review code after First task is done.",
       priority: "High",
-      deadline: "2025-09-12",
+      deadline: "2025-09-17",
       categoryId: "personal",
       completed: false,
       parentIds: ["1"],
+      graphNode: { id: "Review PR", x: 300, y: 300 }, // ✅ added
     },
     {
       id: "4",
@@ -66,19 +68,14 @@ export default function App() {
       categoryId: "personal",
       completed: false,
       parentIds: [],
+      graphNode: { id: "Refactor UI", x: 400, y: 400 }, // ✅ added
     },
   ]);
 
   const [selectedCategory, setSelectedCategory] = useState("inbox");
 
-  // Task filters state
-  const [filters, setFilters] = useState({
-    priority: "All",
-    status: "All",
-    deadline: "",
-  });
-
   const droppableCategoryIds = new Set(categories.map((c) => c.id));
+  droppableCategoryIds.add("today"); // allow dropping into Today
 
   function handleDragEnd(event) {
     const { active, over } = event;
@@ -86,6 +83,19 @@ export default function App() {
 
     if (over.id.startsWith("category:")) {
       const categoryId = over.id.replace("category:", "");
+
+      // Special case: dropping into Today
+      if (categoryId === "today") {
+        const todayStr = new Date().toISOString().split("T")[0];
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === active.id ? { ...t, deadline: todayStr } : t
+          )
+        );
+        setHoveredCategory(null);
+        return;
+      }
+
       setTasks((prev) =>
         prev.map((t) => (t.id === active.id ? { ...t, categoryId } : t))
       );
@@ -128,12 +138,13 @@ export default function App() {
   if (!user) return <Authorization />;
 
   // Apply filters
+  const todayStr = new Date().toISOString().split("T")[0];
   const filteredTasks = tasks.filter((t) => {
-    if (t.categoryId !== selectedCategory) return false;
-    if (filters.priority !== "All" && t.priority !== filters.priority) return false;
-    if (filters.status === "Done" && !t.completed) return false;
-    if (filters.status === "Undone" && t.completed) return false;
-    if (filters.deadline && t.deadline !== filters.deadline) return false;
+    if (selectedCategory === "today") {
+      return t.deadline === todayStr;
+    }
+    if (selectedCategory !== "graphs" && t.categoryId !== selectedCategory)
+      return false;
     return true;
   });
 
@@ -184,37 +195,42 @@ export default function App() {
                 </div>
               </>
             ) : (
-              <GraphsPage />
+              <TaskGraphIntegration
+                tasks={tasks}
+                setTasks={setTasks}
+                categories={categories}
+              />
             )}
           </div>
           <DragOverlay>
-            {activeTaskId && (() => {
-              const task = tasks.find((t) => t.id === activeTaskId);
-              if (!task) return null;
-              return (
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    padding: "6px 12px",
-                    background: "#fff",
-                    border: "1px solid #2563eb",
-                    borderRadius: 8,
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                    fontWeight: 500,
-                    maxWidth: "250px",
-                    color: "#2563eb",
-                    gap: 8,
-                    pointerEvents: "none",
-                  }}
-                >
-                  <span role="img" aria-label="task" style={{ fontSize: 18 }}>
-                    📝
-                  </span>
-                  {task.title}
-                </div>
-              );
-            })()}
+            {activeTaskId &&
+              (() => {
+                const task = tasks.find((t) => t.id === activeTaskId);
+                if (!task) return null;
+                return (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "6px 12px",
+                      background: "#fff",
+                      border: "1px solid #2563eb",
+                      borderRadius: 8,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                      fontWeight: 500,
+                      maxWidth: "250px",
+                      color: "#2563eb",
+                      gap: 8,
+                      pointerEvents: "none",
+                    }}
+                  >
+                    <span role="img" aria-label="task" style={{ fontSize: 18 }}>
+                      📝
+                    </span>
+                    {task.title}
+                  </div>
+                );
+              })()}
           </DragOverlay>
         </DndContext>
       </div>

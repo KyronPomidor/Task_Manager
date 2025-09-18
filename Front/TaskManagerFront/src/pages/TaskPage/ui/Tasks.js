@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+// src/pages/Tasks.js
+import { useState } from "react";
 import "../Tasks.css";
 import { TaskFilters } from "../../../Widgets/TaskFilters";
 import {
@@ -67,7 +68,7 @@ function TaskActions({
     hidden: { opacity: 0, x: 0, scale: 0.7 },
     visible: (i) => ({
       opacity: 1,
-      x: -(i + 1) * 51, // 48px button + 3px gap
+      x: -(i + 1) * 51,
       scale: 1,
       transition: {
         type: "spring",
@@ -113,7 +114,7 @@ function TaskActions({
     if (open) {
       setMenuOpenId(null);
     } else {
-      setMenuOpenId(task.id); // close any other and open only this one
+      setMenuOpenId(task.id);
     }
   };
 
@@ -159,7 +160,7 @@ function TaskActions({
   );
 }
 
-export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
+export function Tasks({ tasks, setTasks, selectedCategory, categories, searchText }) {
   const [editOpen, setEditOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -174,16 +175,9 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
 
   const [menuOpenId, setMenuOpenId] = useState(null);
 
-  const filtered = useMemo(
-    () => tasks.filter((t) => t.categoryId === selectedCategory),
-    [tasks, selectedCategory]
-  );
-
   function toggleComplete(id) {
     setTasks((prev) =>
-      prev.map((t) =>
-        t.id === id ? { ...t, completed: !t.completed } : t
-      )
+      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
     );
   }
 
@@ -205,11 +199,14 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
       description: "",
       priority: "Medium",
       deadline: null,
-      categoryId: selectedCategory,
+      categoryId: selectedCategory === "today" ? "inbox" : selectedCategory,
       completed: false,
       parentIds: [],
       budgetItems: [],
     };
+    if (selectedCategory === "today") {
+      newTask.deadline = dayjs().format("YYYY-MM-DD");
+    }
     setEditTask(newTask);
     setAddOpen(true);
   }
@@ -284,22 +281,15 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
     deadline: "",
   });
 
-  // Apply filtering
+  // Filter tasks
   const filteredTasks = tasks.filter((task) => {
-    // Priority
-    if (filters.priority !== "All" && task.priority !== filters.priority) {
-      return false;
-    }
-
-    // Status
+    if (selectedCategory !== "today" && task.categoryId !== selectedCategory) return false;
+    if (selectedCategory === "today" && task.deadline !== dayjs().format("YYYY-MM-DD")) return false;
+    if (searchText && !task.title.toLowerCase().includes(searchText.toLowerCase())) return false;
+    if (filters.priority !== "All" && task.priority !== filters.priority) return false;
     if (filters.status === "Done" && !task.completed) return false;
     if (filters.status === "Undone" && task.completed) return false;
-
-    // Deadline
-    if (filters.deadline) {
-      if (!task.deadline || task.deadline !== filters.deadline) return false;
-    }
-
+    if (filters.deadline && task.deadline !== filters.deadline) return false;
     return true;
   });
 
@@ -312,11 +302,9 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
         <TaskFilters filters={filters} setFilters={setFilters} />
       </div>
 
-
       <SortableContext items={filteredTasks.map((t) => t.id)}>
         <Row gutter={[16, 16]}>
           {filteredTasks.map((task) => {
-
             const bg = task.completed ? "#ececec" : "white";
             return (
               <Col key={task.id} span={8}>
@@ -335,48 +323,29 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
                             display: "flex",
                             flexDirection: "column",
                             width: "100%",
-                            alignItems: "center", // keep centered by default
+                            alignItems: "center",
                             overflow: "hidden",
                           }}
                         >
-                          {/* Title + priority row */}
                           <motion.div
                             animate={{
-                              x: menuOpenId === task.id ? -60 : 0, // slide left only when menu open
+                              x: menuOpenId === task.id ? -60 : 0,
                             }}
-                            transition={{
-                              type: "spring",
-                              stiffness: 200,
-                              damping: 20,
-                            }}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "8px",
-                            }}
+                            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                            style={{ display: "flex", alignItems: "center", gap: "8px" }}
                           >
                             <span className={`title ${task.completed ? "done" : ""}`}>
                               {task.title}
                             </span>
                             <Tag color={priorityColor(task.priority)}>{task.priority}</Tag>
                           </motion.div>
-
-                          {/* Deadline below */}
                           {task.deadline && (
                             <motion.div
                               animate={{
                                 x: menuOpenId === task.id ? -60 : 0,
                               }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 100,
-                                damping: 20,
-                              }}
-                              style={{
-                                fontSize: "0.85rem",
-                                color: "blue",
-                                marginTop: "2px",
-                              }}
+                              transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                              style={{ fontSize: "0.85rem", color: "blue", marginTop: "2px" }}
                             >
                               {task.deadline}
                             </motion.div>
@@ -405,7 +374,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
                           alignItems: "center",
                           textAlign: "center",
                           minHeight: "40px",
-                          width: "100%", // ensure full width
+                          width: "100%",
                         }}
                       >
                         {task.description || "No description"}
@@ -419,7 +388,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
         </Row>
       </SortableContext>
 
-      {/* Details modal */}
+      {/* Details Modal */}
       <Modal
         title="Task Details"
         open={detailsOpen}
@@ -459,8 +428,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
               </p>
             )}
             <p>
-              <strong>Description:</strong>{" "}
-              {selectedTask.description || "No description"}
+              <strong>Description:</strong> {selectedTask.description || "No description"}
             </p>
             <p>
               <strong>Priority:</strong> {selectedTask.priority}
@@ -477,7 +445,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
                   .join(", ")}
               </p>
             )}
-            {selectedTask.budgetItems && selectedTask.budgetItems.length > 0 && (
+            {selectedTask.budgetItems?.length > 0 && (
               <>
                 <h3>Expenses</h3>
                 <List
@@ -489,11 +457,8 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
                   )}
                 />
                 <p>
-                  <strong>Total:</strong>{" "}
-                  $
-                  {selectedTask.budgetItems
-                    .reduce((acc, item) => acc + item.sum, 0)
-                    .toFixed(2)}
+                  <strong>Total:</strong> $
+                  {selectedTask.budgetItems.reduce((acc, i) => acc + i.sum, 0).toFixed(2)}
                 </p>
               </>
             )}
@@ -501,7 +466,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
         )}
       </Modal>
 
-      {/* Budget modal */}
+      {/* Budget Modal */}
       <Modal
         title="Budget Tracker"
         open={budgetOpen}
@@ -537,7 +502,6 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
             </Button>
           </Form.Item>
         </Form>
-
         <List
           bordered
           dataSource={tempBudgetItems}
@@ -547,19 +511,15 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
             </List.Item>
           )}
         />
-
         {tempBudgetItems.length > 0 && (
           <p style={{ marginTop: 10 }}>
-            <strong>Total:</strong>{" "}
-            $
-            {tempBudgetItems
-              .reduce((acc, item) => acc + item.sum, 0)
-              .toFixed(2)}
+            <strong>Total:</strong> $
+            {tempBudgetItems.reduce((acc, i) => acc + i.sum, 0).toFixed(2)}
           </p>
         )}
       </Modal>
 
-      {/* Edit and Add modals (unchanged) */}
+      {/* Edit Task Modal */}
       <Modal
         title="Edit task"
         open={editOpen}
@@ -577,17 +537,13 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
             <Form.Item label="Title" required>
               <Input
                 value={editTask.title}
-                onChange={(e) =>
-                  setEditTask({ ...editTask, title: e.target.value })
-                }
+                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
               />
             </Form.Item>
             <Form.Item label="Description">
               <Input.TextArea
                 value={editTask.description}
-                onChange={(e) =>
-                  setEditTask({ ...editTask, description: e.target.value })
-                }
+                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
                 autoSize={{ minRows: 3, maxRows: 6 }}
               />
             </Form.Item>
@@ -605,18 +561,14 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
               <DatePicker
                 style={{ width: "100%" }}
                 value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                onChange={(_, dateStr) =>
-                  setEditTask({ ...editTask, deadline: dateStr || null })
-                }
+                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
               />
             </Form.Item>
             <Form.Item label="Parent Tasks">
               <Select
                 mode="multiple"
                 value={editTask.parentIds}
-                onChange={(val) =>
-                  setEditTask({ ...editTask, parentIds: val })
-                }
+                onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
               >
                 {getValidParents(editTask.id).map((t) => (
                   <Select.Option key={t.id} value={t.id}>
@@ -628,9 +580,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
             <Form.Item label="Category">
               <Select
                 value={editTask.categoryId}
-                onChange={(val) =>
-                  setEditTask({ ...editTask, categoryId: val })
-                }
+                onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
               >
                 <Select.Option value="inbox">Inbox</Select.Option>
                 {categories.map((cat) => (
@@ -644,6 +594,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
         )}
       </Modal>
 
+      {/* Add New Task Modal */}
       <Modal
         title="Add new task"
         open={addOpen}
@@ -661,17 +612,13 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
             <Form.Item label="Title" required>
               <Input
                 value={editTask.title}
-                onChange={(e) =>
-                  setEditTask({ ...editTask, title: e.target.value })
-                }
+                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
               />
             </Form.Item>
             <Form.Item label="Description">
               <Input.TextArea
                 value={editTask.description}
-                onChange={(e) =>
-                  setEditTask({ ...editTask, description: e.target.value })
-                }
+                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
                 autoSize={{ minRows: 3, maxRows: 6 }}
               />
             </Form.Item>
@@ -689,18 +636,14 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
               <DatePicker
                 style={{ width: "100%" }}
                 value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                onChange={(_, dateStr) =>
-                  setEditTask({ ...editTask, deadline: dateStr || null })
-                }
+                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
               />
             </Form.Item>
             <Form.Item label="Parent Tasks">
               <Select
                 mode="multiple"
                 value={editTask.parentIds}
-                onChange={(val) =>
-                  setEditTask({ ...editTask, parentIds: val })
-                }
+                onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
               >
                 {getValidParents(null).map((t) => (
                   <Select.Option key={t.id} value={t.id}>
@@ -712,9 +655,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
             <Form.Item label="Category">
               <Select
                 value={editTask.categoryId}
-                onChange={(val) =>
-                  setEditTask({ ...editTask, categoryId: val })
-                }
+                onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
               >
                 <Select.Option value="inbox">Inbox</Select.Option>
                 {categories.map((cat) => (

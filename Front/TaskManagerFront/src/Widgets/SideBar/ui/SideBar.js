@@ -1,11 +1,12 @@
 // src/Widgets/SideBar.js
 import { useMemo, useState, useEffect } from "react";
-import { useDroppable, useDndContext } from "@dnd-kit/core";
+import { useDroppable } from "@dnd-kit/core";
 import subArrow from "./subcategory_arrow.png";
 import mainArrow from "./main_arrow.png";
 import inboxIcon from "./inbox.png";
 import graphsIcon from "./graphs.png";
 import binIcon from "./bin.png";
+import todayIcon from "./calendar.png"; // make sure this file exists
 
 /* ========= Colors ========= */
 const COLORS = {
@@ -150,11 +151,9 @@ function Row({
   isParent,
   onMouseEnter,
   onMouseLeave,
-  isInbox = false,
-  isGraphs = false,
+  icon = null,
 }) {
-  const arrowIcon = isInbox || isGraphs ? null : isParent ? mainArrow : subArrow;
-  const specialIcon = isInbox ? inboxIcon : isGraphs ? graphsIcon : null;
+  const arrowIcon = !icon ? (isParent ? mainArrow : subArrow) : null;
 
   return (
     <div
@@ -164,13 +163,13 @@ function Row({
       onMouseLeave={onMouseLeave}
     >
       <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        {specialIcon && <img src={specialIcon} alt="icon" style={{ width: 20, height: 20 }} />}
+        {icon && <img src={icon} alt="icon" style={{ width: 20, height: 20 }} />}
         {arrowIcon && (
           <img
             src={arrowIcon}
             alt="arrow"
             onClick={(e) => {
-              if (isParent && level === 0) {   // only rotate/toggle for parent (mainArrow)
+              if (isParent && level === 0) {
                 e.stopPropagation();
                 onToggle?.();
               }
@@ -187,7 +186,7 @@ function Row({
         )}
         {label}
       </span>
-      {!isInbox && !isGraphs && (showActions || isActive) && (
+      {!icon && (showActions || isActive) && (
         <Actions onEdit={onEdit} onDelete={onDelete} />
       )}
     </div>
@@ -201,7 +200,6 @@ function DroppableRow({ categoryId, children, isEnabled, onExpand }) {
     disabled: !isEnabled,
   });
 
-  // Run expansion safely after render
   useEffect(() => {
     if (isOver && onExpand) {
       onExpand();
@@ -219,7 +217,6 @@ function DroppableRow({ categoryId, children, isEnabled, onExpand }) {
   );
 }
 
-
 /* ========= Sidebar ========= */
 export function SideBar({
   categories = [],
@@ -236,8 +233,6 @@ export function SideBar({
   const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
-  const { active } = useDndContext();
-  const isDragging = !!active;
 
   const childrenByParent = useMemo(() => {
     const map = new Map();
@@ -248,16 +243,6 @@ export function SideBar({
     });
     return map;
   }, [categories]);
-
-  function isDescendant(nodeId, ancestorId) {
-    if (nodeId === ancestorId) return false;
-    let current = categories.find((c) => c.id === nodeId)?.parentId ?? null;
-    while (current) {
-      if (current === ancestorId) return true;
-      current = categories.find((c) => c.id === current)?.parentId ?? null;
-    }
-    return false;
-  }
 
   function toggleCollapse(id) {
     setCollapsedIds((prev) => {
@@ -270,11 +255,10 @@ export function SideBar({
 
   function renderTree(parent, level = 0) {
     const items = (childrenByParent.get(parent ?? null) || []).filter(
-      (cat) => cat.id !== "inbox" && cat.id !== "graphs"
+      (cat) => cat.id !== "inbox" && cat.id !== "graphs" && cat.id !== "today"
     );
     return items.map((cat) => {
       const isActive = hoveredCategory === cat.id || selectedCategory === cat.id;
-      const isShaded = selectedCategory && isDescendant(cat.id, selectedCategory);
       const showActions = hoverId === cat.id;
       const isParent = (childrenByParent.get(cat.id) || []).length > 0;
       const collapsed = collapsedIds.has(cat.id);
@@ -293,7 +277,6 @@ export function SideBar({
               label={cat.name}
               level={level}
               isActive={isActive}
-              isShaded={isShaded}
               showActions={showActions}
               isParent={isParent}
               collapsed={collapsed}
@@ -301,8 +284,8 @@ export function SideBar({
               onToggle={() => toggleCollapse(cat.id)}
               onEdit={() => openEdit(cat)}
               onDelete={() => removeCategory(cat.id)}
-              onMouseEnter={() => !isDragging && setHoverId(cat.id)}
-              onMouseLeave={() => !isDragging && setHoverId(null)}
+              onMouseEnter={() => setHoverId(cat.id)}
+              onMouseLeave={() => setHoverId(null)}
             />
           </DroppableRow>
           {!collapsed && renderTree(cat.id, level + 1)}
@@ -311,7 +294,6 @@ export function SideBar({
     });
   }
 
-  /* ====== Modal handling ====== */
   function openAdd() {
     setMode("add");
     setEditingId(null);
@@ -342,10 +324,6 @@ export function SideBar({
       return;
     }
     if (mode === "edit") {
-      if (parentId && parentId === editingId) {
-        alert("A category cannot be its own parent.");
-        return;
-      }
       setCategories((prev) =>
         prev.map((c) =>
           c.id === editingId ? { ...c, name: trimmed, parentId: parentId || null } : c
@@ -359,9 +337,6 @@ export function SideBar({
   }
 
   function removeCategory(id) {
-    const target = categories.find((c) => c.id === id);
-    if (!target) return;
-    if (!window.confirm(`Delete category "${target.name}"?`)) return;
     setCategories((prev) => prev.filter((c) => c.id !== id && c.parentId !== id));
     if (selectedCategory === id) onCategorySelect("inbox");
   }
@@ -379,12 +354,22 @@ export function SideBar({
           <Row
             id="inbox"
             label="Inbox"
+            icon={inboxIcon}
             level={0}
             isActive={hoveredCategory === "inbox" || selectedCategory === "inbox"}
-            isInbox
             onClick={() => onCategorySelect("inbox")}
-            onMouseEnter={() => !isDragging && setHoverId("inbox")}
-            onMouseLeave={() => !isDragging && setHoverId(null)}
+          />
+        </DroppableRow>
+
+        {/* Today */}
+        <DroppableRow categoryId="today" isEnabled={droppableCategoryIds.has("today")}>
+          <Row
+            id="today"
+            label="Today"
+            icon={todayIcon}
+            level={0}
+            isActive={hoveredCategory === "today" || selectedCategory === "today"}
+            onClick={() => onCategorySelect("today")}
           />
         </DroppableRow>
 
@@ -393,12 +378,10 @@ export function SideBar({
           <Row
             id="graphs"
             label="Graphs"
+            icon={graphsIcon}
             level={0}
             isActive={hoveredCategory === "graphs" || selectedCategory === "graphs"}
-            isGraphs
             onClick={() => onCategorySelect("graphs")}
-            onMouseEnter={() => !isDragging && setHoverId("graphs")}
-            onMouseLeave={() => !isDragging && setHoverId(null)}
           />
         </DroppableRow>
 
@@ -410,23 +393,17 @@ export function SideBar({
         </button>
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <>
           <div onClick={closeModal} style={STYLES.backdrop} />
           <div role="dialog" aria-modal="true" style={STYLES.dialog}>
-            <h3 style={{ margin: "0 0 12px 0" }}>
-              {mode === "edit" ? "Edit Category" : "Add Category"}
-            </h3>
+            <h3>{mode === "edit" ? "Edit Category" : "Add Category"}</h3>
             <label style={STYLES.field}>
-              <span>
-                Category name <span style={{ color: "#b91c1c" }}>*</span>
-              </span>
+              <span>Category name *</span>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Enter category name"
                 style={STYLES.input}
               />
             </label>

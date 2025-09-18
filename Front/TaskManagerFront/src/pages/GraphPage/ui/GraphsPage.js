@@ -1,60 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ForceGraph2D } from "react-force-graph";
+import { Button } from "antd";
 
-export function GraphsPage() {
-  const [graphData, setGraphData] = useState({
-    nodes: [
-      { id: "Note 1" },
-      { id: "Note 2" },
-      { id: "Note 3" },
-      { id: "Note 4" },
-      { id: "Note 5" },
-      { id: "Note 6" },
-      { id: "Note 7" },
-    ],
-    links: [
-      { source: "Note 1", target: "Note 2" },
-      { source: "Note 2", target: "Note 3" },
-      { source: "Note 2", target: "Note 5" },
-      { source: "Note 3", target: "Note 4" },
-      { source: "Note 4", target: "Note 1" },
-      { source: "Note 6", target: "Note 7" },
-      { source: "Note 5", target: "Note 7" },
-      { source: "Note 6", target: "Note 7" },
-      { source: "Note 7", target: "Note 2" },
-    ]
-  });
-
+export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, onShowTasks }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [addingRelationFrom, setAddingRelationFrom] = useState(null);
   const dragging = useRef(false);
   const fgRef = useRef();
 
-  // Load saved positions from localStorage on component mount
+  // Update graph data when props change
   useEffect(() => {
-    const savedPositions = localStorage.getItem('graphNodePositions');
-    if (savedPositions) {
-      const positions = JSON.parse(savedPositions);
-      
-      setGraphData(prev => ({
-        ...prev,
-        nodes: prev.nodes.map(node => {
-          if (positions[node.id]) {
-            return { 
-              ...node, 
-              x: positions[node.id].x, 
-              y: positions[node.id].y,
-              vx: 0, // Reset velocity to prevent movement
-              vy: 0
-            };
-          }
-          return node;
-        })
-      }));
-    }
-  }, []);
+    // This will update the internal state when parent passes new data
+  }, [graphData]);
 
-  // Save positions to localStorage when they change
+  // Save positions and notify parent
   const savePositions = () => {
     const positions = {};
     graphData.nodes.forEach(node => {
@@ -63,25 +22,16 @@ export function GraphsPage() {
       }
     });
     localStorage.setItem('graphNodePositions', JSON.stringify(positions));
+    
+    // Notify parent component about graph updates
+    if (onGraphUpdate) {
+      onGraphUpdate(graphData);
+    }
   };
 
   const handleDelete = () => {
     if (!selectedNode) return;
-    setGraphData(prev => ({
-      nodes: prev.nodes.filter(n => n.id !== selectedNode.id),
-      links: prev.links.filter(
-        l => l.source.id !== selectedNode.id && l.target.id !== selectedNode.id
-      )
-    }));
-    
-    // Also remove from saved positions
-    const savedPositions = localStorage.getItem('graphNodePositions');
-    if (savedPositions) {
-      const positions = JSON.parse(savedPositions);
-      delete positions[selectedNode.id];
-      localStorage.setItem('graphNodePositions', JSON.stringify(positions));
-    }
-    
+    // You might want to handle task deletion here too
     setSelectedNode(null);
   };
 
@@ -91,52 +41,91 @@ export function GraphsPage() {
     setSelectedNode(null);
   };
 
-  const handleNodeClick = node => {
+  const handleNodeClick = (node) => {
     if (dragging.current) return;
 
     if (addingRelationFrom) {
-      setGraphData(prev => ({
-        ...prev,
-        links: [...prev.links, { source: addingRelationFrom.id, target: node.id }]
-      }));
+      // Create a link between nodes
+      const newGraphData = {
+        ...graphData,
+        links: [...graphData.links, { source: addingRelationFrom.id, target: node.id }]
+      };
+      onGraphUpdate(newGraphData);
       setAddingRelationFrom(null);
     } else {
       setSelectedNode(node);
     }
   };
 
-  // Handle node drag end and save positions
-  const handleNodeDragEnd = node => {
+  const handleNodeDragEnd = (node) => {
     setTimeout(() => {
       dragging.current = false;
-      savePositions(); // Save positions after dragging
+      savePositions();
     }, 0);
   };
-  
+
+  const handleNodeDoubleClick = (node) => {
+    // Find if this node corresponds to a task
+    const correspondingTask = tasks.find(
+      t => t.id === node.taskId || t.title === node.id
+    );
+    
+    if (!correspondingTask && onCreateTask) {
+      // Create a new task from this node
+      onCreateTask(node.id);
+    }
+  };
+
+  const handleBackgroundClick = () => {
+    if (addingRelationFrom) {
+      setAddingRelationFrom(null);
+    } else if (selectedNode) {
+      setSelectedNode(null);
+    }
+  };
 
   return (
-    <div style={{ width: "100vw", height: "100vh", background: "#fff", position: "relative" }}>
-      <ForceGraph2D
-        ref={fgRef}
-        graphData={graphData}
-        onNodeClick={handleNodeClick}
-        onNodeDrag={() => (dragging.current = true)}
-        onNodeDragEnd={handleNodeDragEnd}
-        nodeLabel="id"
-        nodeAutoColorBy="id"
-        nodeCanvasObjectMode={() => "after"}
-        nodeCanvasObject={(node, ctx, globalScale) => {
-          const label = node.id;
-          const fontSize = 12 / globalScale;
-          ctx.font = `${fontSize}px Sans-Serif`;
-          ctx.fillStyle = "#111";
-          ctx.textAlign = "center";
-          ctx.fillText(label, node.x, node.y - 8);
-        }}
-        linkDirectionalArrowLength={6}
-        linkDirectionalArrowRelPos={1}
-        linkColor={() => "gray"}
-      />
+    <div style={{ width: "100%", height: "100%", background: "#fff", position: "relative" }}>
+    <ForceGraph2D
+      ref={fgRef}
+      graphData={graphData}
+      onNodeClick={handleNodeClick}
+      onNodeDrag={() => (dragging.current = true)}
+      onNodeDragEnd={handleNodeDragEnd}
+      onNodeDoubleClick={handleNodeDoubleClick}
+      onBackgroundClick={handleBackgroundClick}
+      nodeLabel="id"
+      nodeColor={(node) => {
+        // If node has parents, use the color of the first parent
+        if (node.parentIds && node.parentIds.length > 0) {
+          // Find the parent node in the graph data
+          const parentNode = graphData.nodes.find(n => 
+            n.taskId === node.parentIds[0] || n.id === node.parentIds[0]
+          );
+          return parentNode ? parentNode.color : node.color;
+        }
+        return node.color;
+      }}
+      nodeCanvasObjectMode={() => "after"}
+      nodeCanvasObject={(node, ctx, globalScale) => {
+        const label = node.id;
+        const fontSize = 12 / globalScale;
+        ctx.font = `${fontSize}px Sans-Serif`;
+        ctx.fillStyle = "#111";
+        ctx.textAlign = "center";
+        ctx.fillText(label, node.x, node.y - 8);
+      }}
+      linkDirectionalArrowLength={6}
+      linkDirectionalArrowRelPos={1}
+      linkColor={() => "gray"}
+      d3VelocityDecay={0.4}
+      d3AlphaTarget={0.3}
+      d3Force="link"
+      d3ForceConfig={{
+        distance: 50,
+        strength: 0.7
+      }}
+    />
 
       {selectedNode && (
         <div
@@ -151,10 +140,13 @@ export function GraphsPage() {
           }}
         >
           <p>Selected: {selectedNode.id}</p>
-          <button onClick={handleDelete} style={{ marginRight: "10px" }}>
+          <Button onClick={handleDelete} style={{ marginRight: "10px" }}>
             Delete
-          </button>
-          <button onClick={handleAddRelation}>Add Relation</button>
+          </Button>
+          <Button onClick={handleAddRelation}>Add Relation</Button>
+          <Button onClick={onShowTasks} style={{ marginLeft: "10px" }}>
+            View Task
+          </Button>
         </div>
       )}
 
