@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import "../Tasks.css";
+import { TaskFilters } from "../../../Widgets/TaskFilters";
 import {
   Row,
   Col,
@@ -277,17 +278,45 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories }) {
     setTempBudgetItems([]);
   }
 
+  const [filters, setFilters] = useState({
+    priority: "All",
+    status: "All",
+    deadline: "",
+  });
+
+  // Apply filtering
+  const filteredTasks = tasks.filter((task) => {
+    // Priority
+    if (filters.priority !== "All" && task.priority !== filters.priority) {
+      return false;
+    }
+
+    // Status
+    if (filters.status === "Done" && !task.completed) return false;
+    if (filters.status === "Undone" && task.completed) return false;
+
+    // Deadline
+    if (filters.deadline) {
+      if (!task.deadline || task.deadline !== filters.deadline) return false;
+    }
+
+    return true;
+  });
+
   return (
     <div className="tasks-container">
-      <div className="composer">
+      <div className="composer" style={{ display: "flex", alignItems: "center" }}>
         <Button type="primary" onClick={handleAddNew}>
           Add
         </Button>
+        <TaskFilters filters={filters} setFilters={setFilters} />
       </div>
 
-      <SortableContext items={filtered.map((t) => t.id)}>
+
+      <SortableContext items={filteredTasks.map((t) => t.id)}>
         <Row gutter={[16, 16]}>
-          {filtered.map((task) => {
+          {filteredTasks.map((task) => {
+
             const bg = task.completed ? "#ececec" : "white";
             return (
               <Col key={task.id} span={8}>

@@ -1,4 +1,3 @@
-// src/pages/Authorization.js
 import { useState } from "react";
 import {
   Card,
@@ -14,10 +13,12 @@ import {
   LockOutlined,
   UserAddOutlined,
   LoginOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  updateProfile,
 } from "firebase/auth";
 import { auth } from "../firebase/firebase";
 
@@ -29,7 +30,17 @@ export default function Authorization() {
   async function handleSignup(values) {
     setLoading(true);
     try {
-      await createUserWithEmailAndPassword(auth, values.email, values.password);
+      const { user } = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
+
+      // ✅ Set displayName instantly
+      if (values.name) {
+        await updateProfile(user, { displayName: values.name });
+      }
+
       message.success("Account created successfully!");
     } catch (err) {
       message.error(err.message);
@@ -100,7 +111,9 @@ export default function Authorization() {
               <Form.Item
                 name="password"
                 label="Password"
-                rules={[{ required: true, message: "Please enter your password" }]}
+                rules={[
+                  { required: true, message: "Please enter your password" },
+                ]}
               >
                 <Input.Password
                   prefix={<LockOutlined />}
@@ -131,6 +144,17 @@ export default function Authorization() {
           >
             <Form layout="vertical" onFinish={handleSignup}>
               <Form.Item
+                name="name"
+                label="Name"
+                rules={[{ required: true, message: "Please enter your name" }]}
+              >
+                <Input
+                  prefix={<UserOutlined />}
+                  placeholder="Your name"
+                  size="large"
+                />
+              </Form.Item>
+              <Form.Item
                 name="email"
                 label="Email"
                 rules={[{ required: true, message: "Please enter your email" }]}
@@ -144,7 +168,9 @@ export default function Authorization() {
               <Form.Item
                 name="password"
                 label="Password"
-                rules={[{ required: true, message: "Please enter your password" }]}
+                rules={[
+                  { required: true, message: "Please enter your password" },
+                ]}
               >
                 <Input.Password
                   prefix={<LockOutlined />}
