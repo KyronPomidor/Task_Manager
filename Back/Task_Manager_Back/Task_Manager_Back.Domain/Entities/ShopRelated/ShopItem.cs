@@ -21,7 +21,7 @@ public class ShopItem
         ProductCategoryId = @params.ProductCategoryId;
     }
 
-    private ShopItem() { }
+    private ShopItem() { } // for EF, it says.. but may be we will delete it, because we don't use EF in Domain and already have for EF the LoadFromPersistence function
 
     public static ShopItem LoadFromPersistence(Guid id, Guid taskId, string name, double amount, double? price, Guid? productCategoryId)
     {

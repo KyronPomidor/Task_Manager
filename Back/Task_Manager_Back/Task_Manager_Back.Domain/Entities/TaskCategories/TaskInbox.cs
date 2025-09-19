@@ -20,5 +20,6 @@ public class TaskInbox : TaskCategory
     public override void Rename(string title)
     {
         throw new InvalidOperationException("Inbox cannot be renamed");
+        // May be later it will be possible for Premium users
     }
 }
