@@ -113,4 +113,16 @@ public class TaskEntityController : ControllerBase
         await _mediator.Send(new RemoveTaskRelationRequest(fromTaskId, toTaskId));
         return NoContent();
     }
+    /// <summary>
+    /// Change the color of a task.
+    /// </summary>
+    [HttpPut("{id:guid}/color")]
+    public async Task<IActionResult> ChangeColor(Guid id, [FromBody] ChangeTaskColorRequest request)
+    {
+        if (id != request.TaskId)
+            return BadRequest("TaskId mismatch between route and body");
+
+        await _mediator.Send(request);
+        return NoContent();
+    }
 }

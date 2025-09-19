@@ -75,12 +75,14 @@ public static class AppDbSeeder
             var task = new TaskEntity(new TaskEntityCreateParams(
                 UserId: userGuid,
                 Title: "Sample Task",
+                Color: "#FFFFFF",
                 Description: "This is a seeded task",
                 StatusId: null,
                 Priority: null,
                 CategoryId: category.Id,
                 Deadline: null
             ));
+
 
             await db.Tasks.AddAsync(task);
             await db.SaveChangesAsync();

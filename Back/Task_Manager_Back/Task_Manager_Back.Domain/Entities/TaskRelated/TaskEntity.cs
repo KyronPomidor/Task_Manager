@@ -1,4 +1,5 @@
-﻿using System.Net.Mail;
+﻿using System.Drawing;
+using System.Net.Mail;
 using Task_Manager_Back.Domain.Common;
 using Task_Manager_Back.Domain.Entities.Enums;
 using Task_Manager_Back.Domain.Entities.ShopRelated;
@@ -17,6 +18,7 @@ public class TaskEntity
     public TaskPriority? Priority { get; private set; }
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
     public DateTime? Deadline { get; private set; }
+    public string Color { get; private set; } = string.Empty;
     public bool? IsCompleted { get; private set; }
     public bool? IsFailed { get; private set; }
     public int PositionOrder { get; private set; }
@@ -44,7 +46,7 @@ public class TaskEntity
 
         Title = ValidationHelper.ValidateStringField(@params.Title, 1, 100, nameof(@params.Title), "Title");
         Description = @params.Description;
-
+        Color = ValidationHelper.ValidateHexColor(@params.Color, nameof(@params.Color));
         Deadline = @params.Deadline.HasValue
             ? ValidationHelper.ValidateNotPast(@params.Deadline.Value, nameof(@params.Deadline))
             : null;
@@ -63,6 +65,7 @@ public class TaskEntity
             UserId = state.UserId,
             Title = state.Title,
             Description = state.Description,
+            Color = state.Color,
             StatusId = state.StatusId,
             Priority = state.Priority,
             CategoryId = state.CategoryId,
@@ -87,10 +90,10 @@ public class TaskEntity
 
         ShopItems.Clear();
     }
-
+    // add color methods
     public void Rename(string title) => Title = ValidationHelper.ValidateStringField(title, 1, 100, nameof(title), "Title");
     public void UpdateDescription(string? description) => Description = description;
-
+    public void ChangeColor(string color) => Color = ValidationHelper.ValidateHexColor(color, nameof(color));
     public void ChangeStatus(Guid? statusId) => StatusId = statusId;
     public void ChangePriority(TaskPriority priority) => Priority = priority;
     public void ChangeCategory(Guid categoryId) => CategoryId = ValidationHelper.ValidateGuid(categoryId, nameof(categoryId));
@@ -184,7 +187,7 @@ public class TaskEntity
     }
 }
 
-public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline);
-public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline,
+public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline);
+public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline,
     bool? IsCompleted, bool? IsFailed, int PositionOrder,
     List<TaskAttachment> Attachments, List<TaskReminder> Reminders, List<TaskRelation> TaskRelations, List<ShopItem> ShopItems);

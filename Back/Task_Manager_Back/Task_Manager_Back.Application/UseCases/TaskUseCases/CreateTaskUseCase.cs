@@ -16,14 +16,16 @@ public class CreateTaskUseCase
     public async Task ExecuteAsync(CreateTaskRequest request)
     {
         var task = new TaskEntity(new TaskEntityCreateParams(
-            request.UserId,
-            request.Title,
-            request.Description,
-            request.StatusId,
-            request.Priority,
-            request.CategoryId,
-            request.Deadline
+            UserId: request.UserId,
+            Title: request.Title,
+            Description: request.Description,
+            Color: request.Color,
+            StatusId: request.StatusId,
+            Priority: request.Priority,
+            CategoryId: request.CategoryId,
+            Deadline: request.Deadline
         ));
+
 
         await _taskRepository.CreateAsync(task);
     }

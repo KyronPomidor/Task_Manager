@@ -16,11 +16,11 @@ public class CreateTaskUserCategoryUseCase
     public async Task<Guid> ExecuteAsync(CreateTaskUserCategoryRequest request)
     {
         var category = new TaskUserCategory(new TaskUserCategoryCreateParams(
-            request.UserId,
-            request.Title,
-            request.Description,
-            request.ParentCategoryId,
-            request.Color
+            UserId: request.UserId,
+            Title: request.Title,
+            Description: request.Description,
+            ParentCategoryId: request.ParentCategoryId,
+            Color: request.Color
         ));
 
         await _repository.CreateAsync(category);
