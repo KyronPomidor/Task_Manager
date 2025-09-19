@@ -75,6 +75,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseCors("AllowFrontend");  // <-- add this line
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
