@@ -13,6 +13,10 @@ using Task_Manager_Back.Infrastructure.Seeds;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// Load optional local settings if exists
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
