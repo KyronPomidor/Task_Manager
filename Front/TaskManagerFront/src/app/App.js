@@ -5,47 +5,12 @@ import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
 import { Welcome } from "../Widgets/Welcome";
 import { GraphsPage } from "../pages/GraphPage";
+import { TestEndpoint } from "../Features/TestEndpoint/TestEndpoint";
 
 export default function App() {
-  const [categories, setCategories] = useState([
-    { id: "work", name: "Work", parentId: null },
-    { id: "personal", name: "Personal", parentId: null },
-    { id: "projA", name: "Project A", parentId: "work" },
-    { id: "projB", name: "Project B", parentId: "work" },
-    { id: "fun", name: "Fun", parentId: "personal" },
-  ]);
-
-  const [selectedCategory, setSelectedCategory] = useState("inbox");
-
   return (
     <div className="App">
-      <Header />
-      <div className="AppBody">
-        <SideBar
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onCategorySelect={setSelectedCategory}
-          setCategories={setCategories}
-        />
-
-        <div className="MainPanel">
-          {/* show Welcome + Tasks for categories */}
-          {selectedCategory !== "graphs" && (
-            <>
-              <Welcome />
-              <div className="MainScroll">
-                <Tasks
-                  categories={categories}
-                  selectedCategory={selectedCategory}
-                />
-              </div>
-            </>
-          )}
-
-          {/* show GraphsPage when "Graphs" tab is selected */}
-          {selectedCategory === "graphs" && <GraphsPage />}
-        </div>
-      </div>
+      <TestEndpoint />
     </div>
   );
 }
