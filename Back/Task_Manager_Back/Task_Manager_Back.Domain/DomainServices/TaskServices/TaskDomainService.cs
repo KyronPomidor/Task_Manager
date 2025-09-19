@@ -15,6 +15,8 @@ public class TaskDomainService
         _relationTypeRepository = relationTypeRepository;
     }
 
+    #region Public methods
+
     /// <summary>
     /// Adds a dependency from one task to another.
     /// Throws if adding would create a circular dependency.
@@ -25,41 +27,6 @@ public class TaskDomainService
             throw new InvalidOperationException("Cannot add dependency: would create a cycle.");
 
         task.AddDependency(new TaskDependencyRelation(task.Id, dependency.Id));
-    }
-
-    /// <summary>
-    /// Checks if adding a dependency would create a circular reference.
-    /// </summary>
-    public bool WouldCreateCycle(Guid fromTaskId, Guid toTaskId)
-    {
-        var visited = new HashSet<Guid>();
-        return CheckCycle(toTaskId, fromTaskId, visited);
-    }
-
-    // Optimize without recursion to avoid stack overflow on deep graphs
-    // Here we use DFS with a stack
-    // But for simplicity, we keep the recursive version
-
-    private bool CheckCycle(Guid currentTaskId, Guid targetTaskId, HashSet<Guid> visited)
-    {
-        if (visited.Contains(currentTaskId))
-            return false; // already checked this path
-
-        if (currentTaskId == targetTaskId)
-            return true; // cycle detected
-
-        visited.Add(currentTaskId);
-
-        var currentTask = _taskRepository.GetById(currentTaskId);
-        if (currentTask == null) return false;
-
-        foreach (var dep in currentTask.Dependencies)
-        {
-            if (CheckCycle(dep.ToTaskId, targetTaskId, visited))
-                return true;
-        }
-
-        return false;
     }
 
     /// <summary>
@@ -120,5 +87,43 @@ public class TaskDomainService
         var relation = new TaskCustomRelation(fromTaskId, toTaskId, relationTypeId);
         fromTask.AddCustomRelation(relation);
     }
-    
+    #endregion
+
+    #region Private Helpers
+    /// <summary>
+    /// Checks if adding a dependency would create a circular reference.
+    /// </summary>
+    private bool WouldCreateCycle(Guid fromTaskId, Guid toTaskId)
+    {
+        var visited = new HashSet<Guid>();
+        return CheckCycle(toTaskId, fromTaskId, visited);
+    }
+
+    // Optimize without recursion to avoid stack overflow on deep graphs
+    // Here we use DFS with a stack
+    // But for simplicity, we keep the recursive version
+
+    private bool CheckCycle(Guid currentTaskId, Guid targetTaskId, HashSet<Guid> visited)
+    {
+        if (visited.Contains(currentTaskId))
+            return false; // already checked this path
+
+        if (currentTaskId == targetTaskId)
+            return true; // cycle detected
+
+        visited.Add(currentTaskId);
+
+        var currentTask = _taskRepository.GetById(currentTaskId);
+        if (currentTask == null) return false;
+
+        foreach (var dep in currentTask.Dependencies)
+        {
+            if (CheckCycle(dep.ToTaskId, targetTaskId, visited))
+                return true;
+        }
+
+        return false;
+    }
+
+    #endregion
 }
