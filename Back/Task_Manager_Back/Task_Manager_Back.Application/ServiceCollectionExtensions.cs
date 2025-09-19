@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Task_Manager_Back.Application.UseCases.TaskUseCases;
+using Task_Manager_Back.Application.UseCases.Categories;
 using Task_Manager_Back.Application.UseCases.TaskCategoryUseCases;
+using Task_Manager_Back.Application.UseCases.TaskUseCases;
 
 namespace Task_Manager_Back.Application;
 
@@ -20,6 +21,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<AddTaskLabelUseCase>();
         services.AddScoped<AddTaskReminderUseCase>();
         services.AddScoped<AttachTaskFileUseCase>();
+        services.AddScoped<ChangeTaskColorUseCase>();
+        services.AddScoped<GetTaskUserCategoryByIdUseCase>();
 
         // Register Category use cases
         services.AddScoped<CreateTaskUserCategoryUseCase>();

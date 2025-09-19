@@ -6,6 +6,7 @@ public record CreateTaskRequest(
     Guid UserId,
     string Title,
     string? Description,
+    string Color,
     Guid? StatusId,
     TaskPriority? Priority,
     Guid CategoryId,
