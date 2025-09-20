@@ -13,12 +13,16 @@ using Task_Manager_Back.Infrastructure.Seeds;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// Load optional local settings if exists
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Add CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://localhost:7167", "http://localhost:5053")
+        policy.WithOrigins("https://localhost:7167", "http://localhost:5053", "http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -71,6 +75,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseCors("AllowFrontend");  // <-- add this line
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
