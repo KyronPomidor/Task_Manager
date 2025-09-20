@@ -5,7 +5,7 @@ using Task_Manager_Back.Application.UseCases.TaskUseCases;
 
 namespace Task_Manager_Back.Application;
 
-public static class ServiceCollectionExtensions
+public static class DependencyInjection
 {
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
