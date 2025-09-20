@@ -1,7 +1,7 @@
 ﻿using Task_Manager_Back.Domain.Common;
 using Task_Manager_Back.Domain.Entities.TaskRelated;
 
-namespace Task_Manager_Back.Domain.Entities.Categories;
+namespace Task_Manager_Back.Domain.Entities.TaskCategories;
 
 public abstract class TaskCategory
 {

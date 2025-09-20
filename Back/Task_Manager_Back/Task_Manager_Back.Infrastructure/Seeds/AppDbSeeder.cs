@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Task_Manager_Back.Domain.Entities.Categories;
+using Task_Manager_Back.Domain.Entities.TaskCategories;
 using Task_Manager_Back.Domain.Entities.TaskRelated;
 using Task_Manager_Back.Infrastructure.DbContext;
 

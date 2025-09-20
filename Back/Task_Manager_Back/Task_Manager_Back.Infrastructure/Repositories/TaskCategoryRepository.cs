@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Task_Manager_Back.Domain.Entities.Categories;
 using Task_Manager_Back.Infrastructure.DbContext;
 using Task_Manager_Back.Application.IRepositories;
+using Task_Manager_Back.Domain.Entities.TaskCategories;
 
 namespace Task_Manager_Back.Infrastructure.Repositories;
 

@@ -1,8 +1,9 @@
 ﻿using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Application.Requests.TaskCategoryRequests;
-using Task_Manager_Back.Domain.Entities.Categories;
+using Task_Manager_Back.Application.Requests.TaskUserCategoryRequests;
+using Task_Manager_Back.Domain.Entities.TaskCategories;
 
-namespace Task_Manager_Back.Application.UseCases.TaskCategoryUseCases;
+
+namespace Task_Manager_Back.Application.UseCases.TaskUserCategoryUseCases;
 
 public class CreateTaskUserCategoryUseCase
 {

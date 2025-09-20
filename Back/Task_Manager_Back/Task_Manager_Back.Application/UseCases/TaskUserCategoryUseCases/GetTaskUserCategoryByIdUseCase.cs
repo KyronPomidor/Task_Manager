@@ -1,7 +1,7 @@
 ﻿using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Domain.Entities.Categories;
+using Task_Manager_Back.Domain.Entities.TaskCategories;
 
-namespace Task_Manager_Back.Application.UseCases.Categories;
+namespace Task_Manager_Back.Application.UseCases.TaskUserCategoryUseCases;
 
 public class GetTaskUserCategoryByIdUseCase
 {

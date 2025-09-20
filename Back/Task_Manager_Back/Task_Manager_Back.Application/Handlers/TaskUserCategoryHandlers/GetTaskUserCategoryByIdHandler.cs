@@ -1,9 +1,9 @@
 ﻿using MediatR;
-using Task_Manager_Back.Application.Requests.CategoryRequests;
-using Task_Manager_Back.Application.UseCases.Categories;
-using Task_Manager_Back.Domain.Entities.Categories;
+using Task_Manager_Back.Application.Requests.TaskUserCategoryRequests;
+using Task_Manager_Back.Application.UseCases.TaskUserCategoryUseCases;
+using Task_Manager_Back.Domain.Entities.TaskCategories;
 
-namespace Task_Manager_Back.Application.Requests.CategoryRequests;
+namespace Task_Manager_Back.Application.Handlers.TaskUserCategoryHandlers;
 
 public class GetTaskUserCategoryByIdHandler
     : IRequestHandler<GetTaskUserCategoryByIdRequest, TaskUserCategory?>

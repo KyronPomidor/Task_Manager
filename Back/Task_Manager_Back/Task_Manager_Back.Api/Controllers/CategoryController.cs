@@ -1,7 +1,8 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Task_Manager_Back.Application.Requests.CategoryRequests;
-using Task_Manager_Back.Application.Requests.TaskCategoryRequests;
+using Task_Manager_Back.Application.Requests;
+
+using Task_Manager_Back.Application.Requests.TaskUserCategoryRequests;
 
 namespace Task_Manager_Back.Api.Controllers;
 

@@ -1,4 +1,4 @@
-﻿namespace Task_Manager_Back.Domain.Entities.Categories;
+﻿namespace Task_Manager_Back.Domain.Entities.TaskCategories;
 /// Represents the Inbox category, a hardcoded category for tasks.
 public class TaskInbox : TaskCategory
 {

@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using Task_Manager_Back.Application.UseCases.Categories;
-using Task_Manager_Back.Application.UseCases.TaskCategoryUseCases;
 using Task_Manager_Back.Application.UseCases.TaskUseCases;
+using Task_Manager_Back.Application.UseCases.TaskUserCategoryUseCases;
 
 namespace Task_Manager_Back.Application;
 

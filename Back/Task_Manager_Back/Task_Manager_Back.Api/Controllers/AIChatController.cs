@@ -1,23 +1,27 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Task_Manager_Back.Infrastructure.Sevices.AI;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Task_Manager_Back.Application.Requests.AiChatRequests;
 
 namespace Task_Manager_Back.Api.Controllers;
 
 [ApiController]
-[Route("api/chat")]
-public class AIChatController : ControllerBase
+[Route("api/ai-chat")]
+public class AiChatController : ControllerBase
 {
-    private readonly IAIChatService _aiChatService;
+    private readonly IMediator _mediator;
 
-    public AIChatController(IAIChatService aiChatService)
+    public AiChatController(IMediator mediator)
     {
-        _aiChatService = aiChatService;
+        _mediator = mediator;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Ask([FromBody] string question)
+    /// <summary>
+    /// Ask the AI a question.
+    /// </summary>
+    [HttpPost("ask")]
+    public async Task<IActionResult> Ask([FromBody] AskAiChatRequest request, CancellationToken ct)
     {
-        var response = await _aiChatService.AskAsync(question);
-        return Ok(new { answer = response });
+        var response = await _mediator.Send(request, ct);
+        return Ok(new { reply = response });
     }
 }

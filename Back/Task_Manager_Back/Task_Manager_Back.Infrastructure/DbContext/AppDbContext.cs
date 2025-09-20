@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using Task_Manager_Back.Domain.Entities.Categories;
 using Task_Manager_Back.Domain.Entities.ShopRelated;
+using Task_Manager_Back.Domain.Entities.TaskCategories;
 using Task_Manager_Back.Domain.Entities.TaskRelated;
 
 namespace Task_Manager_Back.Infrastructure.DbContext;

@@ -1,6 +1,6 @@
 ﻿using Task_Manager_Back.Domain.Common;
 
-namespace Task_Manager_Back.Domain.Entities.Categories;
+namespace Task_Manager_Back.Domain.Entities.TaskCategories;
 
 public class TaskUserCategory : TaskCategory
 {

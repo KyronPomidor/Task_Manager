@@ -1,8 +1,8 @@
 ﻿using MediatR;
-using Task_Manager_Back.Application.Requests.TaskCategoryRequests;
-using Task_Manager_Back.Application.UseCases.TaskCategoryUseCases;
+using Task_Manager_Back.Application.Requests.TaskUserCategoryRequests;
+using Task_Manager_Back.Application.UseCases.TaskUserCategoryUseCases;
 
-namespace Task_Manager_Back.Application.Handlers.TaskCategoryHandlers;
+namespace Task_Manager_Back.Application.Handlers.TaskUserCategoryHandlers;
 public class UpdateTaskUserCategoryDescriptionHandler : IRequestHandler<UpdateTaskUserCategoryDescriptionRequest>
 {
     private readonly UpdateTaskUserCategoryDescriptionUseCase _useCase;

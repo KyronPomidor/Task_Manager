@@ -1,7 +1,7 @@
 ﻿using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Application.Requests.TaskCategoryRequests;
+using Task_Manager_Back.Application.Requests.TaskUserCategoryRequests;
 
-namespace Task_Manager_Back.Application.UseCases.TaskCategoryUseCases;
+namespace Task_Manager_Back.Application.UseCases.TaskUserCategoryUseCases;
 public class RenameTaskUserCategoryUseCase
 {
     private readonly ITaskCategoryRepository _repository;

@@ -1,19 +1,20 @@
-﻿namespace Task_Manager_Back.Infrastructure.Sevices.AI;
+﻿namespace Task_Manager_Back.Infrastructure.Services.Ai;
 
 using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using Task_Manager_Back.Application.IServices;
 
-public class AIChatService : IAIChatService
+public class AiChatService : IAiChatService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _apiKey;
-    private readonly string _baseUrl;
-    private readonly string _model;
+    private readonly string _apiKey = string.Empty;
+    private readonly string _baseUrl = string.Empty;
+    private readonly string _model = string.Empty;
 
-    public AIChatService(HttpClient httpClient, IConfiguration config)
+    public AiChatService(HttpClient httpClient, IConfiguration config)
     {
         _httpClient = httpClient;
         _apiKey = config["AI:ApiKey"];
@@ -25,12 +26,13 @@ public class AIChatService : IAIChatService
     {
         var request = new
         {
-            model = _model, // "sonar"
+            model = _model, // e.g. "sonar"
             messages = new[]
             {
                 new { role = "system", content = "You are a helpful task manager assistant." },
                 new { role = "user", content = prompt }
-            }
+            },
+            max_tokens = 200
         };
 
         var json = JsonSerializer.Serialize(request);

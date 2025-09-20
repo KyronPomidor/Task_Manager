@@ -3,10 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Task_Manager_Back.Application;
 using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Application.UseCases.TaskCategoryUseCases;
-using Task_Manager_Back.Application.UseCases.TaskUseCases;
 using Task_Manager_Back.Domain.Graph.Services;
 using Task_Manager_Back.Domain.IServices.ITask;
+using Task_Manager_Back.Infrastructure;
 using Task_Manager_Back.Infrastructure.DbContext;
 using Task_Manager_Back.Infrastructure.Repositories;
 using Task_Manager_Back.Infrastructure.Seeds;
@@ -54,8 +53,10 @@ builder.Services.AddScoped<ITaskRelationRepository, TaskRelationRepository>();
 
 builder.Services.AddScoped<ITaskGraphService, TaskGraphService>();
 builder.Services.AddScoped<ITaskCategoryRepository, TaskCategoryRepository>();
-//// Register use cases
+// Register use cases
 builder.Services.AddApplicationServices();
+// Register Infrastructure services
+builder.Services.AddInfrastructureServices();
 // OpenAPI / Swagger
 builder.Services.AddOpenApi();
 
@@ -73,6 +74,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapScalarApiReference();
     app.MapOpenApi();
+    builder.Configuration.AddUserSecrets<Program>();
 }
 
 app.UseCors("AllowFrontend");  // <-- add this line

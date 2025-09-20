@@ -1,9 +1,10 @@
 ﻿using MediatR;
 using Task_Manager_Back.Application.IRepositories;
-using Task_Manager_Back.Domain.Entities.Categories;
+using Task_Manager_Back.Application.Requests;
+using Task_Manager_Back.Domain.Entities.TaskCategories;
 
 
-namespace Task_Manager_Back.Application.Requests.CategoryRequests;
+namespace Task_Manager_Back.Application.Handlers;
 
 public class GetOrCreateInboxForUserHandler
     : IRequestHandler<GetOrCreateInboxForUserRequest, TaskCategory>
