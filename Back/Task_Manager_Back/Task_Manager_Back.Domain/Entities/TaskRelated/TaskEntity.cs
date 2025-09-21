@@ -1,8 +1,9 @@
 ﻿using Task_Manager_Back.Domain.Aggregates.ShopAggregate;
 using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
+using Task_Manager_Back.Domain.Common;
 using Task_Manager_Back.Domain.IRepositories;
 
-namespace Task_Manager_Back.Domain.TaskEntity;
+namespace Task_Manager_Back.Domain.Entities.TaskRelated;
 
 public class TaskEntity
 {
@@ -10,12 +11,17 @@ public class TaskEntity
     public Guid UserId { get; private set; } // Assuming tasks are associated with users
     public string Title { get; private set; }
     public string? Description { get; private set; }
+    public string Color { get; private set; } // uniquiness is enforces in service layer, if needed
+
     public bool IsCompleted { get; private set; }
     public bool IsFailed { get; private set; }
-    public List<Guid>? TaskLabelsId { get; private set; }
     public Guid PriorityId { get; private set; }
     public Guid StatusId { get; private set; }
     public Guid CategoryId { get; private set; }
+
+    // Labels
+    private List<Guid> _labelIds = new();
+    public IReadOnlyList<Guid> LabelIds => _labelIds.AsReadOnly();
 
     public DateTime? CreatedAt { get; private set; }
     public DateTime? UpdatedAt { get; private set; } // idk if I need this
@@ -23,24 +29,30 @@ public class TaskEntity
     public DateTime? CompletedAt { get; private set; } // nullable, as not all tasks are completed
     public DateTime? FailedAt { get; private set; }
 
+    private readonly List<TaskReminder> _reminders = new List<TaskReminder>();
+    private readonly List<TaskAttachment> _attachments = new List<TaskAttachment>(); // aggrigate attachments here. TaskAttachment has FK to TaskEntity
+                                                                                     // files can be located only inside some tasks. It is good here. If task is deleted, attachments are deleted too. 
     private readonly List<TaskDependencyRelation> _dependencies = new List<TaskDependencyRelation>();
     private readonly List<TaskCustomRelation> _customRelations = new List<TaskCustomRelation>();
 
+    public IReadOnlyCollection<TaskReminder> Reminders => _reminders.AsReadOnly();
+    public IReadOnlyCollection<TaskAttachment> Attachments => _attachments.AsReadOnly();
     public IReadOnlyCollection<TaskDependencyRelation> Dependencies => _dependencies.AsReadOnly();
     public IReadOnlyCollection<TaskCustomRelation> CustomRelations => _customRelations.AsReadOnly();
 
     // For UI ordering among siblings
-    public int Order { get; private set; }
+    public int PositionOrder { get; private set; } // handle in service layer to avoid conflicts
 
     public TaskEntity(
         Guid userId,
         string title,
         string? description,
+        string color,
         Guid priorityId,
         Guid statusId,
         Guid categoryId,
         DateTime? deadline,
-        IEnumerable<Guid>? taskLabelsId = null,
+        IEnumerable<Guid>? labels = null,
         int order = 0)
     {
         Id = Guid.NewGuid();
@@ -63,8 +75,16 @@ public class TaskEntity
         IsCompleted = false;
         IsFailed = false;
 
-        TaskLabelsId = taskLabelsId?.ToList() ?? new List<Guid>();
-        Order = order;
+        if (labels != null)
+            _labelIds = labels.ToList();
+
+        PositionOrder = order;
+        //ChangeColor(color); // why not to use already existing method?
+        // uniquiness of color is enforced in service layer, if needed
+        Color = ValidationHelper.ValidateHexColor(color, nameof(color));
+        // was warning that color field is uninitialized, so I initialized it here
+
+        // consider in future using existing methods in constructor, hehe
     }
 
     internal void MarkCompleted()
@@ -157,39 +177,35 @@ public class TaskEntity
 
     public void Reorder(int newOrder)
     {
-        Order = newOrder;
+        PositionOrder = newOrder;
         UpdatedAt = DateTime.UtcNow;
     }
 
     public void AddLabel(Guid labelId)
     {
-        if (TaskLabelsId == null) TaskLabelsId = new List<Guid>();
-        if (!TaskLabelsId.Contains(labelId))
+        if (!_labelIds.Contains(labelId))
         {
-            TaskLabelsId.Add(labelId);
+            _labelIds.Add(labelId);
             UpdatedAt = DateTime.UtcNow;
         }
     }
 
     public void RemoveLabel(Guid labelId)
     {
-        if (TaskLabelsId != null && TaskLabelsId.Contains(labelId))
-        {
-            TaskLabelsId.Remove(labelId);
+        if (_labelIds.Remove(labelId))
             UpdatedAt = DateTime.UtcNow;
-        }
     }
 
     public bool HasLabel(Guid labelId)
     {
-        return TaskLabelsId != null && TaskLabelsId.Contains(labelId);
+        return _labelIds.Contains(labelId);
     }
 
     public void ClearLabels()
     {
-        if (TaskLabelsId != null && TaskLabelsId.Any())
+        if (_labelIds.Any())
         {
-            TaskLabelsId.Clear();
+            _labelIds.Clear();
             UpdatedAt = DateTime.UtcNow;
         }
     }
@@ -217,6 +233,36 @@ public class TaskEntity
     public bool IsActive()
     {
         return !IsCompleted && !IsFailed;
+    }
+
+    public void ChangeColor(string color) => Color = ValidationHelper.ValidateHexColor(color, nameof(color)); // hex color code
+
+    public void AddAttachment(TaskAttachment attachment) // add attachment
+    {
+        ArgumentNullException.ThrowIfNull(attachment);
+        _attachments.Add(attachment);
+    }
+
+    public void RemoveAttachment(Guid attachmentId) // remove attachment
+    {
+        var attachment = _attachments.Find(a => a.Id == attachmentId)
+                         ?? throw new InvalidOperationException("TaskAttachment not found");
+        _attachments.Remove(attachment);
+    }
+
+    public void AddReminder(TaskReminder reminder)
+    {
+        ArgumentNullException.ThrowIfNull(reminder);
+        _reminders.Add(reminder);
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void RemoveReminder(Guid reminderId)
+    {
+        var reminder = _reminders.FirstOrDefault(r => r.Id == reminderId)
+                    ?? throw new InvalidOperationException("TaskReminder not found");
+        _reminders.Remove(reminder);
+        UpdatedAt = DateTime.UtcNow;
     }
 
 }

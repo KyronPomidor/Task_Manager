@@ -1,5 +1,6 @@
 using System;
 using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
+using Task_Manager_Back.Domain.Entities.TaskRelated;
 using Task_Manager_Back.Domain.IRepositories;
 
 namespace Task_Manager_Back.Domain.DomainServices.TaskServices;
@@ -21,7 +22,7 @@ public class TaskDomainService
     /// Adds a dependency from one task to another.
     /// Throws if adding would create a circular dependency.
     /// </summary>
-    public void AddDependency(TaskEntity.TaskEntity task, TaskEntity.TaskEntity dependency)
+    public void AddDependency(TaskEntity task, TaskEntity dependency)
     {
         if (WouldCreateCycle(task.Id, dependency.Id))
             throw new InvalidOperationException("Cannot add dependency: would create a cycle.");
@@ -32,7 +33,7 @@ public class TaskDomainService
     /// <summary>
     /// Marks a task as completed, enforcing dependency rules.
     /// </summary>
-    public void MarkCompleted(TaskEntity.TaskEntity task)
+    public void MarkCompleted(TaskEntity task)
     {
         if (!task.IsActive())
             throw new InvalidOperationException("Cannot complete an inactive task.");
@@ -51,7 +52,7 @@ public class TaskDomainService
     /// <summary>
     /// Marks a task as failed, enforcing rules.
     /// </summary>
-    public void MarkFailed(TaskEntity.TaskEntity task)
+    public void MarkFailed(TaskEntity task)
     {
         if (!task.IsActive())
             throw new InvalidOperationException("Cannot fail an inactive task.");
