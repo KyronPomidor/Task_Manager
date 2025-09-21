@@ -13,6 +13,8 @@ public class TaskCategoryDomainService
         _repository = repository;
     }
 
+    #region Public methods
+
     // Method to assign a parent category with circular reference check
     public void AssignParent(CustomCategory category, Guid? newParentId)
     {
@@ -41,6 +43,22 @@ public class TaskCategoryDomainService
         category.SetParent(newParentId);
     }
 
+    // Method to create a new CustomCategory with validation
+    public CustomCategory CreateCustomCategory(Guid userId, string title, string? description, Guid? parentCategoryId)
+    {
+        if (parentCategoryId != null)
+        {
+            var parent = _repository.GetById(parentCategoryId.Value);
+            if (parent == null)
+                throw new InvalidOperationException("Parent category does not exist.");
+        }
+
+        return new CustomCategory(userId, title, description, parentCategoryId);
+    }
+
+    #endregion
+
+    #region Private Helpers
     private IEnumerable<TaskCategory> GetAncestors(Guid categoryId)
     {
         var result = new List<TaskCategory>();
@@ -56,18 +74,6 @@ public class TaskCategoryDomainService
 
         return result;
     }
-
-    // Method to create a new CustomCategory with validation
-    public CustomCategory CreateCustomCategory(Guid userId, string title, string? description, Guid? parentCategoryId)
-    {
-        if (parentCategoryId != null)
-        {
-            var parent = _repository.GetById(parentCategoryId.Value);
-            if (parent == null)
-                throw new InvalidOperationException("Parent category does not exist.");
-        }
-
-        return new CustomCategory(userId, title, description, parentCategoryId);
-    }
+    #endregion
 
 }
