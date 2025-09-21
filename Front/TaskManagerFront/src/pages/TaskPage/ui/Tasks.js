@@ -1,7 +1,7 @@
-// src/pages/Tasks.js
-import { useState } from "react";
+import React, { useMemo, useState } from "react";
 import "../Tasks.css";
 import { TaskFilters } from "../../../Widgets/TaskFilters";
+import mainArrow from "./main_arrow.png";
 import {
   Row,
   Col,
@@ -12,6 +12,7 @@ import {
   Input,
   Select,
   DatePicker,
+  TimePicker,
   Button,
   List,
 } from "antd";
@@ -21,10 +22,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { MoreOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 
+/* ------------------ Utility ------------------ */
 function priorityColor(p) {
-  return p === "High" ? "red" : p === "Low" ? "default" : "blue";
+  return p === "High" ? "red" : p === "Low" ? "default" : "#60a5fa";
 }
 
+/* ------------------ SortableTask ------------------ */
 function SortableTask({ task, children, onCardClick }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id });
@@ -52,6 +55,7 @@ function SortableTask({ task, children, onCardClick }) {
   );
 }
 
+/* ------------------ TaskActions ------------------ */
 function TaskActions({
   task,
   toggleComplete,
@@ -82,14 +86,6 @@ function TaskActions({
 
   const actions = [
     {
-      label: task.completed ? "Undo" : "Done",
-      onClick: (e) => {
-        e.stopPropagation();
-        toggleComplete(task.id);
-        setMenuOpenId(null);
-      },
-    },
-    {
       label: "Edit",
       onClick: (e) => {
         e.stopPropagation();
@@ -111,11 +107,7 @@ function TaskActions({
 
   const toggleMenu = (e) => {
     e.stopPropagation();
-    if (open) {
-      setMenuOpenId(null);
-    } else {
-      setMenuOpenId(task.id);
-    }
+    setMenuOpenId(open ? null : task.id);
   };
 
   return (
@@ -160,7 +152,9 @@ function TaskActions({
   );
 }
 
-export function Tasks({ tasks, setTasks, selectedCategory, categories, searchText }) {
+/* ------------------ Tasks Component ------------------ */
+export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, categories, searchText }) {
+  /* ---------- State ---------- */
   const [editOpen, setEditOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -174,11 +168,38 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
   const [tempBudgetItems, setTempBudgetItems] = useState([]);
 
   const [menuOpenId, setMenuOpenId] = useState(null);
+  const [expandedParentId, setExpandedParentId] = useState(null);
 
+  /* ---------- Functions ---------- */
   function toggleComplete(id) {
-    setTasks((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    );
+    setTasks((prev) => {
+      const task = prev.find((t) => t.id === id);
+      if (!task) return prev;
+
+      if (!task.completed) {
+        const children = allTasks.filter((t) => t.parentIds.includes(task.id));
+        if (children.length > 0) {
+          const hasUnfinishedChildren = children.some((c) => !c.completed);
+          if (hasUnfinishedChildren) {
+            Modal.warning({
+              title: "Cannot complete task",
+              content: "This parent task still has unfinished child tasks.",
+            });
+            return prev;
+          }
+        }
+      }
+
+      return prev.map((t) =>
+        t.id === id
+          ? {
+              ...t,
+              completed: !t.completed,
+              categoryId: !t.completed ? "done" : t.categoryId,
+            }
+          : t
+      );
+    });
   }
 
   function startEdit(task) {
@@ -199,6 +220,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
       description: "",
       priority: "Medium",
       deadline: null,
+      deadlineTime: null,
       categoryId: selectedCategory === "today" ? "inbox" : selectedCategory,
       completed: false,
       parentIds: [],
@@ -227,10 +249,10 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
   }
 
   function getValidParents(taskId) {
-    if (!taskId) return tasks.filter((t) => !t.completed);
+    if (!taskId) return allTasks.filter((t) => !t.completed);
     const descendants = new Set();
     function collectDescendants(id) {
-      tasks.forEach((t) => {
+      allTasks.forEach((t) => {
         if (t.parentIds.includes(id)) {
           descendants.add(t.id);
           collectDescendants(t.id);
@@ -238,7 +260,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
       });
     }
     collectDescendants(taskId);
-    return tasks.filter(
+    return allTasks.filter(
       (t) => t.id !== taskId && !descendants.has(t.id) && !t.completed
     );
   }
@@ -275,24 +297,56 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
     setTempBudgetItems([]);
   }
 
+  /* ---------- Filters ---------- */
   const [filters, setFilters] = useState({
     priority: "All",
     status: "All",
     deadline: "",
+    deadlineTime: "",
   });
 
-  // Filter tasks
-  const filteredTasks = tasks.filter((task) => {
-    if (selectedCategory !== "today" && task.categoryId !== selectedCategory) return false;
-    if (selectedCategory === "today" && task.deadline !== dayjs().format("YYYY-MM-DD")) return false;
+  const filteredAndSortedTasks = (filteredTasks || []).filter((task) => {
+    if (selectedCategory === "today") {
+      if (task.deadline !== dayjs().format("YYYY-MM-DD")) return false;
+    } else if (task.categoryId !== selectedCategory) {
+      return false;
+    }
     if (searchText && !task.title.toLowerCase().includes(searchText.toLowerCase())) return false;
     if (filters.priority !== "All" && task.priority !== filters.priority) return false;
     if (filters.status === "Done" && !task.completed) return false;
     if (filters.status === "Undone" && task.completed) return false;
     if (filters.deadline && task.deadline !== filters.deadline) return false;
+    if (filters.deadlineTime) {
+      if (!task.deadlineTime || task.deadlineTime !== filters.deadlineTime) return false;
+    }
     return true;
   });
 
+  /* ---------- Parent/Child Coloring ---------- */
+  const DEP_COLORS = [
+    "#FFD93D", "#FF6B6B", "#6BCB77", "#4D96FF", "#845EC2",
+    "#FF9671", "#FFC75F", "#0081CF", "#B39CD0", "#3705dcff"
+  ];
+
+  function hashStringToIndex(str, mod) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash) % mod;
+  }
+
+  const getParentColor = (parentId) => {
+    const idx = hashStringToIndex(parentId, DEP_COLORS.length);
+    return DEP_COLORS[idx];
+  };
+
+  function getChildren(taskId) {
+    return allTasks.filter((t) => t.parentIds.includes(taskId) && !t.completed);
+  }
+
+  /* ---------- Render ---------- */
   return (
     <div className="tasks-container">
       <div className="composer" style={{ display: "flex", alignItems: "center" }}>
@@ -302,84 +356,387 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
         <TaskFilters filters={filters} setFilters={setFilters} />
       </div>
 
-      <SortableContext items={filteredTasks.map((t) => t.id)}>
+      <SortableContext items={filteredAndSortedTasks.map((t) => t.id)}>
         <Row gutter={[16, 16]}>
-          {filteredTasks.map((task) => {
+          {filteredAndSortedTasks.map((task) => {
             const bg = task.completed ? "#ececec" : "white";
+
+            const hasChildren = allTasks.some((t) => t.parentIds.includes(task.id) && !t.completed);
+            const parentBorderColor = hasChildren
+              ? getParentColor(task.id)
+              : "#fff";
+
+            const childIndicatorColors = task.parentIds.map(getParentColor);
+            const isChild = task.parentIds.length > 0;
+            const isParent = hasChildren;
+
             return (
               <Col key={task.id} span={8}>
                 <SortableTask task={task} onCardClick={handleCardClick}>
                   {(dragListeners) => (
-                    <Card
-                      className={`task-card ${task.completed ? "task-card-done" : ""}`}
-                      style={{ "--card-bg": bg }}
-                      title={
-                        <motion.div
-                          className="card-title"
-                          onClick={(e) => e.stopPropagation()}
-                          {...dragListeners}
+                    <motion.div
+                      style={{ position: "relative" }}
+                    >
+                      <Card
+                        className={`task-card ${task.completed ? "task-card-done" : ""}`}
+                        style={{
+                          background: bg,
+                          borderLeft: `10px solid ${parentBorderColor}`,
+                          minHeight: 180,
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between",
+                          zIndex: expandedParentId === task.id ? 1002 : 1,
+                        }}
+                        title={
+                          <motion.div
+                            className="card-title"
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              width: "100%",
+                              alignItems: "center",
+                              overflow: "hidden",
+                            }}
+                          >
+                            {/* Done Indicator with hover tick only on circle */}
+                            <Button
+                              type="text"
+                              style={{
+                                position: "absolute",
+                                top: 17,
+                                left: 8,
+                                padding: 0,
+                                background: task.completed ? "#6BCB77" : "#fff",
+                                border: "2px solid #ccc",
+                                borderRadius: "50%",
+                                width: 24,
+                                height: 24,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
+                                zIndex: 10,
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleComplete(task.id);
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!task.completed) {
+                                  e.currentTarget.style.backgroundColor = "#d4d4d4ff";
+                                  e.currentTarget.querySelector("span")?.style.setProperty("display", "flex", "important");
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (!task.completed) {
+                                  e.currentTarget.style.backgroundColor = "#fff";
+                                  e.currentTarget.querySelector("span")?.style.setProperty("display", "none", "important");
+                                }
+                              }}
+                            >
+                              <span style={{ color: "#000000ff", display: task.completed ? "flex" : "none" }}>✓</span>
+                            </Button>
+
+                            {/* Drag Handle + Title + Priority */}
+                            <motion.div
+                              animate={{ x: menuOpenId === task.id ? -60 : 0 }}
+                              transition={{ type: "spring", stiffness: 200, damping: 20 }}
+                              style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: 40 }}
+                            >
+                              <span
+                                {...dragListeners}
+                                style={{
+                                  cursor: "grab",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "8px",
+                                }}
+                              >
+                                <span className={`title ${task.completed ? "done" : ""}`}>
+                                  {task.title}
+                                </span>
+                                <Tag color={priorityColor(task.priority)}>{task.priority}</Tag>
+                              </span>
+                            </motion.div>
+
+                            {/* Deadline + child indicators */}
+                            {task.deadline && (
+                              <motion.div
+                                animate={{ x: menuOpenId === task.id ? -60 : 0 }}
+                                transition={{ type: "spring", stiffness: 100, damping: 20 }}
+                                style={{
+                                  fontSize: "0.85rem",
+                                  color: "#60a5fa",
+                                  marginTop: "2px",
+                                  textAlign: "center",
+                                  width: "100%",
+                                  position: "relative"
+                                }}
+                              >
+                                {task.deadline}
+                                {task.deadlineTime ? ` ${task.deadlineTime}` : ""}
+                                {isChild && (
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "center",
+                                      alignItems: "center",
+                                      gap: 8,
+                                      marginTop: 8,
+                                      width: "100%",
+                                    }}
+                                  >
+                                    {childIndicatorColors.map((color, idx) => (
+                                      <span
+                                        key={idx}
+                                        style={{
+                                          display: "inline-block",
+                                          width: 16,
+                                          height: 16,
+                                          borderRadius: "50%",
+                                          background: color,
+                                          border: "2px solid #fff",
+                                          boxShadow: "0 0 0 1px #ccc",
+                                        }}
+                                        title="Parent task indicator"
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+                              </motion.div>
+                            )}
+
+                            {!task.deadline && isChild && (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  marginTop: 8,
+                                  width: "100%",
+                                }}
+                              >
+                                {childIndicatorColors.map((color, idx) => (
+                                  <span
+                                    key={idx}
+                                    style={{
+                                      display: "inline-block",
+                                      width: 16,
+                                      height: 16,
+                                      borderRadius: "50%",
+                                      background: color,
+                                      border: "2px solid #fff",
+                                      boxShadow: "0 0 0 1px #ccc",
+                                    }}
+                                    title="Parent task indicator"
+                                  />
+                                ))}
+                              </div>
+                            )}
+                          </motion.div>
+                        }
+                        hoverable
+                        extra={
+                          <TaskActions
+                            task={task}
+                            toggleComplete={toggleComplete}
+                            startEdit={startEdit}
+                            setBudgetTask={setBudgetTask}
+                            setTempBudgetItems={setTempBudgetItems}
+                            setBudgetOpen={setBudgetOpen}
+                            menuOpenId={menuOpenId}
+                            setMenuOpenId={setMenuOpenId}
+                          />
+                        }
+                      >
+                        <div
+                          className="desc"
                           style={{
-                            cursor: "grab",
                             display: "flex",
-                            flexDirection: "column",
-                            width: "100%",
+                            justifyContent: "center",
                             alignItems: "center",
-                            overflow: "hidden",
+                            textAlign: "center",
+                            minHeight: "50px",
+                            width: "100%",
                           }}
                         >
-                          <motion.div
-                            animate={{
-                              x: menuOpenId === task.id ? -60 : 0,
+                          {task.description || "No description"}
+                        </div>
+
+                        {/* Expand arrow */}
+                        {isParent && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: 12,
+                              right: 16,
+                              zIndex: 1003,
                             }}
-                            transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                            style={{ display: "flex", alignItems: "center", gap: "8px" }}
                           >
-                            <span className={`title ${task.completed ? "done" : ""}`}>
-                              {task.title}
-                            </span>
-                            <Tag color={priorityColor(task.priority)}>{task.priority}</Tag>
-                          </motion.div>
-                          {task.deadline && (
-                            <motion.div
-                              animate={{
-                                x: menuOpenId === task.id ? -60 : 0,
+                            <Button
+                              type="text"
+                              style={{
+                                padding: 0,
+                                background: "#fff",
+                                border: "1px solid #e0e0e0",
+                                borderRadius: "50%",
+                                boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
+                                minWidth: 24,
+                                minHeight: 24,
+                                width: 24,
+                                height: 24,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                cursor: "pointer",
                               }}
-                              transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                              style={{ fontSize: "0.85rem", color: "blue", marginTop: "2px" }}
+                              onClick={e => {
+                                e.stopPropagation();
+                                setExpandedParentId(expandedParentId === task.id ? null : task.id);
+                              }}
                             >
-                              {task.deadline}
+                              <img
+                                src={mainArrow}
+                                alt="Show children"
+                                style={{
+                                  width: 16,
+                                  height: 16,
+                                  filter: expandedParentId === task.id ? "brightness(1.2)" : "brightness(0.8)",
+                                  transition: "filter 0.2s",
+                                  pointerEvents: "none",
+                                }}
+                              />
+                            </Button>
+                          </div>
+                        )}
+                      </Card>
+
+                      {/* Dropdown for parent task children */}
+                      <AnimatePresence>
+                        {expandedParentId === task.id && (
+                          <>
+                            {/* Overlay */}
+                            <motion.div
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 0.6 }}
+                              exit={{ opacity: 0 }}
+                              style={{
+                                position: "fixed",
+                                top: 0,
+                                left: 0,
+                                width: "100vw",
+                                height: "100vh",
+                                background: "#1a2233",
+                                zIndex: 1000,
+                                pointerEvents: "auto",
+                              }}
+                              onClick={() => setExpandedParentId(null)}
+                            />
+                            {/* Dropdown with children */}
+                            <motion.div
+                              initial={{ opacity: 0, y: -20 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -20 }}
+                              style={{
+                                position: "absolute",
+                                left: 0,
+                                top: "100%",
+                                width: "100%",
+                                background: "rgba(255,255,255,0.0)",
+                                zIndex: 1002,
+                                padding: "24px 0",
+                                display: "flex",
+                                flexDirection: "column",
+                                alignItems: "center",
+                                boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+                                borderRadius: "0 0 12px 12px",
+                              }}
+                            >
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  alignItems: "center",
+                                  gap: 24,
+                                  width: "100%",
+                                  maxWidth: 340,
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {getChildren(task.id).map((child) => {
+                                  const childIndicatorColors = child.parentIds.map(getParentColor);
+                                  return (
+                                    <Card
+                                      key={child.id}
+                                      className={`task-card ${child.completed ? "task-card-done" : ""}`}
+                                      style={{
+                                        width: 320,
+                                        background: "#fff",
+                                        color: "#222e3a",
+                                        borderLeft:
+                                          child.parentIds.length > 0
+                                            ? `5px solid ${getParentColor(
+                                                child.parentIds[child.parentIds.length - 1]
+                                              )}`
+                                            : "5px solid #fff",
+                                        boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
+                                        position: "relative",
+                                        margin: "0 auto",
+                                      }}
+                                      title={
+                                        <div style={{ textAlign: "center", color: "#222e3a" }}>
+                                          <span className={`title ${child.completed ? "done" : ""}`}>
+                                            {child.title}
+                                          </span>
+                                          <Tag color={priorityColor(child.priority)}>{child.priority}</Tag>
+                                          {child.deadline && (
+                                            <div style={{ fontSize: "0.85rem", color: "#60a5fa", marginTop: 2 }}>
+                                              {child.deadline}
+                                              {child.deadlineTime ? ` ${child.deadlineTime}` : ""}
+                                            </div>
+                                          )}
+                                          {child.parentIds.length > 0 && (
+                                            <div
+                                              style={{
+                                                display: "flex",
+                                                justifyContent: "center",
+                                                alignItems: "center",
+                                                gap: 8,
+                                                marginTop: 8,
+                                                width: "100%",
+                                              }}
+                                            >
+                                              {child.parentIds.map((pid, idx) => (
+                                                <span
+                                                  key={idx}
+                                                  style={{
+                                                    display: "inline-block",
+                                                    width: 16,
+                                                    height: 16,
+                                                    borderRadius: "50%",
+                                                    background: getParentColor(pid),
+                                                    border: "2px solid #fff",
+                                                    boxShadow: "0 0 0 1px #ccc",
+                                                  }}
+                                                  title="Parent task indicator"
+                                                />
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      }
+                                    >
+                                    </Card>
+                                  );
+                                })}
+                              </div>
                             </motion.div>
-                          )}
-                        </motion.div>
-                      }
-                      hoverable
-                      extra={
-                        <TaskActions
-                          task={task}
-                          toggleComplete={toggleComplete}
-                          startEdit={startEdit}
-                          setBudgetTask={setBudgetTask}
-                          setTempBudgetItems={setTempBudgetItems}
-                          setBudgetOpen={setBudgetOpen}
-                          menuOpenId={menuOpenId}
-                          setMenuOpenId={setMenuOpenId}
-                        />
-                      }
-                    >
-                      <div
-                        className="desc"
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          textAlign: "center",
-                          minHeight: "40px",
-                          width: "100%",
-                        }}
-                      >
-                        {task.description || "No description"}
-                      </div>
-                    </Card>
+                          </>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
                   )}
                 </SortableTask>
               </Col>
@@ -388,7 +745,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
         </Row>
       </SortableContext>
 
-      {/* Details Modal */}
+      
       <Modal
         title="Task Details"
         open={detailsOpen}
@@ -425,10 +782,12 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
             {selectedTask.deadline && (
               <p>
                 <strong>Deadline:</strong> {selectedTask.deadline}
+                {selectedTask.deadlineTime ? ` ${selectedTask.deadlineTime}` : ""}
               </p>
             )}
             <p>
-              <strong>Description:</strong> {selectedTask.description || "No description"}
+              <strong>Description:</strong>{" "}
+              {selectedTask.description || "No description"}
             </p>
             <p>
               <strong>Priority:</strong> {selectedTask.priority}
@@ -439,13 +798,13 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
             {selectedTask.parentIds.length > 0 && (
               <p>
                 <strong>Parent Tasks:</strong>{" "}
-                {tasks
+                {allTasks
                   .filter((t) => selectedTask.parentIds.includes(t.id))
                   .map((t) => t.title)
                   .join(", ")}
               </p>
             )}
-            {selectedTask.budgetItems?.length > 0 && (
+            {selectedTask.budgetItems && selectedTask.budgetItems.length > 0 && (
               <>
                 <h3>Expenses</h3>
                 <List
@@ -457,8 +816,11 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
                   )}
                 />
                 <p>
-                  <strong>Total:</strong> $
-                  {selectedTask.budgetItems.reduce((acc, i) => acc + i.sum, 0).toFixed(2)}
+                  <strong>Total:</strong>{" "}
+                  $
+                  {selectedTask.budgetItems
+                    .reduce((acc, item) => acc + item.sum, 0)
+                    .toFixed(2)}
                 </p>
               </>
             )}
@@ -466,7 +828,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
         )}
       </Modal>
 
-      {/* Budget Modal */}
+     
       <Modal
         title="Budget Tracker"
         open={budgetOpen}
@@ -502,6 +864,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
             </Button>
           </Form.Item>
         </Form>
+
         <List
           bordered
           dataSource={tempBudgetItems}
@@ -511,15 +874,16 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
             </List.Item>
           )}
         />
+
         {tempBudgetItems.length > 0 && (
           <p style={{ marginTop: 10 }}>
-            <strong>Total:</strong> $
-            {tempBudgetItems.reduce((acc, i) => acc + i.sum, 0).toFixed(2)}
+            <strong>Total:</strong>{" "}
+            ${tempBudgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
           </p>
         )}
       </Modal>
 
-      {/* Edit Task Modal */}
+      
       <Modal
         title="Edit task"
         open={editOpen}
@@ -537,16 +901,22 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
             <Form.Item label="Title" required>
               <Input
                 value={editTask.title}
-                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                onChange={(e) =>
+                  setEditTask({ ...editTask, title: e.target.value })
+                }
               />
             </Form.Item>
+
             <Form.Item label="Description">
               <Input.TextArea
                 value={editTask.description}
-                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                onChange={(e) =>
+                  setEditTask({ ...editTask, description: e.target.value })
+                }
                 autoSize={{ minRows: 3, maxRows: 6 }}
               />
             </Form.Item>
+
             <Form.Item label="Priority">
               <Select
                 value={editTask.priority}
@@ -557,13 +927,35 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
                 <Select.Option value="High">High</Select.Option>
               </Select>
             </Form.Item>
-            <Form.Item label="Deadline">
+
+            <Form.Item label="Deadline (date)">
               <DatePicker
                 style={{ width: "100%" }}
                 value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
+                onChange={(_, dateStr) =>
+                  setEditTask({ ...editTask, deadline: dateStr || null })
+                }
               />
             </Form.Item>
+
+            <Form.Item label="Deadline (time, optional)">
+              <TimePicker
+                style={{ width: "100%" }}
+                value={
+                  editTask.deadlineTime
+                    ? dayjs(editTask.deadlineTime, "HH:mm")
+                    : null
+                }
+                format="HH:mm"
+                onChange={(_, timeStr) =>
+                  setEditTask({
+                    ...editTask,
+                    deadlineTime: timeStr || null,
+                  })
+                }
+              />
+            </Form.Item>
+
             <Form.Item label="Parent Tasks">
               <Select
                 mode="multiple"
@@ -577,6 +969,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
                 ))}
               </Select>
             </Form.Item>
+
             <Form.Item label="Category">
               <Select
                 value={editTask.categoryId}
@@ -594,7 +987,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
         )}
       </Modal>
 
-      {/* Add New Task Modal */}
+     
       <Modal
         title="Add new task"
         open={addOpen}
@@ -612,16 +1005,22 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
             <Form.Item label="Title" required>
               <Input
                 value={editTask.title}
-                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                onChange={(e) =>
+                  setEditTask({ ...editTask, title: e.target.value })
+                }
               />
             </Form.Item>
+
             <Form.Item label="Description">
               <Input.TextArea
                 value={editTask.description}
-                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                onChange={(e) =>
+                  setEditTask({ ...editTask, description: e.target.value })
+                }
                 autoSize={{ minRows: 3, maxRows: 6 }}
               />
             </Form.Item>
+
             <Form.Item label="Priority">
               <Select
                 value={editTask.priority}
@@ -632,13 +1031,35 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
                 <Select.Option value="High">High</Select.Option>
               </Select>
             </Form.Item>
-            <Form.Item label="Deadline">
+
+            <Form.Item label="Deadline (date)">
               <DatePicker
                 style={{ width: "100%" }}
                 value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
+                onChange={(_, dateStr) =>
+                  setEditTask({ ...editTask, deadline: dateStr || null })
+                }
               />
             </Form.Item>
+
+            <Form.Item label="Deadline (time, optional)">
+              <TimePicker
+                style={{ width: "100%" }}
+                value={
+                  editTask.deadlineTime
+                    ? dayjs(editTask.deadlineTime, "HH:mm")
+                    : null
+                }
+                format="HH:mm"
+                onChange={(_, timeStr) =>
+                  setEditTask({
+                    ...editTask,
+                    deadlineTime: timeStr || null,
+                  })
+                }
+              />
+            </Form.Item>
+
             <Form.Item label="Parent Tasks">
               <Select
                 mode="multiple"
@@ -652,6 +1073,7 @@ export function Tasks({ tasks, setTasks, selectedCategory, categories, searchTex
                 ))}
               </Select>
             </Form.Item>
+
             <Form.Item label="Category">
               <Select
                 value={editTask.categoryId}
