@@ -8,7 +8,7 @@ namespace Task_Manager_Back.Domain.Entities.TaskEntity;
 
 public abstract class TaskCategory
 {
-    public Guid Id { get; private set; }
+    public Guid Id { get; protected set; } // for custom categories, set in derived class constructor or LoadFromPersistence
     public Guid UserId { get; private set; }
     public string Title { get; private set; }
     public string? Description { get; private set; }
@@ -42,6 +42,8 @@ public class InboxCategory : TaskCategory
         : base(userId, "Inbox", "Default category for uncategorized tasks")
     {
     }
+
+    // doesn't need loadFromPersistence, as there is no need to store it in DB
 }
 public class CustomCategory : TaskCategory
 {
@@ -56,7 +58,7 @@ public class CustomCategory : TaskCategory
                                              // Validation to be handled in service layer
                                              // No need to check for circular references here, caategory just created have not children yet, so no risk of circular reference
 
-        Order = order;   
+        Order = order;
     }
 
     internal void SetOrder(int order)
@@ -69,5 +71,11 @@ public class CustomCategory : TaskCategory
         ParentCategoryId = parentCategoryId;
     }
     
+    public static CustomCategory LoadFromPersistence(Guid id, Guid userId, string title, string? description, Guid? parentCategoryId, int order)
+    {
+        var category = new CustomCategory(userId, title, description, parentCategoryId, order);
+        category.Id = id;
+        return category;
+    }
     
 }

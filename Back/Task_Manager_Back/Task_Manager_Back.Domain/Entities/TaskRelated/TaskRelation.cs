@@ -109,13 +109,14 @@ public abstract class TaskRelation
                                                  // also, would need to think about how to handle relation integration
                                                  // but for now, will keep it simple
                                                  // also, would need to think about how to handle relation collaboration
-                                                    
+
     public Guid ToTaskId { get; private set; }
     public TaskRelation(Guid fromTaskId, Guid toTaskId)
     {
         FromTaskId = fromTaskId;
         ToTaskId = toTaskId;
     }
+    
 
 }
 
@@ -126,6 +127,11 @@ public class TaskDependencyRelation : TaskRelation
         : base(fromTaskId, toTaskId)
     {
     }
+
+    public static TaskDependencyRelation LoadFromPersistence(Guid fromTaskId, Guid toTaskId)
+    {
+        return new TaskDependencyRelation(fromTaskId, toTaskId); // id? No id, composite key.. may be.
+    }
 }
 
 public class TaskCustomRelation : TaskRelation
@@ -135,6 +141,11 @@ public class TaskCustomRelation : TaskRelation
         : base(fromTaskId, toTaskId)
     {
         RelationTypeId = relationTypeId;
+    }
+
+    public static TaskCustomRelation LoadFromPersistence(Guid fromTaskId, Guid toTaskId, Guid relationTypeId)
+    {
+        return new TaskCustomRelation(fromTaskId, toTaskId, relationTypeId); // id? No id, composite key.. may be. again.
     }
 }
 
@@ -152,4 +163,14 @@ public class RelationType
         Description = description;
         Color = color ?? Color.Gray;
     }
+
+    // color should be handled normally, it is TODO: for future.
+
+    public static RelationType LoadFromPersistence(Guid id, Guid userId, string name, string? description, Color color)
+    {
+        var relationType = new RelationType(name, description, color);
+        relationType.Id = id;
+        return relationType;
+    }
+    
 }

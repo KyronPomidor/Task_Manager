@@ -1,5 +1,4 @@
-﻿using Task_Manager_Back.Domain.Aggregates.ShopAggregate;
-using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
+﻿using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 using Task_Manager_Back.Domain.Common;
 using Task_Manager_Back.Domain.IRepositories;
 
@@ -265,5 +264,26 @@ public class TaskEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
+
+// to lazy to read this, but I hope it will work
+    public static TaskEntity LoadFromPersistence(Guid id, Guid userId, string title, string? description, string color,
+        bool isCompleted, bool isFailed, Guid priorityId, Guid statusId, Guid categoryId,
+        DateTime? createdAt, DateTime? updatedAt, DateTime? deadline,
+        DateTime? completedAt, DateTime? failedAt,
+        IEnumerable<Guid>? labels = null,
+        int order = 0)
+    {
+        var task = new TaskEntity(userId, title, description, color, priorityId, statusId, categoryId, deadline, labels, order)
+        {
+            Id = id,
+            IsCompleted = isCompleted,
+            IsFailed = isFailed,
+            CreatedAt = createdAt,
+            UpdatedAt = updatedAt,
+            CompletedAt = completedAt,
+            FailedAt = failedAt
+        };
+        return task;
+    }
 }
 

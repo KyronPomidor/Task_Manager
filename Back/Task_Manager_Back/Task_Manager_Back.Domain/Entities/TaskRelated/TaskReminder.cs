@@ -32,6 +32,7 @@ public class TaskReminder
         // }; 
 
         // idk why the above code is underlined, so I rewrote it like this:
+        // I understand now, that is because the code above wants the empty constructor, which I did not create
 
         var reminder = new TaskReminder(taskId, reminderAt, message);
         reminder.Id = id;

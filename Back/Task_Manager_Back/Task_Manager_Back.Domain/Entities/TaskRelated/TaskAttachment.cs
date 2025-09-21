@@ -8,6 +8,7 @@ namespace Task_Manager_Back.Domain.Entities.TaskRelated;
 
 
 // Too much time to implement file storage, so just not use this class for now
+// or... already yes?
 public class TaskAttachment //consider taking attachment functionality from TicketingSystem
 {
     public Guid Id { get; private set; }
@@ -27,6 +28,13 @@ public class TaskAttachment //consider taking attachment functionality from Tick
         FileType = fileType ?? throw new ArgumentNullException(nameof(fileType));
         FileName = fileName ?? System.IO.Path.GetFileName(FilePath);
         Size = size;
+    }
+
+    public static TaskAttachment LoadFromPersistence(Guid id, Guid userId, Guid taskId, string filePath, string fileType, string? fileName, long? size)
+    {
+        var attachment = new TaskAttachment(userId, taskId, filePath, fileType, fileName, size);
+        attachment.Id = id;
+        return attachment;
     }
 
 }
