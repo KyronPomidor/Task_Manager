@@ -281,11 +281,27 @@ public class TaskEntity
     }
 
     // to lazy to read this, but I hope it will work
-    public static TaskEntity LoadFromPersistence(Guid id, Guid userId, string title, string? description, string color,
-        bool isCompleted, bool isFailed, Guid priorityId, Guid statusId, Guid categoryId,
-        DateTime? createdAt, DateTime? updatedAt, DateTime? deadline,
-        DateTime? completedAt, DateTime? failedAt,
+    public static TaskEntity LoadFromPersistence(
+        Guid id,
+        Guid userId,
+        string title,
+        string? description,
+        string color,
+        bool isCompleted,
+        bool isFailed,
+        Guid priorityId,
+        Guid statusId,
+        Guid categoryId,
+        DateTime? createdAt,
+        DateTime? updatedAt,
+        DateTime? deadline,
+        DateTime? completedAt,
+        DateTime? failedAt,
         IEnumerable<Guid>? labels = null,
+        IEnumerable<TaskReminder>? reminders = null,
+        IEnumerable<TaskAttachment>? attachments = null,
+        IEnumerable<TaskDependencyRelation>? dependencies = null,
+        IEnumerable<TaskCustomRelation>? customRelations = null,
         int order = 0)
     {
         var task = new TaskEntity(userId, title, description, color, priorityId, statusId, categoryId, deadline, labels, order)
@@ -298,7 +314,26 @@ public class TaskEntity
             CompletedAt = completedAt,
             FailedAt = failedAt
         };
+
+        // Добавляем вложенные коллекции сразу
+        if (reminders != null)
+            foreach (var r in reminders)
+                task.AddReminder(r);
+
+        if (attachments != null)
+            foreach (var a in attachments)
+                task.AddAttachment(a);
+
+        if (dependencies != null)
+            foreach (var d in dependencies)
+                task.AddDependency(d);
+
+        if (customRelations != null)
+            foreach (var c in customRelations)
+                task.AddCustomRelation(c);
+
         return task;
     }
+
 }
 
