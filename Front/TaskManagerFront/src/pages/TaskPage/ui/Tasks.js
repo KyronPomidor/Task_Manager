@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import "../Tasks.css";
 import { TaskFilters } from "../../../Widgets/TaskFilters";
 import mainArrow from "./main_arrow.png";
@@ -15,6 +15,7 @@ import {
   TimePicker,
   Button,
   List,
+  Tooltip,
 } from "antd";
 import dayjs from "dayjs";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
@@ -153,20 +154,26 @@ function TaskActions({
 }
 
 /* ------------------ Tasks Component ------------------ */
-export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, categories, searchText }) {
+export function Tasks({
+  filteredTasks,
+  allTasks,
+  setTasks,
+  selectedCategory,
+  categories,
+  searchText,
+  setSelectedCategory,
+}) {
   /* ---------- State ---------- */
   const [editOpen, setEditOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
-
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [budgetTask, setBudgetTask] = useState(null);
   const [budgetName, setBudgetName] = useState("");
   const [budgetSum, setBudgetSum] = useState("");
   const [tempBudgetItems, setTempBudgetItems] = useState([]);
-
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [expandedParentId, setExpandedParentId] = useState(null);
 
@@ -297,6 +304,17 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
     setTempBudgetItems([]);
   }
 
+  function handleIndicatorClick(parentId) {
+    const parentTask = allTasks.find((t) => t.id === parentId);
+    if (parentTask && typeof setSelectedCategory === "function") {
+      setSelectedCategory(parentTask.categoryId);
+    } else {
+      console.warn(
+        `Cannot navigate to parent task category. Parent task with ID ${parentId} not found or setSelectedCategory is not a function.`
+      );
+    }
+  }
+
   /* ---------- Filters ---------- */
   const [filters, setFilters] = useState({
     priority: "All",
@@ -350,9 +368,11 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
   return (
     <div className="tasks-container">
       <div className="composer" style={{ display: "flex", alignItems: "center" }}>
-        <Button type="primary" onClick={handleAddNew}>
-          Add
-        </Button>
+        {selectedCategory !== "done" && (
+          <Button type="primary" onClick={handleAddNew}>
+            Add
+          </Button>
+        )}
         <TaskFilters filters={filters} setFilters={setFilters} />
       </div>
 
@@ -360,12 +380,8 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
         <Row gutter={[16, 16]}>
           {filteredAndSortedTasks.map((task) => {
             const bg = task.completed ? "#ececec" : "white";
-
             const hasChildren = allTasks.some((t) => t.parentIds.includes(task.id) && !t.completed);
-            const parentBorderColor = hasChildren
-              ? getParentColor(task.id)
-              : "#fff";
-
+            const parentBorderColor = hasChildren ? getParentColor(task.id) : "#fff";
             const childIndicatorColors = task.parentIds.map(getParentColor);
             const isChild = task.parentIds.length > 0;
             const isParent = hasChildren;
@@ -374,9 +390,7 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
               <Col key={task.id} span={8}>
                 <SortableTask task={task} onCardClick={handleCardClick}>
                   {(dragListeners) => (
-                    <motion.div
-                      style={{ position: "relative" }}
-                    >
+                    <motion.div style={{ position: "relative" }}>
                       <Card
                         className={`task-card ${task.completed ? "task-card-done" : ""}`}
                         style={{
@@ -399,7 +413,7 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                               overflow: "hidden",
                             }}
                           >
-                            {/* Done Indicator with hover tick only on circle */}
+                            {/* Done Indicator */}
                             <Button
                               type="text"
                               style={{
@@ -454,13 +468,13 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                                 }}
                               >
                                 <span className={`title ${task.completed ? "done" : ""}`}>
-                                  {task.title}
+                                  {task.title.length > 20 ? `${task.title.substring(0, 20)}...` : task.title}
                                 </span>
                                 <Tag color={priorityColor(task.priority)}>{task.priority}</Tag>
                               </span>
                             </motion.div>
 
-                            {/* Deadline + child indicators */}
+                            {/* Deadline */}
                             {task.deadline && (
                               <motion.div
                                 animate={{ x: menuOpenId === task.id ? -60 : 0 }}
@@ -471,69 +485,12 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                                   marginTop: "2px",
                                   textAlign: "center",
                                   width: "100%",
-                                  position: "relative"
+                                  position: "relative",
                                 }}
                               >
                                 {task.deadline}
                                 {task.deadlineTime ? ` ${task.deadlineTime}` : ""}
-                                {isChild && (
-                                  <div
-                                    style={{
-                                      display: "flex",
-                                      justifyContent: "center",
-                                      alignItems: "center",
-                                      gap: 8,
-                                      marginTop: 8,
-                                      width: "100%",
-                                    }}
-                                  >
-                                    {childIndicatorColors.map((color, idx) => (
-                                      <span
-                                        key={idx}
-                                        style={{
-                                          display: "inline-block",
-                                          width: 16,
-                                          height: 16,
-                                          borderRadius: "50%",
-                                          background: color,
-                                          border: "2px solid #fff",
-                                          boxShadow: "0 0 0 1px #ccc",
-                                        }}
-                                        title="Parent task indicator"
-                                      />
-                                    ))}
-                                  </div>
-                                )}
                               </motion.div>
-                            )}
-
-                            {!task.deadline && isChild && (
-                              <div
-                                style={{
-                                  display: "flex",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  gap: 8,
-                                  marginTop: 8,
-                                  width: "100%",
-                                }}
-                              >
-                                {childIndicatorColors.map((color, idx) => (
-                                  <span
-                                    key={idx}
-                                    style={{
-                                      display: "inline-block",
-                                      width: 16,
-                                      height: 16,
-                                      borderRadius: "50%",
-                                      background: color,
-                                      border: "2px solid #fff",
-                                      boxShadow: "0 0 0 1px #ccc",
-                                    }}
-                                    title="Parent task indicator"
-                                  />
-                                ))}
-                              </div>
                             )}
                           </motion.div>
                         }
@@ -565,6 +522,46 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                           {task.description || "No description"}
                         </div>
 
+                        {/* Dependency Indicators (Bottom-Left) */}
+                        {isChild && (
+                          <div
+                            className="dependency-indicators"
+                            style={{
+                              position: "absolute",
+                              bottom: 8,
+                              left: 8,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              zIndex: 10,
+                            }}
+                          >
+                            {task.parentIds.map((pid, idx) => {
+                              const parentTask = allTasks.find((t) => t.id === pid);
+                              return (
+                                <Tooltip
+                                  key={idx}
+                                  title={parentTask ? parentTask.title : "Unknown Parent"}
+                                >
+                                  <span
+                                    style={{
+                                      display: "inline-block",
+                                      width: 16,
+                                      height: 16,
+                                      borderRadius: "50%",
+                                      background: childIndicatorColors[idx],
+                                      border: "2px solid #fff",
+                                      boxShadow: "0 0 0 1px #ccc",
+                                      cursor: "pointer",
+                                    }}
+                                    onClick={() => handleIndicatorClick(pid)}
+                                  />
+                                </Tooltip>
+                              );
+                            })}
+                          </div>
+                        )}
+
                         {/* Expand arrow */}
                         {isParent && (
                           <div
@@ -592,7 +589,7 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                                 justifyContent: "center",
                                 cursor: "pointer",
                               }}
-                              onClick={e => {
+                              onClick={(e) => {
                                 e.stopPropagation();
                                 setExpandedParentId(expandedParentId === task.id ? null : task.id);
                               }}
@@ -617,7 +614,6 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                       <AnimatePresence>
                         {expandedParentId === task.id && (
                           <>
-                            {/* Overlay */}
                             <motion.div
                               initial={{ opacity: 0 }}
                               animate={{ opacity: 0.6 }}
@@ -634,7 +630,6 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                               }}
                               onClick={() => setExpandedParentId(null)}
                             />
-                            {/* Dropdown with children */}
                             <motion.div
                               initial={{ opacity: 0, y: -20 }}
                               animate={{ opacity: 1, y: 0 }}
@@ -688,7 +683,7 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                                       title={
                                         <div style={{ textAlign: "center", color: "#222e3a" }}>
                                           <span className={`title ${child.completed ? "done" : ""}`}>
-                                            {child.title}
+                                            {child.title.length > 20 ? `${child.title.substring(0, 20)}...` : child.title}
                                           </span>
                                           <Tag color={priorityColor(child.priority)}>{child.priority}</Tag>
                                           {child.deadline && (
@@ -697,20 +692,43 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                                               {child.deadlineTime ? ` ${child.deadlineTime}` : ""}
                                             </div>
                                           )}
-                                          {child.parentIds.length > 0 && (
-                                            <div
-                                              style={{
-                                                display: "flex",
-                                                justifyContent: "center",
-                                                alignItems: "center",
-                                                gap: 8,
-                                                marginTop: 8,
-                                                width: "100%",
-                                              }}
-                                            >
-                                              {child.parentIds.map((pid, idx) => (
+                                        </div>
+                                      }
+                                    >
+                                      <div
+                                        className="desc"
+                                        style={{
+                                          display: "flex",
+                                          justifyContent: "center",
+                                          alignItems: "center",
+                                          textAlign: "center",
+                                          minHeight: "50px",
+                                          width: "100%",
+                                        }}
+                                      >
+                                        {child.description || "No description"}
+                                      </div>
+                                      {child.parentIds.length > 0 && (
+                                        <div
+                                          className="dependency-indicators"
+                                          style={{
+                                            position: "absolute",
+                                            bottom: 8,
+                                            left: 8,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8,
+                                            zIndex: 10,
+                                          }}
+                                        >
+                                          {child.parentIds.map((pid, idx) => {
+                                            const parentTask = allTasks.find((t) => t.id === pid);
+                                            return (
+                                              <Tooltip
+                                                key={idx}
+                                                title={parentTask ? parentTask.title : "Unknown Parent"}
+                                              >
                                                 <span
-                                                  key={idx}
                                                   style={{
                                                     display: "inline-block",
                                                     width: 16,
@@ -719,15 +737,15 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                                                     background: getParentColor(pid),
                                                     border: "2px solid #fff",
                                                     boxShadow: "0 0 0 1px #ccc",
+                                                    cursor: "pointer",
                                                   }}
-                                                  title="Parent task indicator"
+                                                  onClick={() => handleIndicatorClick(pid)}
                                                 />
-                                              ))}
-                                            </div>
-                                          )}
+                                              </Tooltip>
+                                            );
+                                          })}
                                         </div>
-                                      }
-                                    >
+                                      )}
                                     </Card>
                                   );
                                 })}
@@ -745,7 +763,6 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
         </Row>
       </SortableContext>
 
-      
       <Modal
         title="Task Details"
         open={detailsOpen}
@@ -778,7 +795,7 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
       >
         {selectedTask && (
           <div className="task-details">
-            <h2>{selectedTask.title}</h2>
+            <h2>{selectedTask.title.length > 20 ? `${selectedTask.title.substring(0, 20)}...` : selectedTask.title}</h2>
             {selectedTask.deadline && (
               <p>
                 <strong>Deadline:</strong> {selectedTask.deadline}
@@ -800,7 +817,7 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                 <strong>Parent Tasks:</strong>{" "}
                 {allTasks
                   .filter((t) => selectedTask.parentIds.includes(t.id))
-                  .map((t) => t.title)
+                  .map((t) => (t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title))
                   .join(", ")}
               </p>
             )}
@@ -817,10 +834,7 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
                 />
                 <p>
                   <strong>Total:</strong>{" "}
-                  $
-                  {selectedTask.budgetItems
-                    .reduce((acc, item) => acc + item.sum, 0)
-                    .toFixed(2)}
+                  ${selectedTask.budgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
                 </p>
               </>
             )}
@@ -828,7 +842,6 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
         )}
       </Modal>
 
-     
       <Modal
         title="Budget Tracker"
         open={budgetOpen}
@@ -883,7 +896,6 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
         )}
       </Modal>
 
-      
       <Modal
         title="Edit task"
         open={editOpen}
@@ -956,6 +968,15 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
               />
             </Form.Item>
 
+            <Form.Item label="Deadline (time, optional)">
+              <TimePicker
+                style={{ width: "100%" }}
+                value={editTask.deadlineTime ? dayjs(editTask.deadlineTime, "HH:mm") : null}
+                format="HH:mm"
+                onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
+              />
+            </Form.Item>
+
             <Form.Item label="Parent Tasks">
               <Select
                 mode="multiple"
@@ -964,7 +985,7 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
               >
                 {getValidParents(editTask.id).map((t) => (
                   <Select.Option key={t.id} value={t.id}>
-                    {t.title}
+                    {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
                   </Select.Option>
                 ))}
               </Select>
@@ -987,7 +1008,6 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
         )}
       </Modal>
 
-     
       <Modal
         title="Add new task"
         open={addOpen}
@@ -1060,6 +1080,15 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
               />
             </Form.Item>
 
+            <Form.Item label="Deadline (time, optional)">
+              <TimePicker
+                style={{ width: "100%" }}
+                value={editTask.deadlineTime ? dayjs(editTask.deadlineTime, "HH:mm") : null}
+                format="HH:mm"
+                onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
+              />
+            </Form.Item>
+
             <Form.Item label="Parent Tasks">
               <Select
                 mode="multiple"
@@ -1068,7 +1097,7 @@ export function Tasks({ filteredTasks, allTasks, setTasks, selectedCategory, cat
               >
                 {getValidParents(null).map((t) => (
                   <Select.Option key={t.id} value={t.id}>
-                    {t.title}
+                    {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
                   </Select.Option>
                 ))}
               </Select>

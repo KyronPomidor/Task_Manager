@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-export function Welcome({ user, selectedCategory }) {
+export function Welcome({ user, selectedCategory, categories }) {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
@@ -11,7 +11,7 @@ export function Welcome({ user, selectedCategory }) {
 
   // Date & time formatting
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const day = days[now.getDay()];
   const date = now.getDate();
   const month = months[now.getMonth()];
@@ -24,8 +24,10 @@ export function Welcome({ user, selectedCategory }) {
   if (hours === 0) hours = 12;
   const time = `${hours}:${minutes} ${ampm}`;
 
-  // User name fallback
-  const userName = user?.displayName || user?.email?.split("@")[0] || "User";
+  // Find category name for non-inbox categories
+  const categoryName = selectedCategory === "inbox"
+    ? "Today"
+    : categories.find((cat) => cat.id === selectedCategory)?.name || selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
 
   return (
     <motion.div
@@ -35,20 +37,25 @@ export function Welcome({ user, selectedCategory }) {
       style={{ display: "flex", justifyContent: "space-between", marginLeft: "1.5vw" }}
     >
       <section>
-        {selectedCategory === "inbox" ? (
-          <>
-            <h2 style={{ margin: 0 }}>
-              Hello, <span style={{ color: "#2563eb" }}>{userName}</span>
-            </h2>
-            <h3 style={{ margin: "4px 0" }}>Today</h3>
-            <b>
-              {day} {date} {month} {year} | {time}
-            </b>
-          </>
-        ) : (
-          <h2 style={{ margin: 0, color: "black" }}>
-            {selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}
-          </h2>
+        <p
+          style={{
+            margin: 0,
+            color: "black",
+            fontSize: "3rem",
+            fontFamily: "'Roboto', sans-serif"
+          }}
+        >
+          {categoryName}
+        </p>
+        {selectedCategory === "inbox" && (
+          <p
+            style={{
+              fontFamily: "'Roboto', sans-serif",
+              fontSize: "1.5rem", // Slightly smaller than header but still clear
+            }}
+          >
+            {day} {date} {month} {year} | {time}
+          </p>
         )}
       </section>
     </motion.div>

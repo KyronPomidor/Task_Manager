@@ -2,6 +2,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import subArrow from "./subcategory_arrow.png";
 import mainArrow from "./main_arrow.png";
+import categoryIcon from "./category.png";
 import inboxIcon from "./inbox.png";
 import graphsIcon from "./graphs.png";
 import checkIcon from "./checked.png";
@@ -18,21 +19,23 @@ const STYLES = {
     height: "100%",
     width: "15vw",
     minWidth: "220px",
-    borderRight: "1px solid", // Color will be set dynamically
+    borderRight: "1px solid",
     boxSizing: "border-box",
+    fontFamily: "'Roboto', sans-serif"
   },
   logoWrap: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
     padding: "12px 0",
-    borderBottom: "1px solid", // Color will be set dynamically
+    borderBottom: "1px solid",
   },
   list: { flex: 1, overflowY: "auto", padding: "8px 0" },
   inputInline: {
     flex: 1,
     border: "none",
     outline: "none",
+    fontFamily: "'Roboto', sans-serif",
     background: "transparent",
     font: "inherit",
   },
@@ -41,7 +44,7 @@ const STYLES = {
     width: 24,
     height: 24,
     borderRadius: 6,
-    border: "1px solid", // Color will be set dynamically
+    border: "1px solid",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -55,6 +58,7 @@ const STYLES = {
     border: "none",
     cursor: "pointer",
     fontWeight: 600,
+    fontFamily: "'Roboto', sans-serif"
   },
   backdrop: { position: "fixed", inset: 0, zIndex: 999 },
   dialog: {
@@ -69,12 +73,12 @@ const STYLES = {
     zIndex: 1000,
   },
   field: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 },
-  input: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit" },
-  select: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", background: "#fff" },
+  input: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", fontFamily: "'Roboto', sans-serif" },
+  select: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", background: "#fff", fontFamily: "'Roboto', sans-serif" },
   actions: { display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 },
   btnCancel: { padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", background: "#fafafa", cursor: "pointer" },
   btnSave: { padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600 },
-  iconWrapper: { // Consistent icon/arrow alignment
+  iconWrapper: {
     width: 20,
     height: 20,
     display: "flex",
@@ -82,13 +86,23 @@ const STYLES = {
     justifyContent: "center",
     flexShrink: 0,
   },
-  categoryHeader: { // Updated for left alignment and 10px top margin
+  categoryHeader: {
     paddingTop: 10,
     paddingBottom: 0,
-    paddingLeft: 12, // Matches top-level category padding
-    color: "#4d5156ff", // Darker gray
+    paddingLeft: 12,
+    color: "#4d5156ff",
     fontWeight: 600,
-    margin: "50px 8px 0 8px", // 10px margin top, matching category margin on sides
+    margin: "50px 8px 0 8px",
+    fontFamily: "'Roboto', sans-serif"
+  },
+  labelText: {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: 1,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "100%",
+    fontFamily: "'Roboto', sans-serif"
   },
 };
 
@@ -102,7 +116,7 @@ function getRowStyle({ isActive, level, isShaded, isHovered, colors }) {
     gap: 8,
     padding: "10px 12px",
     paddingLeft: 12 + level * 16,
-    margin: "0 8px", // Prevent touching sidebar borders
+    margin: "0 8px",
     cursor: "pointer",
     background: "transparent",
     color: "#111827",
@@ -110,11 +124,11 @@ function getRowStyle({ isActive, level, isShaded, isHovered, colors }) {
     borderBottom: `1px solid ${colors.rowBorder}`,
     userSelect: "none",
     transition: "background 0.15s",
-    borderRadius: isActive || isHovered ? 6 : 0, // Rounded corners for hover/active
+    borderRadius: isActive || isHovered ? 6 : 0,
   };
   if (isActive) {
     s.background = colors.blue;
-    s.color = "#111827"; // Keep text black for active state
+    s.color = "#111827";
     s.fontWeight = 600;
   } else if (isShaded) {
     s.background = colors.groupBg;
@@ -174,6 +188,7 @@ function Row({
   const arrowIcon = !icon ? (isParent ? mainArrow : subArrow) : null;
   const isSystemCategory =
     id === "inbox" || id === "today" || id === "graphs" || id === "search" || id === "done";
+  const [arrowHovered, setArrowHovered] = useState(false);
 
   return (
     <div
@@ -189,12 +204,16 @@ function Row({
           </div>
         )}
         {arrowIcon && (
-          <div style={STYLES.iconWrapper}>
+          <div
+            style={STYLES.iconWrapper}
+            onMouseEnter={() => setArrowHovered(true)}
+            onMouseLeave={() => setArrowHovered(false)}
+          >
             <img
               src={arrowIcon}
               alt="arrow"
               onClick={(e) => {
-                if (isParent && level === 0) {
+                if (isParent) {
                   e.stopPropagation();
                   onToggle?.();
                 }
@@ -202,15 +221,15 @@ function Row({
               style={{
                 width: 14,
                 height: 14,
-                cursor: isParent && level === 0 ? "pointer" : "default",
-                transform: isParent && level === 0 && collapsed ? "rotate(-90deg)" : "rotate(0deg)",
-                transition: "transform 0.2s",
-                filter: "none", // No invert filter since text is black
+                cursor: isParent ? "pointer" : "default",
+                transform: isParent && collapsed ? "rotate(-90deg) scale(1)" : `rotate(0deg) ${arrowHovered ? "scale(1.2)" : "scale(1)"}`,
+                transition: "transform 0.2s ease, filter 0.2s ease",
+                filter: arrowHovered ? "brightness(1.2)" : "none",
               }}
             />
           </div>
         )}
-        {customContent || label}
+        <span style={STYLES.labelText}>{customContent || label}</span>
       </span>
 
       {!isSystemCategory && (showActions || isActive) && (
@@ -347,10 +366,26 @@ export function SideBar({
     if (selectedCategory === id) onCategorySelect("inbox");
   }
 
-  const parentChoices = useMemo(
-    () => categories.filter((c) => (mode === "edit" ? c.id !== editingId : true)),
-    [categories, mode, editingId]
-  );
+  // Updated parentChoices to exclude "inbox" and descendants
+  const parentChoices = useMemo(() => {
+    const descendants = new Set();
+    if (mode === "edit" && editingId) {
+      function collectDescendants(id) {
+        const children = childrenByParent.get(id) || [];
+        children.forEach((child) => {
+          descendants.add(child.id);
+          collectDescendants(child.id);
+        });
+      }
+      collectDescendants(editingId);
+    }
+    return categories.filter(
+      (c) =>
+        c.id !== "inbox" && // Exclude inbox
+        (mode !== "edit" || c.id !== editingId) && // Exclude self when editing
+        !descendants.has(c.id) // Exclude descendants to prevent loops
+    );
+  }, [categories, mode, editingId, childrenByParent]);
 
   function renderTree(parent, level = 0) {
     const items = (childrenByParent.get(parent ?? null) || []).filter(
@@ -361,6 +396,7 @@ export function SideBar({
       const showActions = hoverId === cat.id;
       const isParent = (childrenByParent.get(cat.id) || []).length > 0;
       const collapsed = collapsedIds.has(cat.id);
+      const categoryIconToUse = !cat.parentId && !isParent ? categoryIcon : null;
 
       return (
         <div key={cat.id}>
@@ -379,6 +415,7 @@ export function SideBar({
               showActions={showActions}
               isParent={isParent}
               collapsed={collapsed}
+              icon={categoryIconToUse}
               onClick={() => onCategorySelect(cat.id)}
               onToggle={() => toggleCollapse(cat.id)}
               onEdit={() => openEdit(cat)}
@@ -397,11 +434,11 @@ export function SideBar({
 
   // Define colors before return
   const COLORS = {
-    blue: "#60a5fa", // Softer, lighter blue
-    blueText: "#ffffff", // Kept for modal Save button
-    rowHover: "#d1d5db", // Darker than bg (#e8ecef)
+    blue: "#60a5fa",
+    blueText: "#ffffff",
+    rowHover: "#d1d5db",
     rowBorder: "#e5e7eb",
-    bg: "#e8ecef", // Lighter background, not white
+    bg: "#e8ecef",
     sidebarBorder: "#e5e7eb",
     actionBg: "#f3f4f6",
     actionHover: "#e5e7eb",
@@ -411,13 +448,11 @@ export function SideBar({
 
   return (
     <div style={{ ...STYLES.sidebar, background: COLORS.bg, borderRightColor: COLORS.sidebarBorder }}>
-      {/* Logo */}
       <div style={{ ...STYLES.logoWrap, borderBottomColor: COLORS.sidebarBorder }}>
         <img src={logo} alt="logo" width={128} height={85} />
       </div>
 
       <div style={STYLES.list}>
-        {/* Search row */}
         <Row
           id="search"
           icon={searchIcon}
@@ -449,7 +484,6 @@ export function SideBar({
           colors={COLORS}
         />
 
-        {/* Inbox */}
         <DroppableRow categoryId="inbox" isEnabled={droppableCategoryIds.has("inbox")}>
           <Row
             id="inbox"
@@ -466,7 +500,6 @@ export function SideBar({
           />
         </DroppableRow>
 
-        {/* Today */}
         <DroppableRow categoryId="today" isEnabled={droppableCategoryIds.has("today")}>
           <Row
             id="today"
@@ -483,7 +516,6 @@ export function SideBar({
           />
         </DroppableRow>
 
-        {/* Graphs */}
         <DroppableRow categoryId="graphs" isEnabled={droppableCategoryIds.has("graphs")}>
           <Row
             id="graphs"
@@ -499,7 +531,6 @@ export function SideBar({
           />
         </DroppableRow>
 
-        {/* Done */}
         <Row
           id="done"
           label="Done"
@@ -514,10 +545,8 @@ export function SideBar({
           colors={COLORS}
         />
 
-        {/* My Categories header */}
         <div style={STYLES.categoryHeader}>My Categories</div>
 
-        {/* Other categories */}
         {renderTree(null, 0)}
 
         <button
