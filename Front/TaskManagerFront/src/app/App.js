@@ -1,5 +1,5 @@
 import "./styles/App.css";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "antd";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
@@ -28,53 +28,89 @@ export default function App() {
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [activeTaskId, setActiveTaskId] = useState(null);
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
-  const [tasks, setTasks] = useState([]);
-  const [rawJson, setRawJson] = useState(null);
-  const [fetchError, setFetchError] = useState(null);
+
+  const [tasks, setTasks] = useState([
+    {
+      id: "1",
+      title: "First task",
+      description: "Short description for the first task.",
+      priority: "Medium",
+      deadline: null,
+      categoryId: "inbox",
+      completed: false,
+      parentIds: [],
+      graphNode: { id: "First task", x: 100, y: 100 },
+    },
+    {
+      id: "2",
+      title: "Second task",
+      description: "Depends on First task, has a deadline.",
+      priority: "High",
+      deadline: "2025-09-17",
+      categoryId: "inbox",
+      completed: false,
+      parentIds: ["1"],
+      graphNode: { id: "Second task", x: 200, y: 200 },
+    },
+    {
+      id: "3",
+      title: "Review PR",
+      description: "Review code after First task is done.",
+      priority: "High",
+      deadline: "2025-09-17",
+      categoryId: "personal",
+      completed: false,
+      parentIds: ["1"],
+      graphNode: { id: "Review PR", x: 300, y: 300 },
+    },
+    {
+      id: "4",
+      title: "Refactor UI",
+      description: "Longer description to demonstrate trimming.",
+      priority: "Low",
+      deadline: null,
+      categoryId: "personal",
+      completed: false,
+      parentIds: [],
+      graphNode: { id: "Refactor UI", x: 400, y: 400 },
+    },
+    {
+      id: "5",
+      title: "Refactor UI",
+      description: "Longer description to demonstrate trimming.",
+      priority: "Low",
+      deadline: null,
+      categoryId: "inbox",
+      completed: false,
+      parentIds: [],
+      graphNode: { id: "Refactor UI", x: 400, y: 400 },
+    },
+    {
+      id: "6",
+      title: "Refactor UI",
+      description: "Longer description to demonstrate trimming.",
+      priority: "Low",
+      deadline: null,
+      categoryId: "inbox",
+      completed: false,
+      parentIds: [],
+      graphNode: { id: "Refactor UI", x: 400, y: 400 },
+    },
+    {
+      id: "7",
+      title: "Refactor UI",
+      description: "Longer description to demonstrate trimming.",
+      priority: "Low",
+      deadline: null,
+      categoryId: "inbox",
+      completed: false,
+      parentIds: [],
+      graphNode: { id: "Refactor UI", x: 400, y: 400 },
+    },
+  ]);
 
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const [searchText, setSearchText] = useState("");
-
-  // Fetch tasks from backend on mount
-  useEffect(() => {
-    if (!user || loading) return;
-
-    const fetchTasks = async () => {
-      try {
-        const response = await fetch('http://localhost:5053/api/tasks', {
-          headers: {
-            // Remove or adjust based on your backend's auth requirements
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log("Raw JSON response:", data); // Log raw JSON to console
-        setRawJson(data); // Store raw JSON for display
-        // Map backend response to frontend task structure
-        const mappedTasks = data.map((task) => ({
-          id: task.id,
-          title: task.title,
-          description: task.description || "",
-          priority: task.priority || "Medium",
-          deadline: task.deadline ? task.deadline.split("T")[0] : null,
-          categoryId: categories.some(cat => cat.id === task.categoryId) ? task.categoryId : "inbox",
-          completed: task.isCompleted || false,
-          parentIds: [], // Adjust if backend provides parent-child relationships
-          graphNode: { id: task.title, x: 100, y: 100 }, // Default position
-        }));
-        setTasks(mappedTasks);
-      } catch (error) {
-        console.error("Failed to fetch tasks:", error);
-        setFetchError(error.message);
-        setRawJson([]); // Set empty array to avoid breaking the UI
-      }
-    };
-
-    fetchTasks();
-  }, [user, loading, categories]);
 
   const droppableCategoryIds = new Set(categories.map((c) => c.id));
   droppableCategoryIds.add("today");
@@ -153,21 +189,6 @@ export default function App() {
   return (
     <div className="App">
       <div className="AppBody">
-        {/* Display raw JSON response */}
-        <div style={{ padding: "20px", background: "#f0f0f0", marginBottom: "20px" }}>
-          <h3>Raw JSON Response from Backend</h3>
-          {fetchError ? (
-            <p style={{ color: "red" }}>Error: {fetchError}</p>
-          ) : rawJson === null ? (
-            <p>Loading JSON...</p>
-          ) : (
-            <pre style={{ background: "#fff", padding: "10px", borderRadius: "4px", overflowX: "auto" }}>
-              {JSON.stringify(rawJson, null, 2)}
-            </pre>
-          )}
-        </div>
-
-        {/* Rest of the page */}
         <div style={{ position: "absolute", top: 10, right: 30, display: "flex", alignItems: "center", gap: "16px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <img src={aiIcon} alt="AI Icon" style={{ width: "24px", height: "24px" }} />
@@ -210,11 +231,7 @@ export default function App() {
           <div className="MainPanel">
             {selectedCategory !== "graphs" ? (
               <div className="MainScroll" style={{ paddingTop: "11vh" }}>
-                <Welcome
-                  user={user}
-                  selectedCategory={selectedCategory}
-                  categories={categories}
-                />
+                <Welcome user={user} selectedCategory={selectedCategory} categories={categories} />
                 <Tasks
                   filteredTasks={filteredTasks}
                   allTasks={tasks}
