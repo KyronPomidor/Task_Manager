@@ -7,6 +7,6 @@ namespace Task_Manager_Back.Domain.IRepositories;
 
 public interface IRelationTypeRepository
 {
-    TaskEntity? GetById(Guid id);
+    Task<TaskEntity?> GetByIdAsync(Guid id);
     void Add(TaskRelation taskCustomRelation);
 }

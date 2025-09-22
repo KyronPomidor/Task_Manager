@@ -1,17 +1,24 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Task_Manager_Back.Application.IRepositories;
 using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
+using Task_Manager_Back.Domain.DomainServices.TaskServices;
+using Task_Manager_Back.Domain.Entities.TaskRelated;
+using Task_Manager_Back.Domain.IRepositories;
 
 namespace Task_Manager_Back.Application.UseCases.TaskUseCases;
 
+// Use case for updating a task with various optional parameters.
+// This class demonstrates how to apply multiple updates to a task entity
+// All in one place, if needed (I think that will be preferate Frontend use case)
 public class UpdateTaskUseCase
 {
     private readonly ITaskRepository _taskRepository;
+    private readonly TaskDomainService _taskDomainService;
 
-    public UpdateTaskUseCase(ITaskRepository taskRepository)
+    public UpdateTaskUseCase(ITaskRepository taskRepository, TaskDomainService taskDomainService)
     {
         _taskRepository = taskRepository;
+        _taskDomainService = taskDomainService;
     }
 
     public async Task ExecuteAsync
@@ -47,10 +54,10 @@ public class UpdateTaskUseCase
             task.ChangeDeadline(newDeadline);
 
         if (isCompleted == true)
-            task.MarkCompleted();
+            _taskDomainService.MarkCompleted(task);
 
         if (isFailed == true)
-            task.MarkFailed();
+            _taskDomainService.MarkFailed(task);
 
         await _taskRepository.UpdateAsync(task);
     }

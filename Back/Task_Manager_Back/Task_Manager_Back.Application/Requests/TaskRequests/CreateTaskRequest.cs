@@ -5,12 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Task_Manager_Back.Application.Requests.TaskRequests;
-public record CreateTaskRequest
-    (
+public record CreateTaskRequest(
     Guid UserId,
     string Title,
     string? Description,
-    Guid StatusId,
+    string Color,
+    Guid? StatusId,
+    Guid? PriorityId,
     Guid CategoryId,
-    DateTime? Deadline
-    );
+    DateTime? Deadline,
+    List<Guid> LabelIds,
+    int OrderPosion
+); // no mediatR here. Just a simple DTO

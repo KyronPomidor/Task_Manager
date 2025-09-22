@@ -4,6 +4,7 @@ using Task_Manager_Back.Domain.IRepositories;
 
 namespace Task_Manager_Back.Domain.Entities.TaskRelated;
 
+//TODO: add params back
 public class TaskEntity
 {
     public Guid Id { get; private set; }
@@ -14,8 +15,8 @@ public class TaskEntity
 
     public bool IsCompleted { get; private set; }
     public bool IsFailed { get; private set; }
-    public Guid PriorityId { get; private set; }
-    public Guid StatusId { get; private set; }
+    public Guid? PriorityId { get; private set; }
+    public Guid? StatusId { get; private set; }
     public Guid CategoryId { get; private set; }
 
     // Labels
@@ -47,8 +48,8 @@ public class TaskEntity
         string title,
         string? description,
         string color,
-        Guid priorityId,
-        Guid statusId,
+        Guid? priorityId,
+        Guid? statusId,
         Guid categoryId,
         DateTime? deadline,
         IEnumerable<Guid>? labels = null,
@@ -264,8 +265,22 @@ public class TaskEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void Delete()
+    {
+        // Here you can add logic to handle cascading deletes if needed
+        // For example, clear reminders, attachments, dependencies, etc.
+        // _reminders.Clear();
+        // _attachments.Clear();
+        // _dependencies.Clear();
+        // _customRelations.Clear();
+        // _labelIds.Clear();
 
-// to lazy to read this, but I hope it will work
+        //commented for now as have no idea how to handle it properly
+
+        // Note: Actual deletion from the database should be handled in the repository layer
+    }
+
+    // to lazy to read this, but I hope it will work
     public static TaskEntity LoadFromPersistence(Guid id, Guid userId, string title, string? description, string color,
         bool isCompleted, bool isFailed, Guid priorityId, Guid statusId, Guid categoryId,
         DateTime? createdAt, DateTime? updatedAt, DateTime? deadline,
