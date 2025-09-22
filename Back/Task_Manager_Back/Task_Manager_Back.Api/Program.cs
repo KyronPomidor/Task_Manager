@@ -6,6 +6,13 @@ using Task_Manager_Back.Domain.IRepositories;
 using Task_Manager_Back.Infrastructure.Repositories;
 using Task_Manager_Back.Infrastructure.DbContext;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Identity;
+using Task_Manager_Back.Infrastructure.DatabaseEntities;
+using Task_Manager_Back.Application.IServices;
+using Task_Manager_Back.Infrastructure.Services.Auth;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +45,48 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // builder.Services.AddIdentity<IdentityUser, IdentityRole>()
 //     .AddEntityFrameworkStores<AppDbContext>()
 //     .AddDefaultTokenProviders();
+
+// Add Identity + JWT
+builder.Services.AddScoped<IJwtTokenService, CustomJwtTokenService>();
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+})
+    .AddEntityFrameworkStores<AppDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAuthenticatedUser", policy =>
+        policy.RequireAuthenticatedUser());
+});
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(jwtOptions =>
+{
+    jwtOptions.Authority = builder.Configuration["Jwt:Authority"];
+    jwtOptions.Audience = builder.Configuration["Jwt:Audience"];
+    jwtOptions.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]
+            ?? throw new Exception("Missing jwt key config.")))
+
+    };
+
+    jwtOptions.MapInboundClaims = false;
+});
 
 // Add MediatR 
 builder.Services.AddMediatR(cfg =>

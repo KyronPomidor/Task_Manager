@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Task_Manager_Back.Domain\Task_Manager_Back.Domain.csproj" />
+    <ProjectReference Include="..\Task_Manager_Back.Application\Task_Manager_Back.Application.csproj" />
   </ItemGroup>
 
 </Project>

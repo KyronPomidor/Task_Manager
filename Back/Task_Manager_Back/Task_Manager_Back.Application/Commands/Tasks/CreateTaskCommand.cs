@@ -8,12 +8,12 @@ public record CreateTaskCommand
     Guid UserId,
     string Title,
     string? Description,
-    string Color,
-    Guid? StatusId,
-    Guid? PriorityId,
+    string Color,  //TODO: do it optional
     Guid CategoryId,
-    DateTime? Deadline,
-    System.Collections.Generic.List<Guid> LabelIds,
-    int OrderPosion
+    Guid? StatusId = null,
+    Guid? PriorityId = null,
+    DateTime? Deadline = null,
+    List<Guid>? LabelIds = null,
+    int OrderPosition = 0
 
 ) : IRequest<Guid>;

@@ -9,11 +9,11 @@ public record CreateTaskRequest(
     Guid UserId,
     string Title,
     string? Description,
-    string Color,
-    Guid? StatusId,
+    string Color, //TODO: do it optional
     Guid? PriorityId,
+    Guid? StatusId,
     Guid CategoryId,
     DateTime? Deadline,
-    List<Guid> LabelIds,
-    int OrderPosion
-); // no mediatR here. Just a simple DTO
+    IEnumerable<Guid>? LabelIds,
+    int OrderPosition
+); // no mediatR here, it's just a data structure

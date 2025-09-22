@@ -20,18 +20,21 @@ public class CreateTaskUseCase
     public async Task<Guid> ExecuteAsync(CreateTaskRequest request)
     {
         // later use not the constructor but a factory method in the Domain service. It will handle the order position and other business logic
-        var task = new TaskEntity(
-            request.UserId,
-            request.Title,
-            request.Description,
-            request.Color,
-            request.PriorityId,
-            request.StatusId,
-            request.CategoryId,
-            request.Deadline,
-            request.LabelIds,
-            request.OrderPosion
+        //TO CHECK: do I passed all params needed?
+        var createParams = new TaskEntityCreateParams(
+            userId: request.UserId,
+            title: request.Title,
+            description: request.Description,
+            color: request.Color, //TODO: validate in domain service, do it optional, generate random color if not provided
+            priorityId: request.PriorityId,
+            statusId: request.StatusId,
+            categoryId: request.CategoryId,
+            deadline: request.Deadline,
+            labels: request.LabelIds,
+            order: request.OrderPosition
         );
+
+        var task = new TaskEntity(createParams);
 
 
         await _taskRepository.CreateAsync(task);
