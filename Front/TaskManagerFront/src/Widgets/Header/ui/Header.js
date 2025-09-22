@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 
 function StatusFilter({ onChange }) {
   const [status, setStatus] = useState("All");
-  
+
   const handleChange = (e) => {
     setStatus(e.target.value);
     onChange?.(e.target.value);
   };
-  
+
   return (
     <div>
       <label htmlFor="status" style={{ marginRight: "8px" }}>
@@ -24,7 +24,7 @@ function StatusFilter({ onChange }) {
           backgroundColor: "white",
           cursor: "pointer",
         }}
-        >
+      >
         <option value="All">All</option>
         <option value="Completed">Completed</option>
         <option value="Not Started">Not Started</option>
@@ -37,7 +37,7 @@ function StatusFilter({ onChange }) {
 function DateRangeHeader() {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
-  
+
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
       <span style={{ fontWeight: 600 }}>Deadline:</span>
@@ -53,7 +53,7 @@ function DateRangeHeader() {
           cursor: "pointer",
         }}
         placeholder="From"
-        />
+      />
 
       <input
         type="date"
@@ -66,19 +66,19 @@ function DateRangeHeader() {
           cursor: "pointer",
         }}
         placeholder="To"
-        />
+      />
     </div>
   );
 }
 
 function PriorityFilter({ onChange }) {
   const [priority, setPriority] = useState("All");
-  
+
   const handleChange = (e) => {
     setPriority(e.target.value);
     onChange?.(e.target.value);
   };
-  
+
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <label htmlFor="priority" style={{ fontWeight: 600 }}>
@@ -95,7 +95,7 @@ function PriorityFilter({ onChange }) {
           backgroundColor: "white",
           cursor: "pointer",
         }}
-        >
+      >
         <option value="All">All</option>
         <option value="Low">Low</option>
         <option value="Medium">Medium</option>
@@ -108,12 +108,12 @@ function PriorityFilter({ onChange }) {
 
 function SortFilter({ onChange }) {
   const [sort, setSort] = useState("Creation Date (Newest)");
-  
+
   const handleChange = (e) => {
     setSort(e.target.value);
     onChange?.(e.target.value);
   };
-  
+
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <label htmlFor="sort" style={{ fontWeight: 600 }}>
@@ -131,7 +131,7 @@ function SortFilter({ onChange }) {
           cursor: "pointer",
           minWidth: "200px",
         }}
-        >
+      >
         <option value="Creation Date (Newest)">Creation Date (Newest)</option>
         <option value="Creation Date (Oldest)">Creation Date (Oldest)</option>
         <option value="Deadline (Soonest)">Deadline (Soonest)</option>
@@ -347,41 +347,41 @@ function UserProfile() {
 }
 
 
-function DollarButton() {
-  const [hover, setHover] = useState(false);
-  const [active, setActive] = useState(false);
-  
-  const dollarButton = (hover, active) => ({
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "44px",
-    height: "44px",
-    borderRadius: "10px",
-    border: "none",
-    background: active ? "#d1d5db" : hover ? "#e5e7eb" : "white", // darker on hover/active
-    cursor: "pointer",
-    marginLeft: "4.8vw",
-    fontSize: "30px",
-    fontWeight: "bold",
-    transition: "background 0.2s",
-  });
-  
-  return (
-    <button
-    style={dollarButton(hover, active)}
-    onMouseEnter={() => setHover(true)}
-    onMouseLeave={() => {
-      setHover(false);
-      setActive(false);
-    }}
-    onMouseDown={() => setActive(true)}
-    onMouseUp={() => setActive(false)}
-    >
-      $
-    </button>
-  );
-}
+// function DollarButton() {
+//   const [hover, setHover] = useState(false);
+//   const [active, setActive] = useState(false);
+
+//   const dollarButton = (hover, active) => ({
+//     display: "inline-flex",
+//     alignItems: "center",
+//     justifyContent: "center",
+//     width: "44px",
+//     height: "44px",
+//     borderRadius: "10px",
+//     border: "none",
+//     background: active ? "#d1d5db" : hover ? "#e5e7eb" : "white",
+//     cursor: "pointer",
+//     marginLeft: "4.8vw",
+//     fontSize: "30px",
+//     fontWeight: "bold",
+//     transition: "background 0.2s",
+//   });
+
+//   return (
+//     <button
+//       style={dollarButton(hover, active)}
+//       onMouseEnter={() => setHover(true)}
+//       onMouseLeave={() => {
+//         setHover(false);
+//         setActive(false);
+//       }}
+//       onMouseDown={() => setActive(true)}
+//       onMouseUp={() => setActive(false)}
+//     >
+//       $
+//     </button>
+//   );
+// }
 
 export function Header() {
   // Локальное состояние (только в памяти)
@@ -411,10 +411,9 @@ export function Header() {
 
 
   return (
-    <div style={{ display:"flex", padding: "1vw", backgroundColor:"white", borderBottom: "1px solid #ccc" }}>
-      <DollarButton />
-      <div style={{ marginLeft:"8vw", display:"flex", justifyContent: "space-between", width: "100%" }}>
-        <div style={{display: "flex", gap:"1vw"}}>
+    <div style={{ display: "flex", padding: "1vw", backgroundColor: "white", borderBottom: "1px solid #ccc" }}>
+      <div style={{ marginLeft: "8vw", display: "flex", justifyContent: "space-between", width: "100%" }}>
+        <div style={{ display: "flex", gap: "1vw" }}>
           <StatusFilter onChange={(value) => console.log("Selected:", value)} />
           <DateRangeHeader />
           <PriorityFilter onChange={(value) => console.log("Priority:", value)} />
@@ -422,7 +421,7 @@ export function Header() {
         </div>
         <UserProfile />
       </div>
-      
+
     </div>
   );
 }
