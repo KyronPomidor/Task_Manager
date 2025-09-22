@@ -17,7 +17,7 @@ public class CreateTaskUseCase
         _taskRepository = taskRepository;
     }
 
-    public async Task ExecuteAsync(CreateTaskRequest request)
+    public async Task<Guid> ExecuteAsync(CreateTaskRequest request)
     {
         // later use not the constructor but a factory method in the Domain service. It will handle the order position and other business logic
         var task = new TaskEntity(
@@ -35,5 +35,7 @@ public class CreateTaskUseCase
 
 
         await _taskRepository.CreateAsync(task);
+
+        return task.Id;
     }
 }

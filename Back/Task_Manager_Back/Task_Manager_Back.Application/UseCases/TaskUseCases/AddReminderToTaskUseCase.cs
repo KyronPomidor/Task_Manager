@@ -8,6 +8,7 @@ using Task_Manager_Back.Application.Requests.TaskRequests;
 using Task_Manager_Back.Domain.Aggregates.TaskAggregate;
 using Task_Manager_Back.Domain.Entities.TaskEntity;
 using Task_Manager_Back.Domain.Entities.TaskRelated;
+using Task_Manager_Back.Domain.IRepositories;
 
 // simple addition of reminders. The generative reminders aka each day, each week, each month, each year, etc. are not supported yet.
 // It will be in application service layer. This is just a simple addition of a reminder to a task. User manually will add reminder.
