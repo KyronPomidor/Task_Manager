@@ -43,30 +43,20 @@ public class TaskEntity
     // For UI ordering among siblings
     public int PositionOrder { get; private set; } // handle in service layer to avoid conflicts
 
-    public TaskEntity(
-        Guid userId,
-        string title,
-        string? description,
-        string color,
-        Guid? priorityId,
-        Guid? statusId,
-        Guid categoryId,
-        DateTime? deadline,
-        IEnumerable<Guid>? labels = null,
-        int order = 0)
+    public TaskEntity(TaskEntityCreateParams @params)
     {
         Id = Guid.NewGuid();
-        UserId = userId;
-        Title = !string.IsNullOrWhiteSpace(title)
-            ? title
-            : throw new ArgumentNullException(nameof(title));
-        Description = description;
+        UserId = @params.userId;
+        Title = !string.IsNullOrWhiteSpace(@params.title)
+            ? @params.title
+            : throw new ArgumentNullException(nameof(@params.title));
+        Description = @params.description;
 
-        PriorityId = priorityId;
-        StatusId = statusId;
-        CategoryId = categoryId;
+        PriorityId = @params.priorityId;
+        StatusId = @params.statusId;
+        CategoryId = @params.categoryId;
 
-        Deadline = deadline;
+        Deadline = @params.deadline;
         CreatedAt = DateTime.UtcNow;
         UpdatedAt = null;
 
@@ -75,13 +65,14 @@ public class TaskEntity
         IsCompleted = false;
         IsFailed = false;
 
-        if (labels != null)
-            _labelIds = labels.ToList();
+        if (@params.labels != null)
+            _labelIds = @params.labels.ToList();
 
-        PositionOrder = order;
+        PositionOrder = @params.order;
         //ChangeColor(color); // why not to use already existing method?
         // uniquiness of color is enforced in service layer, if needed
-        Color = ValidationHelper.ValidateHexColor(color, nameof(color));
+        //TODO: handle in service layer to uniqyen colors
+        Color = ValidationHelper.ValidateHexColor(@params.color, nameof(@params.color));
         // was warning that color field is uninitialized, so I initialized it here
 
         // consider in future using existing methods in constructor, hehe
@@ -281,7 +272,69 @@ public class TaskEntity
     }
 
     // to lazy to read this, but I hope it will work
-    public static TaskEntity LoadFromPersistence(
+    private TaskEntity() { } // this is not for EFC as usual, but for LoadFromPersistence method, which is for EFC. 
+                             // I want to make it private, so nobody else can use it, only infrastructure layer.
+                             // I understand that this constructor is needed for the LoadFromPersistence method to work properly.
+    //Oh! It generates two warnings. So, TOASK. 
+
+    public static TaskEntity LoadFromPersistence(TaskEntityState state)
+    {
+        var task = new TaskEntity
+        {
+            Id = state.id,
+            UserId = state.userId,
+            Title = state.title,
+            Description = state.description,
+            Color = state.color,
+
+            IsCompleted = state.isCompleted,
+            IsFailed = state.isFailed,
+            PriorityId = state.priorityId,
+            StatusId = state.statusId,
+            CategoryId = state.categoryId,
+
+            CreatedAt = state.createdAt,
+            UpdatedAt = state.updatedAt,
+            Deadline = state.deadline,
+            CompletedAt = state.completedAt,
+            FailedAt = state.failedAt,
+
+            _labelIds = state.labels?.ToList() ?? new List<Guid>(),
+            PositionOrder = state.order
+        };
+
+        if (state.reminders != null)
+            task._reminders.AddRange(state.reminders);
+
+        if (state.attachments != null)
+            task._attachments.AddRange(state.attachments);
+
+        if (state.dependencies != null)
+            task._dependencies.AddRange(state.dependencies);
+
+        if (state.customRelations != null)
+            task._customRelations.AddRange(state.customRelations);
+
+        return task;
+    }
+
+
+}
+
+public record TaskEntityCreateParams(
+        Guid userId,
+        string title,
+        string? description,
+        string color,
+        Guid? priorityId,
+        Guid? statusId,
+        Guid categoryId,
+        DateTime? deadline,
+        IEnumerable<Guid>? labels = null,
+        int order = 0); // creation parameters. 
+        // I use this record to pass parameters to the constructor of TaskEntity to not mess up with their order and to make it more readable
+
+public record TaskEntityState(
         Guid id,
         Guid userId,
         string title,
@@ -289,8 +342,8 @@ public class TaskEntity
         string color,
         bool isCompleted,
         bool isFailed,
-        Guid priorityId,
-        Guid statusId,
+        Guid? priorityId,
+        Guid? statusId,
         Guid categoryId,
         DateTime? createdAt,
         DateTime? updatedAt,
@@ -302,38 +355,4 @@ public class TaskEntity
         IEnumerable<TaskAttachment>? attachments = null,
         IEnumerable<TaskDependencyRelation>? dependencies = null,
         IEnumerable<TaskCustomRelation>? customRelations = null,
-        int order = 0)
-    {
-        var task = new TaskEntity(userId, title, description, color, priorityId, statusId, categoryId, deadline, labels, order)
-        {
-            Id = id,
-            IsCompleted = isCompleted,
-            IsFailed = isFailed,
-            CreatedAt = createdAt,
-            UpdatedAt = updatedAt,
-            CompletedAt = completedAt,
-            FailedAt = failedAt
-        };
-
-        // Добавляем вложенные коллекции сразу
-        if (reminders != null)
-            foreach (var r in reminders)
-                task.AddReminder(r);
-
-        if (attachments != null)
-            foreach (var a in attachments)
-                task.AddAttachment(a);
-
-        if (dependencies != null)
-            foreach (var d in dependencies)
-                task.AddDependency(d);
-
-        if (customRelations != null)
-            foreach (var c in customRelations)
-                task.AddCustomRelation(c);
-
-        return task;
-    }
-
-}
-
+        int order = 0);
