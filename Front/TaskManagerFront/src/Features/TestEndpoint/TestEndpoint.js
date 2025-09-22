@@ -11,7 +11,7 @@ export const TestEndpoint = () => {
     setLoading(true);
     setError(null);
     try {
-        const response = await fetch('https://localhost:7167/api/tasks');
+      const response = await fetch('http://localhost:5053/api/tasks');
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const json = await response.json();
       setTasks(json);
@@ -27,7 +27,7 @@ export const TestEndpoint = () => {
     setLoading(true);
     setError(null);
     try {
-        const response = await fetch(`https://localhost:7167/api/tasks/${id}`);
+      const response = await fetch(`http://localhost:5053/api/tasks/${id}`);
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const json = await response.json();
       setSelectedTask(json);

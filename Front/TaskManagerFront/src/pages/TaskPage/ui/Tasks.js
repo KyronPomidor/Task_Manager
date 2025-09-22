@@ -161,7 +161,7 @@ export function Tasks({
   selectedCategory,
   categories,
   searchText,
-  setSelectedCategory = () => console.warn("setSelectedCategory is not provided"),
+  setSelectedCategory,
 }) {
   /* ---------- State ---------- */
   const [editOpen, setEditOpen] = useState(false);
@@ -913,14 +913,18 @@ export function Tasks({
             <Form.Item label="Title" required>
               <Input
                 value={editTask.title}
-                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                onChange={(e) =>
+                  setEditTask({ ...editTask, title: e.target.value })
+                }
               />
             </Form.Item>
 
             <Form.Item label="Description">
               <Input.TextArea
                 value={editTask.description}
-                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                onChange={(e) =>
+                  setEditTask({ ...editTask, description: e.target.value })
+                }
                 autoSize={{ minRows: 3, maxRows: 6 }}
               />
             </Form.Item>
@@ -940,7 +944,27 @@ export function Tasks({
               <DatePicker
                 style={{ width: "100%" }}
                 value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
+                onChange={(_, dateStr) =>
+                  setEditTask({ ...editTask, deadline: dateStr || null })
+                }
+              />
+            </Form.Item>
+
+            <Form.Item label="Deadline (time, optional)">
+              <TimePicker
+                style={{ width: "100%" }}
+                value={
+                  editTask.deadlineTime
+                    ? dayjs(editTask.deadlineTime, "HH:mm")
+                    : null
+                }
+                format="HH:mm"
+                onChange={(_, timeStr) =>
+                  setEditTask({
+                    ...editTask,
+                    deadlineTime: timeStr || null,
+                  })
+                }
               />
             </Form.Item>
 
@@ -1001,14 +1025,18 @@ export function Tasks({
             <Form.Item label="Title" required>
               <Input
                 value={editTask.title}
-                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                onChange={(e) =>
+                  setEditTask({ ...editTask, title: e.target.value })
+                }
               />
             </Form.Item>
 
             <Form.Item label="Description">
               <Input.TextArea
                 value={editTask.description}
-                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                onChange={(e) =>
+                  setEditTask({ ...editTask, description: e.target.value })
+                }
                 autoSize={{ minRows: 3, maxRows: 6 }}
               />
             </Form.Item>
@@ -1028,7 +1056,27 @@ export function Tasks({
               <DatePicker
                 style={{ width: "100%" }}
                 value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
+                onChange={(_, dateStr) =>
+                  setEditTask({ ...editTask, deadline: dateStr || null })
+                }
+              />
+            </Form.Item>
+
+            <Form.Item label="Deadline (time, optional)">
+              <TimePicker
+                style={{ width: "100%" }}
+                value={
+                  editTask.deadlineTime
+                    ? dayjs(editTask.deadlineTime, "HH:mm")
+                    : null
+                }
+                format="HH:mm"
+                onChange={(_, timeStr) =>
+                  setEditTask({
+                    ...editTask,
+                    deadlineTime: timeStr || null,
+                  })
+                }
               />
             </Form.Item>
 
