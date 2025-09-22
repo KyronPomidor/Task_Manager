@@ -161,7 +161,7 @@ export function Tasks({
   selectedCategory,
   categories,
   searchText,
-  setSelectedCategory = () => console.warn("setSelectedCategory is not provided"),
+  setSelectedCategory,
 }) {
   /* ---------- State ---------- */
   const [editOpen, setEditOpen] = useState(false);

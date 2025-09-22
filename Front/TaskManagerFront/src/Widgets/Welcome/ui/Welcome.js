@@ -51,7 +51,7 @@ export function Welcome({ user, selectedCategory, categories }) {
           <p
             style={{
               fontFamily: "'Roboto', sans-serif",
-              fontSize: "1.2rem", // Slightly smaller than header but still clear
+              fontSize: "1.5rem", // Slightly smaller than header but still clear
             }}
           >
             {day} {date} {month} {year} | {time}
