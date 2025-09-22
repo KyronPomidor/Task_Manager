@@ -1,4 +1,4 @@
-/* Styles for task cards */
+/* Tasks.css */
 .task-card {
   background-color: var(--card-bg, white);
   display: flex;
@@ -6,39 +6,34 @@
   justify-content: space-between;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   cursor: pointer;
-  width: 100%; /* Ensure consistent width */
+  width: 100%;
+  position: relative;
 }
 
-/* Styles for completed task cards */
 .task-card-done {
   background-color: #bebebe;
-  min-height: 30vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Hover effect for cards */
 .task-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* Task description styling */
 .task-desc {
   font-size: 14px;
   color: #555;
   margin-bottom: 8px;
 }
 
-/* Meta tags container */
 .task-meta {
   display: flex;
   gap: 8px;
 }
 
-/* Form field styling for modals */
 .form-field {
   display: flex;
   flex-direction: column;
@@ -46,7 +41,6 @@
   gap: 4px;
 }
 
-/* Input, textarea, and select styling */
 .form-field input,
 .form-field textarea,
 .form-field select {
@@ -56,37 +50,84 @@
   font-size: 14px;
 }
 
-/* Container for tasks */
 .tasks-container {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: 'Roboto', sans-serif
 }
 
-/* Add task button row */
 .composer {
   display: flex;
   gap: 10px;
   margin-bottom: 16px;
 }
 
-/* Task title styling */
-.task-card .title {
-  font-weight: 600;
+.board {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  height: 100%;
 }
 
-/* Completed task title styling */
+.stage-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.column-header {
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid #d9d9d9;
+  background: #f0f0f0;
+  color: #333;
+}
+
+.tasks-list {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 0 0 8px 8px;
+  min-height: 200px;
+}
+
+.task-item {
+  margin-bottom: 12px;
+}
+
+.task-item:last-child {
+  margin-bottom: 0;
+}
+
+.task-card .title {
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1; /* Limit to one line for title */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-family: 'Roboto', sans-serif
+}
+
 .task-card .title.done {
   text-decoration: line-through;
   opacity: 0.6;
 }
 
-/* Margin for tags */
 .task-card .ml-8 {
   position: relative;
   margin: 8px;
 }
 
 .task-card .deadline {
-  top: 89%; 
+  top: 89%;
 }
 
 .deadline-wrapper {
@@ -96,41 +137,41 @@
   display: flex;
   justify-content: flex-start;
 }
+
 .deadline {
   font-size: 13px;
+  font-family: 'Roboto', sans-serif
 }
 
-/* Task description with truncation */
 .task-card .desc {
   color: #555;
   display: -webkit-box;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   max-height: 60px;
+  font-family: 'Roboto', sans-serif
 }
 
-/* Hover effect for Ant Design cards */
 .task-card.ant-card-hoverable:hover {
   transform: translateY(-2px);
   transition: transform 0.15s ease;
 }
 
-/* Dragging state for cards */
 .task-card.dragging {
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3); /* Stronger shadow for prominence */
-  z-index: 9999; /* Ensure dragged card is above all others */
-  transform: scale(1.02); /* Slight scale for visual emphasis */
-  width: 100%; /* Maintain original width */
-  opacity: 0.95; /* Slight transparency to indicate dragging */
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+  z-index: 9999;
+  transform: scale(1.02);
+  width: 100%;
+  opacity: 0.95;
 }
 
-/* Styles for child tasks section */
 .children-tasks {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid #e0e0e0;
-  background-color: #f5faff; /* Light blue background */
+  background-color: #f5faff;
   border-radius: 4px;
   padding: 8px;
 }
@@ -139,7 +180,7 @@
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #2b6cb0; /* Blue header */
+  color: #2b6cb0;
 }
 
 .children-tasks ul {
@@ -152,19 +193,18 @@
   font-size: 13px;
   color: #2d3748;
   padding: 4px 0;
-  border-left: 2px solid #4299e1; /* Blue border */
+  border-left: 2px solid #4299e1;
   padding-left: 12px;
   margin-bottom: 4px;
-  background-color: #e6f0fa; /* Light blue item background */
+  background-color: #e6f0fa;
   border-radius: 3px;
 }
 
-/* Styles for parent tasks section */
 .parent-tasks {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid #e0e0e0;
-  background-color: #e6fffa; /* Light teal background */
+  background-color: #e6fffa;
   border-radius: 4px;
   padding: 8px;
 }
@@ -173,7 +213,7 @@
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #2c7a7b; /* Teal header */
+  color: #2c7a7b;
 }
 
 .parent-tasks ul {
@@ -186,14 +226,13 @@
   font-size: 13px;
   color: #2d3748;
   padding: 4px 0;
-  border-left: 2px solid #38b2ac; /* Teal border */
+  border-left: 2px solid #38b2ac;
   padding-left: 12px;
   margin-bottom: 4px;
-  background-color: #d0f7ec; /* Light teal item background */
+  background-color: #d0f7ec;
   border-radius: 3px;
 }
 
-/* Styles for task details in modal */
 .task-details {
   text-align: center;
   padding: 16px;
@@ -202,14 +241,28 @@
 .task-details h2 {
   font-size: 20px;
   margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Roboto', sans-serif
 }
 
 .task-details p {
   font-size: 14px;
   margin-bottom: 12px;
   color: #333;
+  font-family: 'Roboto', sans-serif
 }
 
 .task-details p strong {
   color: #1a202c;
+}
+
+.dependency-indicators {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
 }

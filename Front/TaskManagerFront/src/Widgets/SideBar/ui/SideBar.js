@@ -1,26 +1,15 @@
-// src/Widgets/SideBar.js
 import { useMemo, useState, useEffect } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import subArrow from "./subcategory_arrow.png";
 import mainArrow from "./main_arrow.png";
+import categoryIcon from "./category.png";
 import inboxIcon from "./inbox.png";
 import graphsIcon from "./graphs.png";
+import checkIcon from "./checked.png";
 import binIcon from "./bin.png";
-import todayIcon from "./calendar.png"; // make sure this file exists
-
-/* ========= Colors ========= */
-const COLORS = {
-  blue: "#1d4ed8",
-  blueText: "#ffffff",
-  rowHover: "#f3f4f6",
-  rowBorder: "#e5e7eb",
-  bg: "#d5d9e4ff",
-  sidebarBorder: "#e5e7eb",
-  actionBg: "#f3f4f6",
-  actionHover: "#e5e7eb",
-  gray: "#ececec",
-  groupBg: "#f6f7f9",
-};
+import todayIcon from "./calendar.png";
+import searchIcon from "./search.png";
+import logo from "./logo.png";
 
 /* ========= Styles ========= */
 const STYLES = {
@@ -30,18 +19,32 @@ const STYLES = {
     height: "100%",
     width: "15vw",
     minWidth: "220px",
-    background: COLORS.bg,
-    borderRight: `1px solid ${COLORS.sidebarBorder}`,
+    borderRight: "1px solid",
     boxSizing: "border-box",
+    fontFamily: "'Roboto', sans-serif"
+  },
+  logoWrap: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "12px 0",
+    borderBottom: "1px solid",
   },
   list: { flex: 1, overflowY: "auto", padding: "8px 0" },
+  inputInline: {
+    flex: 1,
+    border: "none",
+    outline: "none",
+    fontFamily: "'Roboto', sans-serif",
+    background: "transparent",
+    font: "inherit",
+  },
   actionWrap: { display: "flex", alignItems: "center", gap: 6 },
   actionBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    border: `1px solid ${COLORS.rowBorder}`,
-    background: COLORS.actionBg,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    border: "1px solid",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -53,34 +56,58 @@ const STYLES = {
     padding: "10px 12px",
     borderRadius: 8,
     border: "none",
-    background: COLORS.gray,
-    color: "#111",
     cursor: "pointer",
     fontWeight: 600,
+    fontFamily: "'Roboto', sans-serif"
   },
-  backdrop: { position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 999 },
+  backdrop: { position: "fixed", inset: 0, zIndex: 999 },
   dialog: {
     position: "fixed",
     top: "50%",
     left: "50%",
     transform: "translate(-50%, -50%)",
     width: "min(92vw, 420px)",
-    background: "#fff",
     borderRadius: 12,
     boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
     padding: 20,
     zIndex: 1000,
   },
   field: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 },
-  input: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit" },
-  select: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", background: "#fff" },
+  input: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", fontFamily: "'Roboto', sans-serif" },
+  select: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", background: "#fff", fontFamily: "'Roboto', sans-serif" },
   actions: { display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 },
   btnCancel: { padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", background: "#fafafa", cursor: "pointer" },
-  btnSave: { padding: "8px 12px", borderRadius: 8, border: "none", background: COLORS.blue, color: "#fff", cursor: "pointer", fontWeight: 600 },
+  btnSave: { padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600 },
+  iconWrapper: {
+    width: 20,
+    height: 20,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  categoryHeader: {
+    paddingTop: 10,
+    paddingBottom: 0,
+    paddingLeft: 12,
+    color: "#4d5156ff",
+    fontWeight: 600,
+    margin: "50px 8px 0 8px",
+    fontFamily: "'Roboto', sans-serif"
+  },
+  labelText: {
+    display: "-webkit-box",
+    WebkitBoxOrient: "vertical",
+    WebkitLineClamp: 1,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    maxWidth: "100%",
+    fontFamily: "'Roboto', sans-serif"
+  },
 };
 
 /* ========= Row styling ========= */
-function getRowStyle({ isActive, level, isShaded, isHovered }) {
+function getRowStyle({ isActive, level, isShaded, isHovered, colors }) {
   const s = {
     position: "relative",
     display: "flex",
@@ -89,44 +116,46 @@ function getRowStyle({ isActive, level, isShaded, isHovered }) {
     gap: 8,
     padding: "10px 12px",
     paddingLeft: 12 + level * 16,
+    margin: "0 8px",
     cursor: "pointer",
     background: "transparent",
     color: "#111827",
     fontWeight: 500,
-    borderBottom: `1px solid ${COLORS.rowBorder}`,
+    borderBottom: `1px solid ${colors.rowBorder}`,
     userSelect: "none",
     transition: "background 0.15s",
+    borderRadius: isActive || isHovered ? 6 : 0,
   };
   if (isActive) {
-    s.background = COLORS.blue;
-    s.color = COLORS.blueText;
+    s.background = colors.blue;
+    s.color = "#111827";
     s.fontWeight = 600;
   } else if (isShaded) {
-    s.background = COLORS.groupBg;
+    s.background = colors.groupBg;
   } else if (isHovered) {
-    s.background = COLORS.rowHover;
+    s.background = colors.rowHover;
   }
   return s;
 }
 
 /* ========= Small action buttons ========= */
-function Actions({ onEdit, onDelete }) {
+function Actions({ onEdit, onDelete, colors }) {
   return (
     <div style={STYLES.actionWrap} onClick={(e) => e.stopPropagation()}>
       <button
-        style={STYLES.actionBtn}
+        style={{ ...STYLES.actionBtn, borderColor: colors.rowBorder, background: colors.actionBg }}
         title="Edit"
-        onMouseEnter={(e) => (e.currentTarget.style.background = COLORS.actionHover)}
-        onMouseLeave={(e) => (e.currentTarget.style.background = COLORS.actionBg)}
+        onMouseEnter={(e) => (e.currentTarget.style.background = colors.actionHover)}
+        onMouseLeave={(e) => (e.currentTarget.style.background = colors.actionBg)}
         onClick={onEdit}
       >
         ✎
       </button>
       <button
-        style={STYLES.actionBtn}
+        style={{ ...STYLES.actionBtn, borderColor: colors.rowBorder, background: colors.actionBg }}
         title="Delete"
-        onMouseEnter={(e) => (e.currentTarget.style.background = COLORS.actionHover)}
-        onMouseLeave={(e) => (e.currentTarget.style.background = COLORS.actionBg)}
+        onMouseEnter={(e) => (e.currentTarget.style.background = colors.actionHover)}
+        onMouseLeave={(e) => (e.currentTarget.style.background = colors.actionBg)}
         onClick={onDelete}
       >
         <img src={binIcon} alt="delete" style={{ width: 14, height: 14 }} />
@@ -152,42 +181,65 @@ function Row({
   onMouseEnter,
   onMouseLeave,
   icon = null,
+  count = 0,
+  customContent = null,
+  colors,
 }) {
   const arrowIcon = !icon ? (isParent ? mainArrow : subArrow) : null;
+  const isSystemCategory =
+    id === "inbox" || id === "today" || id === "graphs" || id === "search" || id === "done";
+  const [arrowHovered, setArrowHovered] = useState(false);
 
   return (
     <div
-      style={getRowStyle({ isActive, level, isShaded, isHovered: !isActive && showActions })}
+      style={getRowStyle({ isActive, level, isShaded, isHovered: !isActive && showActions, colors })}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-        {icon && <img src={icon} alt="icon" style={{ width: 20, height: 20 }} />}
-        {arrowIcon && (
-          <img
-            src={arrowIcon}
-            alt="arrow"
-            onClick={(e) => {
-              if (isParent && level === 0) {
-                e.stopPropagation();
-                onToggle?.();
-              }
-            }}
-            style={{
-              width: 14,
-              height: 14,
-              cursor: isParent && level === 0 ? "pointer" : "default",
-              transform: isParent && level === 0 && collapsed ? "rotate(-90deg)" : "rotate(0deg)",
-              transition: "transform 0.2s",
-              filter: isActive ? "invert(1)" : "none",
-            }}
-          />
+      <span style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+        {icon && (
+          <div style={STYLES.iconWrapper}>
+            <img src={icon} alt="icon" style={{ width: 20, height: 20 }} />
+          </div>
         )}
-        {label}
+        {arrowIcon && (
+          <div
+            style={STYLES.iconWrapper}
+            onMouseEnter={() => setArrowHovered(true)}
+            onMouseLeave={() => setArrowHovered(false)}
+          >
+            <img
+              src={arrowIcon}
+              alt="arrow"
+              onClick={(e) => {
+                if (isParent) {
+                  e.stopPropagation();
+                  onToggle?.();
+                }
+              }}
+              style={{
+                width: 14,
+                height: 14,
+                cursor: isParent ? "pointer" : "default",
+                transform: isParent && collapsed ? "rotate(-90deg) scale(1)" : `rotate(0deg) ${arrowHovered ? "scale(1.2)" : "scale(1)"}`,
+                transition: "transform 0.2s ease, filter 0.2s ease",
+                filter: arrowHovered ? "brightness(1.2)" : "none",
+              }}
+            />
+          </div>
+        )}
+        <span style={STYLES.labelText}>{customContent || label}</span>
       </span>
-      {!icon && (showActions || isActive) && (
-        <Actions onEdit={onEdit} onDelete={onDelete} />
+
+      {!isSystemCategory && (showActions || isActive) && (
+        <Actions onEdit={onEdit} onDelete={onDelete} colors={colors} />
+      )}
+
+      {count > 0 && (
+        <span style={{ fontSize: "0.85rem", fontWeight: 600, opacity: 0.7, flexShrink: 0 }}>
+          {count}
+        </span>
       )}
     </div>
   );
@@ -206,9 +258,7 @@ function DroppableRow({ categoryId, children, isEnabled, onExpand }) {
     }
   }, [isOver, onExpand]);
 
-  const style = isOver
-    ? { outline: "2px dashed #2563eb", outlineOffset: -2, borderRadius: 6 }
-    : undefined;
+  const style = isOver ? { background: "#e0e7ff", borderRadius: 6, margin: "0 8px" } : { margin: "0 8px" };
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -225,9 +275,16 @@ export function SideBar({
   setCategories,
   droppableCategoryIds = new Set(),
   hoveredCategory = null,
+  tasks = [],
+  setTasks,
+  searchText,
+  setSearchText,
 }) {
   const [hoverId, setHoverId] = useState(null);
   const [collapsedIds, setCollapsedIds] = useState(new Set());
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState("add");
   const [editingId, setEditingId] = useState(null);
@@ -244,6 +301,17 @@ export function SideBar({
     return map;
   }, [categories]);
 
+  function getTaskCount(categoryId) {
+    if (categoryId === "today") {
+      const todayStr = new Date().toISOString().split("T")[0];
+      return tasks.filter((t) => t.deadline === todayStr && !t.completed).length;
+    }
+    if (categoryId === "done") {
+      return tasks.filter((t) => t.completed).length;
+    }
+    return tasks.filter((t) => t.categoryId === categoryId && !t.completed).length;
+  }
+
   function toggleCollapse(id) {
     setCollapsedIds((prev) => {
       const next = new Set(prev);
@@ -253,54 +321,12 @@ export function SideBar({
     });
   }
 
-  function renderTree(parent, level = 0) {
-    const items = (childrenByParent.get(parent ?? null) || []).filter(
-      (cat) => cat.id !== "inbox" && cat.id !== "graphs" && cat.id !== "today"
-    );
-    return items.map((cat) => {
-      const isActive = hoveredCategory === cat.id || selectedCategory === cat.id;
-      const showActions = hoverId === cat.id;
-      const isParent = (childrenByParent.get(cat.id) || []).length > 0;
-      const collapsed = collapsedIds.has(cat.id);
-
-      return (
-        <div key={cat.id}>
-          <DroppableRow
-            categoryId={cat.id}
-            isEnabled={droppableCategoryIds.has(cat.id)}
-            onExpand={() => {
-              if (collapsed) toggleCollapse(cat.id);
-            }}
-          >
-            <Row
-              id={cat.id}
-              label={cat.name}
-              level={level}
-              isActive={isActive}
-              showActions={showActions}
-              isParent={isParent}
-              collapsed={collapsed}
-              onClick={() => onCategorySelect(cat.id)}
-              onToggle={() => toggleCollapse(cat.id)}
-              onEdit={() => openEdit(cat)}
-              onDelete={() => removeCategory(cat.id)}
-              onMouseEnter={() => setHoverId(cat.id)}
-              onMouseLeave={() => setHoverId(null)}
-            />
-          </DroppableRow>
-          {!collapsed && renderTree(cat.id, level + 1)}
-        </div>
-      );
-    });
-  }
-
   function openAdd() {
     setMode("add");
     setEditingId(null);
     setName("");
     setParentId("");
     setIsModalOpen(true);
-    document.body.classList.add("no-scroll");
   }
 
   function openEdit(cat) {
@@ -309,12 +335,10 @@ export function SideBar({
     setName(cat.name);
     setParentId(cat.parentId || "");
     setIsModalOpen(true);
-    document.body.classList.add("no-scroll");
   }
 
   function closeModal() {
     setIsModalOpen(false);
-    document.body.classList.remove("no-scroll");
   }
 
   function saveCategory() {
@@ -337,19 +361,129 @@ export function SideBar({
   }
 
   function removeCategory(id) {
+    setTasks((prev) => prev.map((t) => (t.categoryId === id ? { ...t, categoryId: "inbox" } : t)));
     setCategories((prev) => prev.filter((c) => c.id !== id && c.parentId !== id));
     if (selectedCategory === id) onCategorySelect("inbox");
   }
 
-  const parentChoices = useMemo(
-    () => categories.filter((c) => (mode === "edit" ? c.id !== editingId : true)),
-    [categories, mode, editingId]
-  );
+  // Updated parentChoices to exclude "inbox" and descendants
+  const parentChoices = useMemo(() => {
+    const descendants = new Set();
+    if (mode === "edit" && editingId) {
+      function collectDescendants(id) {
+        const children = childrenByParent.get(id) || [];
+        children.forEach((child) => {
+          descendants.add(child.id);
+          collectDescendants(child.id);
+        });
+      }
+      collectDescendants(editingId);
+    }
+    return categories.filter(
+      (c) =>
+        c.id !== "inbox" && // Exclude inbox
+        (mode !== "edit" || c.id !== editingId) && // Exclude self when editing
+        !descendants.has(c.id) // Exclude descendants to prevent loops
+    );
+  }, [categories, mode, editingId, childrenByParent]);
+
+  function renderTree(parent, level = 0) {
+    const items = (childrenByParent.get(parent ?? null) || []).filter(
+      (cat) => cat.id !== "inbox" && cat.id !== "graphs" && cat.id !== "today" && cat.id !== "done"
+    );
+    return items.map((cat) => {
+      const isActive = hoveredCategory === cat.id || selectedCategory === cat.id;
+      const showActions = hoverId === cat.id;
+      const isParent = (childrenByParent.get(cat.id) || []).length > 0;
+      const collapsed = collapsedIds.has(cat.id);
+      const categoryIconToUse = !cat.parentId && !isParent ? categoryIcon : null;
+
+      return (
+        <div key={cat.id}>
+          <DroppableRow
+            categoryId={cat.id}
+            isEnabled={droppableCategoryIds.has(cat.id)}
+            onExpand={() => {
+              if (collapsed) toggleCollapse(cat.id);
+            }}
+          >
+            <Row
+              id={cat.id}
+              label={cat.name}
+              level={level}
+              isActive={isActive}
+              showActions={showActions}
+              isParent={isParent}
+              collapsed={collapsed}
+              icon={categoryIconToUse}
+              onClick={() => onCategorySelect(cat.id)}
+              onToggle={() => toggleCollapse(cat.id)}
+              onEdit={() => openEdit(cat)}
+              onDelete={() => removeCategory(cat.id)}
+              onMouseEnter={() => setHoverId(cat.id)}
+              onMouseLeave={() => setHoverId(null)}
+              count={getTaskCount(cat.id)}
+              colors={COLORS}
+            />
+          </DroppableRow>
+          {!collapsed && renderTree(cat.id, level + 1)}
+        </div>
+      );
+    });
+  }
+
+  // Define colors before return
+  const COLORS = {
+    blue: "#60a5fa",
+    blueText: "#ffffff",
+    rowHover: "#d1d5db",
+    rowBorder: "#e5e7eb",
+    bg: "#e8ecef",
+    sidebarBorder: "#e5e7eb",
+    actionBg: "#f3f4f6",
+    actionHover: "#e5e7eb",
+    gray: "#ececec",
+    groupBg: "#f6f7f9",
+  };
 
   return (
-    <div style={STYLES.sidebar}>
+    <div style={{ ...STYLES.sidebar, background: COLORS.bg, borderRightColor: COLORS.sidebarBorder }}>
+      <div style={{ ...STYLES.logoWrap, borderBottomColor: COLORS.sidebarBorder }}>
+        <img src={logo} alt="logo" width={128} height={85} />
+      </div>
+
       <div style={STYLES.list}>
-        {/* Inbox */}
+        <Row
+          id="search"
+          icon={searchIcon}
+          level={0}
+          isActive={hoveredCategory === "search" || selectedCategory === "search"}
+          showActions={hoverId === "search"}
+          onMouseEnter={() => setHoverId("search")}
+          onMouseLeave={() => setHoverId(null)}
+          onClick={() => {
+            if (!searchOpen) setSearchOpen(true);
+          }}
+          customContent={
+            searchOpen ? (
+              <input
+                autoFocus
+                type="text"
+                placeholder="Search tasks..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={STYLES.inputInline}
+                onBlur={() => {
+                  if (!searchText) setSearchOpen(false);
+                }}
+              />
+            ) : (
+              "Search"
+            )
+          }
+          colors={COLORS}
+        />
+
         <DroppableRow categoryId="inbox" isEnabled={droppableCategoryIds.has("inbox")}>
           <Row
             id="inbox"
@@ -357,11 +491,15 @@ export function SideBar({
             icon={inboxIcon}
             level={0}
             isActive={hoveredCategory === "inbox" || selectedCategory === "inbox"}
+            showActions={hoverId === "inbox"}
+            onMouseEnter={() => setHoverId("inbox")}
+            onMouseLeave={() => setHoverId(null)}
             onClick={() => onCategorySelect("inbox")}
+            count={getTaskCount("inbox")}
+            colors={COLORS}
           />
         </DroppableRow>
 
-        {/* Today */}
         <DroppableRow categoryId="today" isEnabled={droppableCategoryIds.has("today")}>
           <Row
             id="today"
@@ -369,11 +507,15 @@ export function SideBar({
             icon={todayIcon}
             level={0}
             isActive={hoveredCategory === "today" || selectedCategory === "today"}
+            showActions={hoverId === "today"}
+            onMouseEnter={() => setHoverId("today")}
+            onMouseLeave={() => setHoverId(null)}
             onClick={() => onCategorySelect("today")}
+            count={getTaskCount("today")}
+            colors={COLORS}
           />
         </DroppableRow>
 
-        {/* Graphs */}
         <DroppableRow categoryId="graphs" isEnabled={droppableCategoryIds.has("graphs")}>
           <Row
             id="graphs"
@@ -381,22 +523,46 @@ export function SideBar({
             icon={graphsIcon}
             level={0}
             isActive={hoveredCategory === "graphs" || selectedCategory === "graphs"}
+            showActions={hoverId === "graphs"}
+            onMouseEnter={() => setHoverId("graphs")}
+            onMouseLeave={() => setHoverId(null)}
             onClick={() => onCategorySelect("graphs")}
+            colors={COLORS}
           />
         </DroppableRow>
 
-        {/* Other categories */}
-        <div style={{ marginTop: 40 }}>{renderTree(null, 0)}</div>
+        <Row
+          id="done"
+          label="Done"
+          icon={checkIcon}
+          level={0}
+          isActive={hoveredCategory === "done" || selectedCategory === "done"}
+          showActions={hoverId === "done"}
+          onMouseEnter={() => setHoverId("done")}
+          onMouseLeave={() => setHoverId(null)}
+          onClick={() => onCategorySelect("done")}
+          count={getTaskCount("done")}
+          colors={COLORS}
+        />
 
-        <button onClick={openAdd} style={STYLES.addBtn}>
+        <div style={STYLES.categoryHeader}>My Categories</div>
+
+        {renderTree(null, 0)}
+
+        <button
+          onClick={openAdd}
+          style={{ ...STYLES.addBtn, background: "transparent", color: "#111827" }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = COLORS.rowHover)}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+        >
           + Add Category
         </button>
       </div>
 
       {isModalOpen && (
         <>
-          <div onClick={closeModal} style={STYLES.backdrop} />
-          <div role="dialog" aria-modal="true" style={STYLES.dialog}>
+          <div onClick={closeModal} style={{ ...STYLES.backdrop, background: "rgba(0,0,0,0.45)" }} />
+          <div role="dialog" aria-modal="true" style={{ ...STYLES.dialog, background: "#fff" }}>
             <h3>{mode === "edit" ? "Edit Category" : "Add Category"}</h3>
             <label style={STYLES.field}>
               <span>Category name *</span>
@@ -426,7 +592,10 @@ export function SideBar({
               <button onClick={closeModal} style={STYLES.btnCancel}>
                 Cancel
               </button>
-              <button onClick={saveCategory} style={STYLES.btnSave}>
+              <button
+                onClick={saveCategory}
+                style={{ ...STYLES.btnSave, background: COLORS.blue, color: COLORS.blueText }}
+              >
                 Save
               </button>
             </div>

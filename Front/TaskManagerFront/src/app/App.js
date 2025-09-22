@@ -1,5 +1,6 @@
 import "./styles/App.css";
 import { useState } from "react";
+import { Button } from "antd";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
 import { Welcome } from "../Widgets/Welcome";
@@ -8,7 +9,9 @@ import { arrayMove } from "@dnd-kit/sortable";
 import Authorization from "../pages/authorization";
 import useAuth from "../hooks/useAuth";
 import UserProfileMenu from "../Widgets/UserProfile";
-import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration"; 
+import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration";
+import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
+import aiIcon from "./ai.png";
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -17,13 +20,14 @@ export default function App() {
     { id: "inbox", name: "Inbox", parentId: null },
     { id: "work", name: "Work", parentId: null },
     { id: "personal", name: "Personal", parentId: null },
-    { id: "projA", name: "Project A", parentId: "work" },
-    { id: "projB", name: "Project B", parentId: "work" },
+    { id: "Project A", name: "Project A", parentId: "work" },
+    { id: "Project B", name: "Project B", parentId: "work" },
     { id: "fun", name: "Fun", parentId: "personal" },
   ]);
 
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [activeTaskId, setActiveTaskId] = useState(null);
+  const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
 
   const [tasks, setTasks] = useState([
     {
@@ -35,7 +39,7 @@ export default function App() {
       categoryId: "inbox",
       completed: false,
       parentIds: [],
-      graphNode: { id: "First task", x: 100, y: 100 }, // ✅ added
+      graphNode: { id: "First task", x: 100, y: 100 },
     },
     {
       id: "2",
@@ -46,7 +50,7 @@ export default function App() {
       categoryId: "inbox",
       completed: false,
       parentIds: ["1"],
-      graphNode: { id: "Second task", x: 200, y: 200 }, // ✅ added
+      graphNode: { id: "Second task", x: 200, y: 200 },
     },
     {
       id: "3",
@@ -57,7 +61,7 @@ export default function App() {
       categoryId: "personal",
       completed: false,
       parentIds: ["1"],
-      graphNode: { id: "Review PR", x: 300, y: 300 }, // ✅ added
+      graphNode: { id: "Review PR", x: 300, y: 300 },
     },
     {
       id: "4",
@@ -68,14 +72,48 @@ export default function App() {
       categoryId: "personal",
       completed: false,
       parentIds: [],
-      graphNode: { id: "Refactor UI", x: 400, y: 400 }, // ✅ added
+      graphNode: { id: "Refactor UI", x: 400, y: 400 },
+    },
+    {
+      id: "5",
+      title: "Refactor UI",
+      description: "Longer description to demonstrate trimming.",
+      priority: "Low",
+      deadline: null,
+      categoryId: "inbox",
+      completed: false,
+      parentIds: [],
+      graphNode: { id: "Refactor UI", x: 400, y: 400 },
+    },
+    {
+      id: "6",
+      title: "Refactor UI",
+      description: "Longer description to demonstrate trimming.",
+      priority: "Low",
+      deadline: null,
+      categoryId: "inbox",
+      completed: false,
+      parentIds: [],
+      graphNode: { id: "Refactor UI", x: 400, y: 400 },
+    },
+    {
+      id: "7",
+      title: "Refactor UI",
+      description: "Longer description to demonstrate trimming.",
+      priority: "Low",
+      deadline: null,
+      categoryId: "inbox",
+      completed: false,
+      parentIds: [],
+      graphNode: { id: "Refactor UI", x: 400, y: 400 },
     },
   ]);
 
   const [selectedCategory, setSelectedCategory] = useState("inbox");
+  const [searchText, setSearchText] = useState("");
 
   const droppableCategoryIds = new Set(categories.map((c) => c.id));
-  droppableCategoryIds.add("today"); // allow dropping into Today
+  droppableCategoryIds.add("today");
 
   function handleDragEnd(event) {
     const { active, over } = event;
@@ -84,43 +122,44 @@ export default function App() {
     if (over.id.startsWith("category:")) {
       const categoryId = over.id.replace("category:", "");
 
-      // Special case: dropping into Today
       if (categoryId === "today") {
         const todayStr = new Date().toISOString().split("T")[0];
-        setTasks((prev) =>
-          prev.map((t) =>
+        setTasks((prev) => {
+          const newTasks = (prev || []).map((t) =>
             t.id === active.id ? { ...t, deadline: todayStr } : t
-          )
-        );
+          );
+          return newTasks;
+        });
         setHoveredCategory(null);
         return;
       }
 
-      setTasks((prev) =>
-        prev.map((t) => (t.id === active.id ? { ...t, categoryId } : t))
-      );
+      setTasks((prev) => {
+        const newTasks = (prev || []).map((t) => (t.id === active.id ? { ...t, categoryId } : t));
+        return newTasks;
+      });
       setHoveredCategory(null);
       return;
     }
 
     if (active.id !== over.id) {
       setTasks((prev) => {
-        const activeTask = prev.find((t) => t.id === active.id);
-        if (!activeTask) return prev;
+        const activeTask = (prev || []).find((t) => t.id === active.id);
+        if (!activeTask) return prev || [];
 
-        const categoryTasks = prev.filter(
+        const categoryTasks = (prev || []).filter(
           (t) => t.categoryId === activeTask.categoryId
         );
         const oldIndex = categoryTasks.findIndex((t) => t.id === active.id);
         const newIndex = categoryTasks.findIndex((t) => t.id === over.id);
 
-        if (oldIndex === -1 || newIndex === -1) return prev;
+        if (oldIndex === -1 || newIndex === -1) return prev || [];
 
         const reordered = arrayMove(categoryTasks, oldIndex, newIndex);
 
         let result = [];
         let i = 0;
-        for (const t of prev) {
+        for (const t of prev || []) {
           if (t.categoryId === activeTask.categoryId) {
             result.push(reordered[i]);
             i++;
@@ -137,9 +176,8 @@ export default function App() {
   if (loading) return <div className="App">Loading...</div>;
   if (!user) return <Authorization />;
 
-  // Apply filters
   const todayStr = new Date().toISOString().split("T")[0];
-  const filteredTasks = tasks.filter((t) => {
+  const filteredTasks = (tasks || []).filter((t) => {
     if (selectedCategory === "today") {
       return t.deadline === todayStr;
     }
@@ -151,8 +189,13 @@ export default function App() {
   return (
     <div className="App">
       <div className="AppBody">
-        {/* Top-right user profile */}
-        <div style={{ position: "absolute", top: 10, right: 20 }}>
+        <div style={{ position: "absolute", top: 10, right: 30, display: "flex", alignItems: "center", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <img src={aiIcon} alt="AI Icon" style={{ width: "24px", height: "24px" }} />
+            <Button type="primary" onClick={() => setIsAIAnalysisOpen(true)}>
+              AI Analysis
+            </Button>
+          </div>
           <UserProfileMenu user={user} />
         </div>
 
@@ -180,20 +223,25 @@ export default function App() {
             setCategories={setCategories}
             droppableCategoryIds={droppableCategoryIds}
             hoveredCategory={hoveredCategory}
+            setTasks={setTasks}
+            tasks={tasks}
+            searchText={searchText}
+            setSearchText={setSearchText}
           />
           <div className="MainPanel">
             {selectedCategory !== "graphs" ? (
-              <>
-                <Welcome />
-                <div className="MainScroll">
-                  <Tasks
-                    tasks={filteredTasks}
-                    setTasks={setTasks}
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                  />
-                </div>
-              </>
+              <div className="MainScroll" style={{ paddingTop: "11vh" }}>
+                <Welcome user={user} selectedCategory={selectedCategory} categories={categories} />
+                <Tasks
+                  filteredTasks={filteredTasks}
+                  allTasks={tasks}
+                  setTasks={setTasks}
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  searchText={searchText}
+                  setSelectedCategory={setSelectedCategory}
+                />
+              </div>
             ) : (
               <TaskGraphIntegration
                 tasks={tasks}
@@ -233,6 +281,14 @@ export default function App() {
               })()}
           </DragOverlay>
         </DndContext>
+
+        <AIAnalysisModal
+          visible={isAIAnalysisOpen}
+          onClose={() => setIsAIAnalysisOpen(false)}
+          onSend={(input) => {
+            console.log("AI analysis input:", input);
+          }}
+        />
       </div>
     </div>
   );
