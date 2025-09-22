@@ -16,12 +16,12 @@ public class TaskRepository : ITaskRepository
         _context = context;
     }
 
-    public async Task<TaskEntity> CreateAsync(TaskEntity task)
+    public async Task<Guid> CreateAsync(TaskEntity task)
     {
-        var dbEntity = task.ToDbEntity();
-        _context.Tasks.Add(dbEntity);
+        var dbEntity = task.ToDbEntity();  // Теперь использую TaskMappers.ToDbEntity(task);
+        _context.Tasks.Add(dbEntity);  // EF добавит все коллекции каскадно
         await _context.SaveChangesAsync();
-        return task;
+        return dbEntity.Id;
     }
 
     public Task DeleteAsync(TaskEntity task)
@@ -29,93 +29,42 @@ public class TaskRepository : ITaskRepository
         throw new NotImplementedException();
     }
 
-    public Task<List<TaskEntity?>> GetAllAsync(Guid userId)
+    public async Task<List<TaskEntity>> GetAllAsync(Guid userId)
     {
-        throw new NotImplementedException();
+        var dbEntities = await _context.Tasks
+            .Where(t => t.UserId == userId)
+            .Include(t => t.Labels).ThenInclude(l => l.Label) // Загружаем Labels и связанные DatabaseTaskLabel
+            .Include(t => t.Reminders) // Загружаем Reminders
+            .Include(t => t.Attachments) // Загружаем Attachments
+            .Include(t => t.Dependencies) // Загружаем Dependencies
+            .Include(t => t.CustomRelations) // Загружаем CustomRelations
+            .ToListAsync();
+        
+        if (dbEntities == null || !dbEntities.Any())
+            throw new KeyNotFoundException($"No tasks found for user ID {userId}."); // In tutorial exceptions in infrastructure is normal
+
+        // Преобразуем в доменные сущности
+        return dbEntities.Select(dbEntity => dbEntity.ToDomain()).ToList();
     }
 
-    public Task<TaskEntity?> GetByIdAsync(Guid id)
+    public async Task<TaskEntity> GetByIdAsync(Guid id)
     {
-        throw new NotImplementedException();
+        var dbEntity = await _context.Tasks
+            .Include(t => t.Labels).ThenInclude(l => l.Label)  // Если нужно полные labels
+            .Include(t => t.Reminders)
+            .Include(t => t.Attachments)
+            .Include(t => t.Dependencies)
+            .Include(t => t.CustomRelations)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        if (dbEntity == null)
+            throw new KeyNotFoundException($"Task with ID {id} not found.");
+
+        return dbEntity.ToDomain();
     }
 
     public Task UpdateAsync(TaskEntity task)
     {
         throw new NotImplementedException();
     }
-
-    Task ITaskRepository.CreateAsync(TaskEntity task)
-    {
-        return CreateAsync(task);
-    }
-
-    // public async Task UpdateAsync(TaskEntity task)
-    // {
-    //     var dbEntity = await _context.Tasks
-    //         .Include(t => t.Labels)
-    //         .Include(t => t.Reminders)
-    //         .Include(t => t.Attachments)
-    //         .Include(t => t.Dependencies)
-    //         .Include(t => t.CustomRelations)
-    //         .FirstOrDefaultAsync(t => t.Id == task.Id);
-
-    //     if (dbEntity == null)
-    //         throw new InvalidOperationException("Task not found");
-
-    //     // Обновляем все поля через mapper
-    //     var updatedEntity = task.ToDbEntity();
-
-    //     _context.Entry(dbEntity).CurrentValues.SetValues(updatedEntity);
-
-    //     // Обновляем связанные коллекции вручную
-    //     dbEntity.Labels = updatedEntity.Labels;
-    //     dbEntity.Reminders = updatedEntity.Reminders;
-    //     dbEntity.Attachments = updatedEntity.Attachments;
-    //     dbEntity.Dependencies = updatedEntity.Dependencies;
-    //     dbEntity.CustomRelations = updatedEntity.CustomRelations;
-
-    //     await _context.SaveChangesAsync();
-    // }
-
-    // public async Task DeleteAsync(TaskEntity task)
-    // {
-    //     var dbEntity = await _context.Tasks.FindAsync(task.Id);
-    //     if (dbEntity == null)
-    //         throw new InvalidOperationException("Task not found");
-
-    //     _context.Tasks.Remove(dbEntity);
-    //     await _context.SaveChangesAsync();
-    // }
-
-    // public async Task<TaskEntity?> GetByIdAsync(Guid id)
-    // {
-    //     var dbEntity = await _context.Tasks
-    //         .Include(t => t.Labels)
-    //         .Include(t => t.Reminders)
-    //         .Include(t => t.Attachments)
-    //         .Include(t => t.Dependencies)
-    //         .Include(t => t.CustomRelations)
-    //         .FirstOrDefaultAsync(t => t.Id == id);
-
-    //     return dbEntity?.ToDomain();
-    // }
-
-    // public async Task<List<TaskEntity?>> GetAllAsync(Guid userId)
-    // {
-    //     var dbEntities = await _context.Tasks
-    //         .Where(t => t.UserId == userId)
-    //         .Include(t => t.Labels)
-    //         .Include(t => t.Reminders)
-    //         .Include(t => t.Attachments)
-    //         .Include(t => t.Dependencies)
-    //         .Include(t => t.CustomRelations)
-    //         .ToListAsync();
-
-    //     return dbEntities.Select(d => d.ToDomain()).ToList();
-    // }
-
-    // Task ITaskRepository.CreateAsync(TaskEntity task)
-    // {
-    //     return CreateAsync(task);
-    // }
 }
