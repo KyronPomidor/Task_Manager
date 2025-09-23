@@ -16,7 +16,7 @@ public class Node
     public float PosX { get; private set; }
     public float PosY { get; private set; }
     public float Radius { get; private set; }
-    // TODO: need also Color property. 
+    // TODO: need also Color property.
 
     // Could reference Task, ShopItem, or Transaction
     public object EntityRef { get; private set; }
@@ -44,5 +44,22 @@ public class Node
             throw new ArgumentException("Radius must be greater than zero.");
         }
         Radius = radius;
+    }
+}
+
+
+public class NodeWithColor : Node
+{
+    public string Color { get; private set; } // Store color as a hex string, e.g., "#FF5733"
+
+    public NodeWithColor(Guid userId, float posX, float posY, float radius, object entityRef, string color)
+        : base(userId, posX, posY, radius, entityRef)
+    {
+        Color = color ?? throw new ArgumentNullException(nameof(color));
+    }
+
+    public void ChangeColor(string newColor)
+    {
+        Color = newColor ?? throw new ArgumentNullException(nameof(newColor));
     }
 }

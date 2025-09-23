@@ -9,7 +9,7 @@ namespace Task_Manager_Back.Api.Controllers;
 
 [ApiController]
 [Route("api/tasks")]
-public class TaskEntityController : ControllerBase
+public class TaskEntityController : Controller
 {
     private readonly IMediator _mediator;
 
@@ -25,7 +25,7 @@ public class TaskEntityController : ControllerBase
     [Authorize]
     public async Task<Guid> Create([FromBody] CreateTaskApiRequest request)
     {
-         // Получаем UserId из identity
+        // Получаем UserId из identity
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
         if (userIdClaim == null)
             throw new InvalidOperationException("User is not authenticated.");

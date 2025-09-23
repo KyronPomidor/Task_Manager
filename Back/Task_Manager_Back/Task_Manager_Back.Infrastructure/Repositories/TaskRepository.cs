@@ -4,21 +4,26 @@ using Task_Manager_Back.Domain.Entities.TaskRelated;
 using Task_Manager_Back.Domain.IRepositories;
 using Task_Manager_Back.Infrastructure.DbContext;
 using Task_Manager_Back.Infrastructure.Mappers;
+using Microsoft.Extensions.Logging;
 
 namespace Task_Manager_Back.Infrastructure.Repositories;
 
 public class TaskRepository : ITaskRepository
 {
     private readonly AppDbContext _context;
+    private readonly ILogger<TaskRepository> _logger;
 
-    public TaskRepository(AppDbContext context)
+    public TaskRepository(AppDbContext context, ILogger<TaskRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<Guid> CreateAsync(TaskEntity task)
     {
         var dbEntity = task.ToDbEntity();  // Теперь использую TaskMappers.ToDbEntity(task);
+        _logger.LogDebug("Full TaskEntity mapped to DB: {@dbEntity}", dbEntity);
+        
         _context.Tasks.Add(dbEntity);  // EF добавит все коллекции каскадно
         await _context.SaveChangesAsync();
         return dbEntity.Id;

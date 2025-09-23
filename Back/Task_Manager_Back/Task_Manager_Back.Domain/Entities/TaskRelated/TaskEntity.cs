@@ -224,6 +224,7 @@ public class TaskEntity
     public bool IsActive()
     {
         return !IsCompleted && !IsFailed;
+        //return !(IsCompleted || IsFailed);
     }
 
     public void ChangeColor(string color) => Color = ValidationHelper.ValidateHexColor(color, nameof(color)); // hex color code

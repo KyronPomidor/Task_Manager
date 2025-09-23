@@ -172,5 +172,15 @@ public class RelationType
         relationType.Id = id;
         return relationType;
     }
+
+    public void Update(string name, string? description, Color? color)
+    {
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+        Description = description;
+        if (color.HasValue)
+            Color = color.Value;
+    }
+
     
+
 }
