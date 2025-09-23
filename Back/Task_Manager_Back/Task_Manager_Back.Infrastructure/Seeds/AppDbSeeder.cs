@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Task_Manager_Back.Domain.Entities.Enums;
 using Task_Manager_Back.Domain.Entities.TaskCategories;
 using Task_Manager_Back.Domain.Entities.TaskRelated;
+using Task_Manager_Back.Application.IRepositories;
 using Task_Manager_Back.Infrastructure.DbContext;
 
 namespace Task_Manager_Back.Infrastructure.Seeds;
@@ -17,6 +18,8 @@ public static class AppDbSeeder
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var categoryRepo = scope.ServiceProvider.GetRequiredService<ITaskCategoryRepository>();
+        var taskRepo = scope.ServiceProvider.GetRequiredService<ITaskRepository>();
 
         // Ensure database is up to date
         await db.Database.MigrateAsync();
@@ -56,53 +59,59 @@ public static class AppDbSeeder
             user = existingUser;
         }
 
-        // inside SeedAsync
         var userGuid = Guid.Parse(user.Id);
 
-        // find demo category
-        var category = await db.Categories
-            .OfType<TaskUserCategory>()
-            .FirstOrDefaultAsync(c => c.UserId == userGuid && c.Title == "Default Category");
+        // --- CATEGORIES ---
+        // Inbox (always exists)
+        var inbox = await categoryRepo.GetOrCreateInboxForUser(userGuid);
 
-        if (category == null)
-        {
-            category = new TaskUserCategory(new TaskUserCategoryCreateParams(
-                UserId: userGuid,
-                Title: "Default Category",
-                Description: "Seeded category",
-                ParentCategoryId: null,
-                Color: "#FFFFFF"
-            ));
-            await db.Categories.AddAsync(category);
-            await db.SaveChangesAsync();
-        }
+        // Work category
+        var work = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "Work", "Work related tasks", null, "#FFD700"));
+        await categoryRepo.CreateAsync(work);
 
-        // 🔄 clear old demo tasks
+        // Work subcategories
+        var firstTaskCategory = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "First task", "Subcategory of Work", work.Id, "#87CEEB"));
+        await categoryRepo.CreateAsync(firstTaskCategory);
+
+        var secondTaskCategory = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "Second task", "Subcategory of Work", work.Id, "#90EE90"));
+        await categoryRepo.CreateAsync(secondTaskCategory);
+
+        // Personal category
+        var personal = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "Personal", "Personal life tasks", null, "#FF69B4"));
+        await categoryRepo.CreateAsync(personal);
+
+        // Personal subcategory
+        var fun = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "Fun", "Personal fun activities", personal.Id, "#BA55D3"));
+        await categoryRepo.CreateAsync(fun);
+
+        // --- TASKS ---
+        // Clear old seeded tasks
         var oldTasks = db.Tasks.Where(t => t.UserId == userGuid && t.Title.StartsWith("Seeded Task"));
         db.Tasks.RemoveRange(oldTasks);
         await db.SaveChangesAsync();
 
-        // 🔁 add fresh tasks
+        // Add fresh demo tasks into Inbox
         var priorities = Enum.GetValues<TaskPriority>();
-        var tasks = new List<TaskEntity>();
-
         for (int i = 1; i <= 10; i++)
         {
             var priority = priorities[(i - 1) % priorities.Length];
-            tasks.Add(new TaskEntity(new TaskEntityCreateParams(
+            var task = new TaskEntity(new TaskEntityCreateParams(
                 UserId: userGuid,
                 Title: $"Seeded Task {i}",
                 Color: "#FFFFFF",
                 Description: $"This is seeded task number {i} with {priority} priority",
                 StatusId: null,
                 Priority: priority,
-                CategoryId: category.Id,
+                CategoryId: inbox.Id, // assign to Inbox
                 Deadline: DateTime.UtcNow.AddDays(i)
-            )));
+            ));
+
+            await taskRepo.CreateAsync(task);
         }
-
-        await db.Tasks.AddRangeAsync(tasks);
-        await db.SaveChangesAsync();
-
     }
 }
