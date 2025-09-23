@@ -10,16 +10,16 @@ using Task_Manager_Back.Application.IServices;
 public class AskAiChatService : IAskAiChatService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _apiKey = string.Empty;
-    private readonly string _baseUrl = string.Empty;
-    private readonly string _model = string.Empty;
+    private readonly string _apiKey;
+    private readonly string _baseUrl;
+    private readonly string _model;
 
     public AskAiChatService(HttpClient httpClient, IConfiguration config)
     {
         _httpClient = httpClient;
-        _apiKey = config["AI:ApiKey"];
-        _baseUrl = config["AI:BaseUrl"];
-        _model = config["AI:Model"];
+        _apiKey = config["AI:ApiKey"] ?? string.Empty;
+        _baseUrl = config["AI:BaseUrl"] ?? string.Empty;
+        _model = config["AI:Model"] ?? string.Empty;
     }
 
     public async Task<string> AskAsync(string prompt)
@@ -32,7 +32,7 @@ public class AskAiChatService : IAskAiChatService
                 new { role = "system", content = "You are a helpful task manager assistant. Respond accordingly only to the prompts related to tasks that user has." },
                 new { role = "user", content = prompt }
             },
-            max_tokens = 100
+            max_tokens = 200
         };
 
         var json = JsonSerializer.Serialize(request);
@@ -48,10 +48,10 @@ public class AskAiChatService : IAskAiChatService
         var body = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(body);
 
-        return doc.RootElement
+        return doc?.RootElement
             .GetProperty("choices")[0]
             .GetProperty("message")
             .GetProperty("content")
-            .GetString();
+            .GetString() ?? "No response, api key / base url / model may be missing";
     }
 }
