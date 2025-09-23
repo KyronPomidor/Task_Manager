@@ -7,14 +7,14 @@ using System.Text;
 using System.Text.Json;
 using Task_Manager_Back.Application.IServices;
 
-public class AiChatService : IAiChatService
+public class AskAiChatService : IAskAiChatService
 {
     private readonly HttpClient _httpClient;
     private readonly string _apiKey = string.Empty;
     private readonly string _baseUrl = string.Empty;
     private readonly string _model = string.Empty;
 
-    public AiChatService(HttpClient httpClient, IConfiguration config)
+    public AskAiChatService(HttpClient httpClient, IConfiguration config)
     {
         _httpClient = httpClient;
         _apiKey = config["AI:ApiKey"];
@@ -29,10 +29,10 @@ public class AiChatService : IAiChatService
             model = _model, // e.g. "sonar"
             messages = new[]
             {
-                new { role = "system", content = "You are a helpful task manager assistant." },
+                new { role = "system", content = "You are a helpful task manager assistant. Respond accordingly only to the prompts related to tasks that user has." },
                 new { role = "user", content = prompt }
             },
-            max_tokens = 200
+            max_tokens = 100
         };
 
         var json = JsonSerializer.Serialize(request);

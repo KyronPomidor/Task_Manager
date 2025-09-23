@@ -5,9 +5,9 @@ using Task_Manager_Back.Application.Requests.AiChatRequests;
 namespace Task_Manager_Back.Application.Handlers.AiChatHandlers;
 public class AskAiChatHandler : IRequestHandler<AskAiChatRequest, string>
 {
-    private readonly IAiChatService _aiChatService;
+    private readonly IAskAiChatService _aiChatService;
 
-    public AskAiChatHandler(IAiChatService aiChatService)
+    public AskAiChatHandler(IAskAiChatService aiChatService)
     {
         _aiChatService = aiChatService;
     }
