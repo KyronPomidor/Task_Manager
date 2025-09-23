@@ -106,7 +106,7 @@
 }
 
 .task-card .title {
-  font-weight: 600;
+  font-weight: 500;
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1; /* Limit to one line for title */
@@ -145,12 +145,11 @@
 
 .task-card .desc {
   color: #555;
+  font-size: 16px;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-height: 60px;
   font-family: 'Roboto', sans-serif
 }
 
@@ -180,7 +179,7 @@
   font-size: 14px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: #2b6cb0;
+  color: #60a5fa;
 }
 
 .children-tasks ul {
@@ -193,7 +192,7 @@
   font-size: 13px;
   color: #2d3748;
   padding: 4px 0;
-  border-left: 2px solid #4299e1;
+  border-left: 2px solid #60a5fa;
   padding-left: 12px;
   margin-bottom: 4px;
   background-color: #e6f0fa;

@@ -2,16 +2,19 @@ import React, { useState, useRef, useEffect } from "react";
 import { ForceGraph2D } from "react-force-graph";
 import { Button } from "antd";
 
-export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, onShowTasks }) {
+export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [addingRelationFrom, setAddingRelationFrom] = useState(null);
   const dragging = useRef(false);
   const fgRef = useRef();
 
+
   // Update graph data when props change
   useEffect(() => {
     // This will update the internal state when parent passes new data
   }, [graphData]);
+
+
 
   // Save positions and notify parent
   const savePositions = () => {
@@ -22,7 +25,7 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, onSh
       }
     });
     localStorage.setItem('graphNodePositions', JSON.stringify(positions));
-    
+
     // Notify parent component about graph updates
     if (onGraphUpdate) {
       onGraphUpdate(graphData);
@@ -69,7 +72,7 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, onSh
     const correspondingTask = tasks.find(
       t => t.id === node.taskId || t.title === node.id
     );
-    
+
     if (!correspondingTask && onCreateTask) {
       // Create a new task from this node
       onCreateTask(node.id);
@@ -86,46 +89,47 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, onSh
 
   return (
     <div style={{ width: "100%", height: "100%", background: "#fff", position: "relative" }}>
-    <ForceGraph2D
-      ref={fgRef}
-      graphData={graphData}
-      onNodeClick={handleNodeClick}
-      onNodeDrag={() => (dragging.current = true)}
-      onNodeDragEnd={handleNodeDragEnd}
-      onNodeDoubleClick={handleNodeDoubleClick}
-      onBackgroundClick={handleBackgroundClick}
-      nodeLabel="id"
-      nodeColor={(node) => {
-        // If node has parents, use the color of the first parent
-        if (node.parentIds && node.parentIds.length > 0) {
-          // Find the parent node in the graph data
-          const parentNode = graphData.nodes.find(n => 
-            n.taskId === node.parentIds[0] || n.id === node.parentIds[0]
-          );
-          return parentNode ? parentNode.color : node.color;
-        }
-        return node.color;
-      }}
-      nodeCanvasObjectMode={() => "after"}
-      nodeCanvasObject={(node, ctx, globalScale) => {
-        const label = node.id;
-        const fontSize = 12 / globalScale;
-        ctx.font = `${fontSize}px Sans-Serif`;
-        ctx.fillStyle = "#111";
-        ctx.textAlign = "center";
-        ctx.fillText(label, node.x, node.y - 8);
-      }}
-      linkDirectionalArrowLength={6}
-      linkDirectionalArrowRelPos={1}
-      linkColor={() => "gray"}
-      d3VelocityDecay={0.4}
-      d3AlphaTarget={0.3}
-      d3Force="link"
-      d3ForceConfig={{
-        distance: 50,
-        strength: 0.7
-      }}
-    />
+      <ForceGraph2D
+        ref={fgRef}
+        graphData={graphData}
+        onNodeClick={handleNodeClick}
+        onNodeDrag={() => (dragging.current = true)}
+        onNodeDragEnd={handleNodeDragEnd}
+        onNodeDoubleClick={handleNodeDoubleClick}
+        onBackgroundClick={handleBackgroundClick}
+        nodeLabel="id"
+        nodeColor={(node) => {
+          // If node has parents, use the color of the first parent
+          if (node.parentIds && node.parentIds.length > 0) {
+            // Find the parent node in the graph data
+            const parentNode = graphData.nodes.find(n =>
+              n.taskId === node.parentIds[0] || n.id === node.parentIds[0]
+            );
+            return parentNode ? parentNode.color : node.color;
+          }
+          return node.color;
+        }}
+        nodeCanvasObjectMode={() => "after"}
+        nodeCanvasObject={(node, ctx, globalScale) => {
+          const label = node.id;
+          const fontSize = 12 / globalScale;
+          ctx.font = `${fontSize}px Sans-Serif`;
+          ctx.fillStyle = "#111";
+          ctx.textAlign = "center";
+          ctx.fillText(label, node.x, node.y - 8);
+        }}
+        linkDirectionalArrowLength={6}
+        linkDirectionalArrowRelPos={1}
+        linkColor={() => "gray"}
+        d3VelocityDecay={0.6}
+        d3AlphaTarget={0.3}
+        d3Force="link"
+        d3ForceConfig={{
+          distance: 50,
+          strength: 0.7
+        }}
+      />
+
 
       {selectedNode && (
         <div
@@ -144,9 +148,6 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, onSh
             Delete
           </Button>
           <Button onClick={handleAddRelation}>Add Relation</Button>
-          <Button onClick={onShowTasks} style={{ marginLeft: "10px" }}>
-            View Task
-          </Button>
         </div>
       )}
 

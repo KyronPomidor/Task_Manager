@@ -21,11 +21,13 @@ import dayjs from "dayjs";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MoreOutlined } from "@ant-design/icons";
+import { getParentColor, DEP_COLORS, hashStringToIndex } from "../../../utils/colorUtils";
 import { motion, AnimatePresence } from "framer-motion";
 
 /* ------------------ Utility ------------------ */
 function priorityColor(p) {
-  return p === "High" ? "red" : p === "Low" ? "default" : "#60a5fa";
+  if (p === "Medium") return { backgroundColor: "#cadbffff", borderColor: "#2563eb" };
+  return p === "Low" ? "default" : "red";
 }
 
 /* ------------------ SortableTask ------------------ */
@@ -162,6 +164,8 @@ export function Tasks({
   categories,
   searchText,
   setSelectedCategory,
+  addTask,
+  updateTask
 }) {
   /* ---------- State ---------- */
   const [editOpen, setEditOpen] = useState(false);
@@ -200,10 +204,10 @@ export function Tasks({
       return prev.map((t) =>
         t.id === id
           ? {
-              ...t,
-              completed: !t.completed,
-              categoryId: !t.completed ? "done" : t.categoryId,
-            }
+            ...t,
+            completed: !t.completed,
+            categoryId: !t.completed ? "done" : t.categoryId,
+          }
           : t
       );
     });
@@ -216,9 +220,15 @@ export function Tasks({
 
   function handleSaveEdit() {
     setTasks((prev) => prev.map((t) => (t.id === editTask.id ? editTask : t)));
+
+    if (typeof updateTask === "function") {
+      updateTask(editTask);
+    }
+
     setEditOpen(false);
     setEditTask(null);
   }
+
 
   function handleAddNew() {
     const newTask = {
@@ -245,10 +255,19 @@ export function Tasks({
       Modal.error({ title: "Title is required" });
       return;
     }
-    setTasks((prev) => [...prev, editTask]);
+
+    // Add to local state immediately (at the front of the array)
+    setTasks((prev) => [editTask, ...prev]);
+
+    // Push to backend (simplified object)
+    if (typeof addTask === "function") {
+      addTask(editTask);
+    }
+
     setAddOpen(false);
     setEditTask(null);
   }
+
 
   function handleCardClick(task) {
     setSelectedTask(task);
@@ -340,20 +359,6 @@ export function Tasks({
     return true;
   });
 
-  /* ---------- Parent/Child Coloring ---------- */
-  const DEP_COLORS = [
-    "#FFD93D", "#FF6B6B", "#6BCB77", "#4D96FF", "#845EC2",
-    "#FF9671", "#FFC75F", "#0081CF", "#B39CD0", "#3705dcff"
-  ];
-
-  function hashStringToIndex(str, mod) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return Math.abs(hash) % mod;
-  }
 
   const getParentColor = (parentId) => {
     const idx = hashStringToIndex(parentId, DEP_COLORS.length);
@@ -470,7 +475,9 @@ export function Tasks({
                                 <span className={`title ${task.completed ? "done" : ""}`}>
                                   {task.title.length > 20 ? `${task.title.substring(0, 20)}...` : task.title}
                                 </span>
-                                <Tag color={priorityColor(task.priority)}>{task.priority}</Tag>
+                                <Tag style={typeof priorityColor(task.priority) === "object" ? priorityColor(task.priority) : {}} color={typeof priorityColor(task.priority) === "string" ? priorityColor(task.priority) : undefined}>
+                                  {task.priority}
+                                </Tag>
                               </span>
                             </motion.div>
 
@@ -508,19 +515,28 @@ export function Tasks({
                           />
                         }
                       >
-                        <div
-                          className="desc"
-                          style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            textAlign: "center",
-                            minHeight: "50px",
-                            width: "100%",
-                          }}
-                        >
-                          {task.description || "No description"}
-                        </div>
+                        {(() => {
+                          const desc = task.description || "";
+                          return (
+                            <div
+                              className="desc"
+                              style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                textAlign: "center",
+                                minHeight: "50px",
+                                width: "100%",
+                                overflow: desc.length > 50 ? "hidden" : "visible",
+                                textOverflow: desc.length > 50 ? "ellipsis" : "clip",
+                                whiteSpace: desc.length > 50 ? "nowrap" : "normal",
+                                maxWidth: "100%",
+                              }}
+                            >
+                              {desc.length > 50 ? `${desc.substring(0, 50)}...` : desc || "No description"}
+                            </div>
+                          );
+                        })()}
 
                         {/* Dependency Indicators (Bottom-Left) */}
                         {isChild && (
@@ -536,20 +552,17 @@ export function Tasks({
                               zIndex: 10,
                             }}
                           >
-                            {task.parentIds.map((pid, idx) => {
+                            {task.parentIds.map((pid) => {
                               const parentTask = allTasks.find((t) => t.id === pid);
                               return (
-                                <Tooltip
-                                  key={idx}
-                                  title={parentTask ? parentTask.title : "Unknown Parent"}
-                                >
+                                <Tooltip key={pid} title={parentTask ? parentTask.title : "Unknown Parent"}>
                                   <span
                                     style={{
                                       display: "inline-block",
                                       width: 16,
                                       height: 16,
                                       borderRadius: "50%",
-                                      background: childIndicatorColors[idx],
+                                      background: getParentColor(pid),
                                       border: "2px solid #fff",
                                       boxShadow: "0 0 0 1px #ccc",
                                       cursor: "pointer",
@@ -661,7 +674,6 @@ export function Tasks({
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {getChildren(task.id).map((child) => {
-                                  const childIndicatorColors = child.parentIds.map(getParentColor);
                                   return (
                                     <Card
                                       key={child.id}
@@ -673,8 +685,8 @@ export function Tasks({
                                         borderLeft:
                                           child.parentIds.length > 0
                                             ? `5px solid ${getParentColor(
-                                                child.parentIds[child.parentIds.length - 1]
-                                              )}`
+                                              child.parentIds[child.parentIds.length - 1]
+                                            )}`
                                             : "5px solid #fff",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
                                         position: "relative",
@@ -685,7 +697,9 @@ export function Tasks({
                                           <span className={`title ${child.completed ? "done" : ""}`}>
                                             {child.title.length > 20 ? `${child.title.substring(0, 20)}...` : child.title}
                                           </span>
-                                          <Tag color={priorityColor(child.priority)}>{child.priority}</Tag>
+                                          <Tag style={typeof priorityColor(child.priority) === "object" ? priorityColor(child.priority) : {}} color={typeof priorityColor(child.priority) === "string" ? priorityColor(child.priority) : undefined}>
+                                            {child.priority}
+                                          </Tag>
                                           {child.deadline && (
                                             <div style={{ fontSize: "0.85rem", color: "#60a5fa", marginTop: 2 }}>
                                               {child.deadline}
@@ -695,19 +709,29 @@ export function Tasks({
                                         </div>
                                       }
                                     >
-                                      <div
-                                        className="desc"
-                                        style={{
-                                          display: "flex",
-                                          justifyContent: "center",
-                                          alignItems: "center",
-                                          textAlign: "center",
-                                          minHeight: "50px",
-                                          width: "100%",
-                                        }}
-                                      >
-                                        {child.description || "No description"}
-                                      </div>
+                                      {(() => {
+                                        const desc = child.description || "";
+                                        return (
+                                          <div
+                                            className="desc"
+                                            style={{
+                                              display: "flex",
+                                              justifyContent: "center",
+                                              alignItems: "center",
+                                              textAlign: "center",
+                                              minHeight: "50px",
+                                              width: "100%",
+                                              overflow: desc.length > 50 ? "hidden" : "visible",
+                                              textOverflow: desc.length > 50 ? "ellipsis" : "clip",
+                                              whiteSpace: desc.length > 50 ? "nowrap" : "normal",
+                                              maxWidth: "100%",
+                                            }}
+                                          >
+                                            {desc.length > 50 ? `${desc.substring(0, 50)}...` : desc || "No description"}
+                                          </div>
+                                        );
+                                      })()}
+
                                       {child.parentIds.length > 0 && (
                                         <div
                                           className="dependency-indicators"
@@ -721,13 +745,10 @@ export function Tasks({
                                             zIndex: 10,
                                           }}
                                         >
-                                          {child.parentIds.map((pid, idx) => {
+                                          {child.parentIds.map((pid) => {
                                             const parentTask = allTasks.find((t) => t.id === pid);
                                             return (
-                                              <Tooltip
-                                                key={idx}
-                                                title={parentTask ? parentTask.title : "Unknown Parent"}
-                                              >
+                                              <Tooltip key={pid} title={parentTask ? parentTask.title : "Unknown Parent"}>
                                                 <span
                                                   style={{
                                                     display: "inline-block",

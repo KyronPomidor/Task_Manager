@@ -12,8 +12,8 @@ using Task_Manager_Back.Infrastructure.DbContext;
 namespace Task_Manager_Back.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250922080451_IC")]
-    partial class IC
+    [Migration("20250923102759_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

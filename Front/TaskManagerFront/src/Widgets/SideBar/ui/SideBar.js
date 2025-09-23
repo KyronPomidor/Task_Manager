@@ -21,7 +21,7 @@ const STYLES = {
     minWidth: "220px",
     borderRight: "1px solid",
     boxSizing: "border-box",
-    fontFamily: "'Roboto', sans-serif"
+    fontFamily: "'Roboto', sans-serif",
   },
   logoWrap: {
     display: "flex",
@@ -96,12 +96,10 @@ const STYLES = {
     fontFamily: "'Roboto', sans-serif"
   },
   labelText: {
-    display: "-webkit-box",
-    WebkitBoxOrient: "vertical",
-    WebkitLineClamp: 1,
     overflow: "hidden",
     textOverflow: "ellipsis",
-    maxWidth: "100%",
+    whiteSpace: "nowrap",
+    maxWidth: "calc(100% - 60px)", // Account for icons, task count, and actions
     fontFamily: "'Roboto', sans-serif"
   },
 };
@@ -197,7 +195,7 @@ function Row({
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <span style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+      <span style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
         {icon && (
           <div style={STYLES.iconWrapper}>
             <img src={icon} alt="icon" style={{ width: 20, height: 20 }} />

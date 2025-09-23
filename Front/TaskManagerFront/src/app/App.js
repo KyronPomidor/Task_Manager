@@ -1,6 +1,6 @@
 import "./styles/App.css";
-import { useState } from "react";
-import { Button } from "antd";
+import { useState, useEffect } from "react";
+import { Button, Modal } from "antd";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
 import { Welcome } from "../Widgets/Welcome";
@@ -11,7 +11,16 @@ import useAuth from "../hooks/useAuth";
 import UserProfileMenu from "../Widgets/UserProfile";
 import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration";
 import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
+import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import aiIcon from "./ai.png";
+import axios from "axios";
+
+const priorityMap = {
+  Low: 0,
+  Medium: 1,
+  High: 2,
+  Urgent: 3,
+};
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -29,88 +38,219 @@ export default function App() {
   const [activeTaskId, setActiveTaskId] = useState(null);
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
 
-  const [tasks, setTasks] = useState([
-    {
-      id: "1",
-      title: "First task",
-      description: "Short description for the first task.",
-      priority: "Medium",
-      deadline: null,
-      categoryId: "inbox",
-      completed: false,
-      parentIds: [],
-      graphNode: { id: "First task", x: 100, y: 100 },
-    },
-    {
-      id: "2",
-      title: "Second task",
-      description: "Depends on First task, has a deadline.",
-      priority: "High",
-      deadline: "2025-09-17",
-      categoryId: "inbox",
-      completed: false,
-      parentIds: ["1"],
-      graphNode: { id: "Second task", x: 200, y: 200 },
-    },
-    {
-      id: "3",
-      title: "Review PR",
-      description: "Review code after First task is done.",
-      priority: "High",
-      deadline: "2025-09-17",
-      categoryId: "personal",
-      completed: false,
-      parentIds: ["1"],
-      graphNode: { id: "Review PR", x: 300, y: 300 },
-    },
-    {
-      id: "4",
-      title: "Refactor UI",
-      description: "Longer description to demonstrate trimming.",
-      priority: "Low",
-      deadline: null,
-      categoryId: "personal",
-      completed: false,
-      parentIds: [],
-      graphNode: { id: "Refactor UI", x: 400, y: 400 },
-    },
-    {
-      id: "5",
-      title: "Refactor UI",
-      description: "Longer description to demonstrate trimming.",
-      priority: "Low",
-      deadline: null,
-      categoryId: "inbox",
-      completed: false,
-      parentIds: [],
-      graphNode: { id: "Refactor UI", x: 400, y: 400 },
-    },
-    {
-      id: "6",
-      title: "Refactor UI",
-      description: "Longer description to demonstrate trimming.",
-      priority: "Low",
-      deadline: null,
-      categoryId: "inbox",
-      completed: false,
-      parentIds: [],
-      graphNode: { id: "Refactor UI", x: 400, y: 400 },
-    },
-    {
-      id: "7",
-      title: "Refactor UI",
-      description: "Longer description to demonstrate trimming.",
-      priority: "Low",
-      deadline: null,
-      categoryId: "inbox",
-      completed: false,
-      parentIds: [],
-      graphNode: { id: "Refactor UI", x: 400, y: 400 },
-    },
-  ]);
+  const [tasks, setTasks] = useState([]);
 
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const [searchText, setSearchText] = useState("");
+
+  useEffect(() => {
+    if (!user || loading) return;
+
+    const fetchTasks = async () => {
+      try {
+        const response = await fetch("http://localhost:5053/api/tasks", {
+          headers: {
+            Authorization: `Bearer ${user.token}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        const mappedTasks = data.map((backendTask) => ({
+          id: backendTask.id,
+          title: backendTask.title,
+          description: backendTask.description || "",
+          priority:
+            backendTask.priority === 0
+              ? "Low"
+              : backendTask.priority === 2
+                ? "High"
+                : backendTask.priority === 3
+                  ? "Urgent"
+                  : "Medium",
+          deadline: backendTask.deadline
+            ? backendTask.deadline.split("T")[0]
+            : null,
+          deadlineTime:
+            backendTask.deadline && backendTask.deadline.includes("T")
+              ? backendTask.deadline.split("T")[1].slice(0, 5)
+              : null,
+          categoryId: "inbox", // map to inbox for now
+          completed: backendTask.isCompleted || false,
+          parentIds: [],
+          graphNode: { id: backendTask.title, x: 100, y: 100 },
+          positionOrder: backendTask.positionOrder || 0,
+        }));
+
+        const sortedTasks = mappedTasks.sort(
+          (a, b) => a.positionOrder - b.positionOrder
+        );
+        setTasks(sortedTasks);
+      } catch (error) {
+        console.error("Failed to fetch tasks:", error);
+        setTasks([]);
+        Modal.error({
+          title: "Error",
+          content: "Failed to fetch tasks. Please try again.",
+        });
+      }
+    };
+
+    fetchTasks();
+  }, [user, loading]);
+
+  // define addTask
+  const addTask = async (newTask) => {
+    const backendTask = {
+      userId: "283118eb-f3c5-4447-afa2-f5a93762a5e3",
+      title: newTask.title,
+      description: newTask.description || null,
+      color: "#FFFFFF",
+      statusId: null,
+      priority: priorityMap[newTask.priority] || 1,
+      categoryId: null,
+      deadline: newTask.deadline
+        ? `${newTask.deadline}T${newTask.deadlineTime || "00:00"}:00`
+        : null,
+      positionOrder: tasks.length + 1,
+    };
+
+    try {
+      console.log("Sending POST payload:", backendTask); // Debug payload
+      await axios.post("http://localhost:5053/api/tasks", backendTask, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      // Fetch updated tasks
+      const response = await fetch("http://localhost:5053/api/tasks", {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      const sorted = data
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          description: t.description || "",
+          priority:
+            t.priority === 0
+              ? "Low"
+              : t.priority === 2
+                ? "High"
+                : t.priority === 3
+                  ? "Urgent"
+                  : "Medium",
+          deadline: t.deadline ? t.deadline.split("T")[0] : null,
+          deadlineTime:
+            t.deadline && t.deadline.includes("T")
+              ? t.deadline.split("T")[1].slice(0, 5)
+              : null,
+          categoryId: "inbox",
+          completed: t.isCompleted || false,
+          parentIds: [],
+          graphNode: { id: t.title, x: 100, y: 100 },
+          positionOrder: t.positionOrder || 0,
+        }))
+        .sort((a, b) => a.positionOrder - b.positionOrder);
+
+      setTasks(sorted);
+    } catch (error) {
+      console.error(
+        "Failed to add task:",
+        error.response?.data || error.message
+      );
+      Modal.error({
+        title: "Error",
+        content: "Failed to add task. Please try again.",
+      });
+    }
+  };
+
+  // define updateTask
+  const updateTask = async (updatedTask) => {
+    const backendTask = {
+      taskId: updatedTask.id,
+      userId: "283118eb-f3c5-4447-afa2-f5a93762a5e3",
+      newTitle: updatedTask.title,
+      newDescription: updatedTask.description || "",
+      newStatusId: null,
+      newCategoryId: null,
+      newDeadline: updatedTask.deadline
+        ? `${updatedTask.deadline}T${updatedTask.deadlineTime || "00:00"}:00`
+        : null,
+      isCompleted: updatedTask.completed || null,
+      isFailed: null,
+    };
+
+    try {
+      console.log("Sending PUT payload:", backendTask); // Debug payload
+      await axios.put(
+        `http://localhost:5053/api/tasks/${updatedTask.id}`,
+        backendTask,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${user.token}`,
+          },
+        }
+      );
+
+      // Fetch updated tasks
+      const response = await fetch("http://localhost:5053/api/tasks", {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+
+      const sorted = data
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          description: t.description || "",
+          priority:
+            t.priority === 0
+              ? "Low"
+              : t.priority === 2
+                ? "High"
+                : t.priority === 3
+                  ? "Urgent"
+                  : "Medium",
+          deadline: t.deadline ? t.deadline.split("T")[0] : null,
+          deadlineTime:
+            t.deadline && t.deadline.includes("T")
+              ? t.deadline.split("T")[1].slice(0, 5)
+              : null,
+          categoryId: "inbox",
+          completed: t.isCompleted || false,
+          parentIds: [],
+          graphNode: { id: t.title, x: 100, y: 100 },
+          positionOrder: t.positionOrder || 0,
+        }))
+        .sort((a, b) => a.positionOrder - b.positionOrder);
+
+      setTasks(sorted);
+    } catch (error) {
+      console.error(
+        "Failed to update task:",
+        error.response?.data || error.message
+      );
+      Modal.error({
+        title: "Update Failed",
+        content: `There was an error updating the task: ${error.response?.data || error.message
+          }`,
+      });
+    }
+  };
 
   const droppableCategoryIds = new Set(categories.map((c) => c.id));
   droppableCategoryIds.add("today");
@@ -124,20 +264,18 @@ export default function App() {
 
       if (categoryId === "today") {
         const todayStr = new Date().toISOString().split("T")[0];
-        setTasks((prev) => {
-          const newTasks = (prev || []).map((t) =>
-            t.id === active.id ? { ...t, deadline: todayStr } : t
-          );
-          return newTasks;
-        });
+        const activeTask = tasks.find((t) => t.id === active.id);
+        if (activeTask) {
+          updateTask({ ...activeTask, deadline: todayStr });
+        }
         setHoveredCategory(null);
         return;
       }
 
-      setTasks((prev) => {
-        const newTasks = (prev || []).map((t) => (t.id === active.id ? { ...t, categoryId } : t));
-        return newTasks;
-      });
+      const activeTask = tasks.find((t) => t.id === active.id);
+      if (activeTask) {
+        updateTask({ ...activeTask, categoryId });
+      }
       setHoveredCategory(null);
       return;
     }
@@ -161,7 +299,7 @@ export default function App() {
         let i = 0;
         for (const t of prev || []) {
           if (t.categoryId === activeTask.categoryId) {
-            result.push(reordered[i]);
+            result.push({ ...reordered[i], positionOrder: i });
             i++;
           } else {
             result.push(t);
@@ -181,17 +319,32 @@ export default function App() {
     if (selectedCategory === "today") {
       return t.deadline === todayStr;
     }
-    if (selectedCategory !== "graphs" && t.categoryId !== selectedCategory)
-      return false;
-    return true;
+    if (selectedCategory === "graphs") {
+      return true;
+    }
+    return true; // show all for now
   });
 
   return (
     <div className="App">
       <div className="AppBody">
-        <div style={{ position: "absolute", top: 10, right: 30, display: "flex", alignItems: "center", gap: "16px" }}>
+        <div
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 30,
+            display: "flex",
+            alignItems: "center",
+            gap: "16px",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <img src={aiIcon} alt="AI Icon" style={{ width: "24px", height: "24px" }} />
+            <CalendarButton />
+            <img
+              src={aiIcon}
+              alt="AI Icon"
+              style={{ width: "24px", height: "24px" }}
+            />
             <Button type="primary" onClick={() => setIsAIAnalysisOpen(true)}>
               AI Analysis
             </Button>
@@ -231,7 +384,11 @@ export default function App() {
           <div className="MainPanel">
             {selectedCategory !== "graphs" ? (
               <div className="MainScroll" style={{ paddingTop: "11vh" }}>
-                <Welcome user={user} selectedCategory={selectedCategory} categories={categories} />
+                <Welcome
+                  user={user}
+                  selectedCategory={selectedCategory}
+                  categories={categories}
+                />
                 <Tasks
                   filteredTasks={filteredTasks}
                   allTasks={tasks}
@@ -240,6 +397,8 @@ export default function App() {
                   selectedCategory={selectedCategory}
                   searchText={searchText}
                   setSelectedCategory={setSelectedCategory}
+                  addTask={addTask}
+                  updateTask={updateTask}
                 />
               </div>
             ) : (
@@ -262,7 +421,7 @@ export default function App() {
                       alignItems: "center",
                       padding: "6px 12px",
                       background: "#fff",
-                      border: "1px solid #2563eb",
+                      border: "1px solid #60a5fa",
                       borderRadius: 8,
                       boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
                       fontWeight: 500,

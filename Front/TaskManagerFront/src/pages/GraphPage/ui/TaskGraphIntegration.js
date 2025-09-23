@@ -1,7 +1,6 @@
-import { useState, useMemo } from "react";
-import { Tabs } from "antd";
+import { useMemo } from "react";
 import { GraphsPage } from "./GraphsPage";
-import { Tasks } from "../../TaskPage";
+import { getParentColor } from "../../../utils/colorUtils";
 
 // Helper function to generate consistent colors based on task ID
 const generateColorFromId = (id) => {
@@ -14,18 +13,19 @@ const generateColorFromId = (id) => {
 };
 
 export function TaskGraphIntegration({ tasks, setTasks, categories }) {
-    const [activeTab, setActiveTab] = useState("tasks");
-
     // Convert tasks to graph nodes with colors
-    const graphNodes = useMemo(() =>
-        tasks.map(task => ({
+    const graphNodes = useMemo(
+        () =>
+        tasks.map((task) => ({
             id: task.title || `task-${task.id}`,
             taskId: task.id,
             x: task.graphNode?.x || Math.random() * 400,
             y: task.graphNode?.y || Math.random() * 400,
-            color: generateColorFromId(task.id),
-            // Store parent information for color inheritance
-            parentIds: task.parentIds || []
+            color:
+            task.parentIds && task.parentIds.length > 0
+                ? getParentColor(task.parentIds[0]) // Use the first parent's color
+                : getParentColor(task.id), // Use the task's own ID for color if no parent
+            parentIds: task.parentIds || [],
         })),
         [tasks]
     );
@@ -33,16 +33,16 @@ export function TaskGraphIntegration({ tasks, setTasks, categories }) {
     // Extract links from task relationships
     const graphLinks = useMemo(() => {
         const links = [];
-        tasks.forEach(task => {
-            task.parentIds?.forEach(parentId => {
-                const parentTask = tasks.find(t => t.id === parentId);
-                if (parentTask) {
-                    links.push({
-                        source: parentTask.title || `task-${parentTask.id}`,
-                        target: task.title || `task-${task.id}`
-                    });
-                }
+        tasks.forEach((task) => {
+        task.parentIds?.forEach((parentId) => {
+            const parentTask = tasks.find((t) => t.id === parentId);
+            if (parentTask) {
+            links.push({
+                source: parentTask.title || `task-${parentTask.id}`,
+                target: task.title || `task-${task.id}`,
             });
+            }
+        });
         });
         return links;
     }, [tasks]);
@@ -86,41 +86,13 @@ export function TaskGraphIntegration({ tasks, setTasks, categories }) {
         setTasks(prev => [...prev, newTask]);
     };
 
-    const handleShowGraph = () => setActiveTab("graph");
-    const handleShowTasks = () => setActiveTab("tasks");
-
     return (
         <div style={{ height: "calc(100vh - 60px)" }}>
-            <Tabs
-                activeKey={activeTab}
-                onChange={setActiveTab}
-                items={[
-                    {
-                        key: "tasks",
-                        label: "Tasks",
-                        children: (
-                            <Tasks
-                                tasks={tasks}
-                                setTasks={setTasks}
-                                categories={categories}
-                                onShowGraph={handleShowGraph}
-                            />
-                        )
-                    },
-                    {
-                        key: "graph",
-                        label: "Graph View",
-                        children: (
-                            <GraphsPage
-                                graphData={graphData}
-                                onGraphUpdate={handleGraphUpdate}
-                                onCreateTask={handleCreateTaskFromNode}
-                                tasks={tasks}
-                                onShowTasks={handleShowTasks}
-                            />
-                        )
-                    }
-                ]}
+            <GraphsPage
+                graphData={graphData}
+                onGraphUpdate={handleGraphUpdate}
+                onCreateTask={handleCreateTaskFromNode}
+                tasks={tasks}
             />
         </div>
     );
