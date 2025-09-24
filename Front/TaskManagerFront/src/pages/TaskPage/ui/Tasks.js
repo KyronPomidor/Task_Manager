@@ -25,7 +25,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 /* ------------------ Utility ------------------ */
 function priorityColor(p) {
-  return p === "High" ? "red" : p === "Low" ? "default" : "#60a5fa";
+  if (p === "Medium") return { backgroundColor: "#8fc1feff", borderColor: "#2563eb" };
+  return p === "Low" ? "default" : "red";
 }
 
 /* ------------------ SortableTask ------------------ */
@@ -162,6 +163,8 @@ export function Tasks({
   categories,
   searchText,
   setSelectedCategory,
+  addTask,
+  updateTask
 }) {
   /* ---------- State ---------- */
   const [editOpen, setEditOpen] = useState(false);
@@ -200,10 +203,10 @@ export function Tasks({
       return prev.map((t) =>
         t.id === id
           ? {
-              ...t,
-              completed: !t.completed,
-              categoryId: !t.completed ? "done" : t.categoryId,
-            }
+            ...t,
+            completed: !t.completed,
+            categoryId: !t.completed ? "done" : t.categoryId,
+          }
           : t
       );
     });
@@ -215,7 +218,7 @@ export function Tasks({
   }
 
   function handleSaveEdit() {
-    setTasks((prev) => prev.map((t) => (t.id === editTask.id ? editTask : t)));
+    updateTask(editTask);
     setEditOpen(false);
     setEditTask(null);
   }
@@ -245,7 +248,8 @@ export function Tasks({
       Modal.error({ title: "Title is required" });
       return;
     }
-    setTasks((prev) => [...prev, editTask]);
+    addTask(editTask);
+
     setAddOpen(false);
     setEditTask(null);
   }
@@ -315,6 +319,14 @@ export function Tasks({
     }
   }
 
+  function calculateTotalExpenses() {
+    if (selectedCategory !== "done") return 0;
+    return filteredTasks
+      .filter((t) => t.completed && t.budgetItems && t.budgetItems.length > 0)
+      .reduce((acc, task) => acc + task.budgetItems.reduce((sum, item) => sum + (item.sum || 0), 0), 0)
+      .toFixed(2);
+  }
+
   /* ---------- Filters ---------- */
   const [filters, setFilters] = useState({
     priority: "All",
@@ -367,13 +379,18 @@ export function Tasks({
   /* ---------- Render ---------- */
   return (
     <div className="tasks-container">
-      <div className="composer" style={{ display: "flex", alignItems: "center" }}>
+      <div className="composer" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         {selectedCategory !== "done" && (
           <Button type="primary" onClick={handleAddNew}>
             Add
           </Button>
         )}
         <TaskFilters filters={filters} setFilters={setFilters} />
+        {selectedCategory === "done" && (
+          <span style={{ fontSize: "0.9rem", color: "#4d5156", fontWeight: 600 }}>
+            Total Expenses: ${calculateTotalExpenses()}
+          </span>
+        )}
       </div>
 
       <SortableContext items={filteredAndSortedTasks.map((t) => t.id)}>
@@ -470,7 +487,9 @@ export function Tasks({
                                 <span className={`title ${task.completed ? "done" : ""}`}>
                                   {task.title.length > 20 ? `${task.title.substring(0, 20)}...` : task.title}
                                 </span>
-                                <Tag color={priorityColor(task.priority)}>{task.priority}</Tag>
+                                <Tag style={typeof priorityColor(task.priority) === "object" ? priorityColor(task.priority) : {}} color={typeof priorityColor(task.priority) === "string" ? priorityColor(task.priority) : undefined}>
+                                  {task.priority}
+                                </Tag>
                               </span>
                             </motion.div>
 
@@ -673,8 +692,8 @@ export function Tasks({
                                         borderLeft:
                                           child.parentIds.length > 0
                                             ? `5px solid ${getParentColor(
-                                                child.parentIds[child.parentIds.length - 1]
-                                              )}`
+                                              child.parentIds[child.parentIds.length - 1]
+                                            )}`
                                             : "5px solid #fff",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
                                         position: "relative",
@@ -792,29 +811,43 @@ export function Tasks({
             Close
           </Button>,
         ]}
+        styles={{
+          header: {
+            background: "#60a5fa",
+            color: "#ffffff",
+            padding: "16px 24px",
+            borderRadius: "8px 8px 0 0",
+            margin: "-24px -24px 0 -24px", // Extend header to edges
+          },
+          body: {
+            padding: "24px",
+          },
+        }}
       >
         {selectedTask && (
-          <div className="task-details">
-            <h2>{selectedTask.title.length > 20 ? `${selectedTask.title.substring(0, 20)}...` : selectedTask.title}</h2>
+          <div className="task-details" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#222e3a", margin: 0 }}>
+              {selectedTask.title.length > 20 ? `${selectedTask.title.substring(0, 20)}...` : selectedTask.title}
+            </h2>
             {selectedTask.deadline && (
-              <p>
-                <strong>Deadline:</strong> {selectedTask.deadline}
+              <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+                <strong style={{ fontWeight: 600 }}>Deadline:</strong> {selectedTask.deadline}
                 {selectedTask.deadlineTime ? ` ${selectedTask.deadlineTime}` : ""}
               </p>
             )}
-            <p>
-              <strong>Description:</strong>{" "}
+            <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+              <strong style={{ fontWeight: 600 }}>Description:</strong>{" "}
               {selectedTask.description || "No description"}
             </p>
-            <p>
-              <strong>Priority:</strong> {selectedTask.priority}
+            <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+              <strong style={{ fontWeight: 600 }}>Priority:</strong> {selectedTask.priority}
             </p>
-            <p>
-              <strong>Category:</strong> {selectedTask.categoryId}
+            <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+              <strong style={{ fontWeight: 600 }}>Category:</strong> {selectedTask.categoryId}
             </p>
             {selectedTask.parentIds.length > 0 && (
-              <p>
-                <strong>Parent Tasks:</strong>{" "}
+              <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+                <strong style={{ fontWeight: 600 }}>Parent Tasks:</strong>{" "}
                 {allTasks
                   .filter((t) => selectedTask.parentIds.includes(t.id))
                   .map((t) => (t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title))
@@ -823,17 +856,19 @@ export function Tasks({
             )}
             {selectedTask.budgetItems && selectedTask.budgetItems.length > 0 && (
               <>
-                <h3>Expenses</h3>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#222e3a", margin: "12px 0 8px" }}>
+                  Expenses
+                </h3>
                 <List
                   dataSource={selectedTask.budgetItems}
                   renderItem={(item) => (
-                    <List.Item>
+                    <List.Item style={{ fontSize: "1rem", color: "#4d5156", padding: "8px 0" }}>
                       {item.name}: ${item.sum.toFixed(2)}
                     </List.Item>
                   )}
                 />
-                <p>
-                  <strong>Total:</strong>{" "}
+                <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+                  <strong style={{ fontWeight: 600 }}>Total:</strong>{" "}
                   ${selectedTask.budgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
                 </p>
               </>

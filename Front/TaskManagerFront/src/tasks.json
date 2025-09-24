@@ -1,0 +1,47 @@
+[
+  {
+    "id": "54d95565-b0d6-4efc-a20e-d609e5a0278c",
+    "userId": "283118eb-f3c5-4447-afa2-f5a93762a5e3",
+    "statusId": null,
+    "categoryId": "aca64275-a20c-46e4-97d8-4025a2ce0b11",
+    "title": "Sample Task",
+    "description": "This is a seeded task",
+    "priority": null,
+    "createdAt": "2025-09-22T10:59:02.9732814",
+    "deadline": null,
+    "color": "#FFFFFF",
+    "isCompleted": null,
+    "isFailed": null,
+    "positionOrder": 1
+  },
+    {
+        "id": "d3f1c8e2-5f4b-4c3a-9f1e-2b6e5a7c8d9e",
+        "userId": "283118eb-f3c5-4447-afa2-f5a93762a5e3",
+        "statusId": null,
+        "categoryId": "aca64275-a20c-46e4-97d8-4025a2ce0b11",
+        "title": "Another Task",
+        "description": "This is another seeded task",
+        "priority": null,
+        "createdAt": "2025-09-22T11:00:00.0000000",
+        "deadline": null,
+        "color": "#FF0000",
+        "isCompleted": null,
+        "isFailed": null,
+        "positionOrder": 0
+    },
+    {
+        "id": "e7b8c9d0-6f4a-4b3b-8f1e-3c7e5a8d9e0f",
+        "userId": "283118eb-f3c5-4447-afa2-f5a93762a5e3",
+        "statusId": null,
+        "categoryId": "aca64275-a20c-46e4-97d8-4025a2ce0b11",
+        "title": "High Priority Task",
+        "description": "This task has high priority",
+        "priority": 1,
+        "createdAt": "2025-09-22T11:05:00.0000000",
+        "deadline": null,
+        "color": "#00FF00",
+        "isCompleted": null,
+        "isFailed": null,
+        "positionOrder": 2
+    }
+]

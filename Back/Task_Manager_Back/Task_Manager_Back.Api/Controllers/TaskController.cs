@@ -21,8 +21,9 @@ public class TaskEntityController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateTaskRequest request)
     {
-        await _mediator.Send(request);
-        return CreatedAtAction(nameof(GetById), new { id = request.UserId }, request);
+        Guid taskId = await _mediator.Send(request);
+        // return CreatedAtAction(nameof(GetById), new { id = taskId }, request);
+        return Ok(taskId);
     }
 
     /// <summary>
