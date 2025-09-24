@@ -12,5 +12,6 @@ public record CreateTaskRequest(
     Guid CategoryId,
     DateTime? Deadline,
     bool IsCompleted,
-    int PositionOrder
+    int PositionOrder,
+    int Price
 ) : IRequest<Guid>;

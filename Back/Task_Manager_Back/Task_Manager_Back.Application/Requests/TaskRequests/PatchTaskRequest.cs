@@ -11,6 +11,8 @@ public record PatchTaskRequest(
     TaskPriority? Priority = null,
     Guid? CategoryId = null,
     DateTime? Deadline = null,
+    int? PositionOrder = null,
+    int? Price = null,
     bool? MarkCompleted = null,
     bool? MarkFailed = null
 ) : IRequest;
