@@ -9,7 +9,7 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructureServices(
         this IServiceCollection services)
     {
-        services.AddHttpClient<IAiChatService, AiChatService>();
+        services.AddHttpClient<IAskAiChatService, AskAiChatService>();
         return services;
     }
 }

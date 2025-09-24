@@ -17,8 +17,8 @@ public class TaskEntity
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
     public DateTime? Deadline { get; private set; }
     public string Color { get; private set; } = string.Empty;
-    public bool? IsCompleted { get; private set; }
-    public bool? IsFailed { get; private set; }
+    public bool IsCompleted { get; private set; }
+    public bool IsFailed { get; private set; }
     public int PositionOrder { get; private set; }
 
     private List<TaskLabel> Labels { get; set; } = new();
@@ -48,8 +48,8 @@ public class TaskEntity
         Deadline = @params.Deadline.HasValue
             ? ValidationHelper.ValidateNotPast(@params.Deadline.Value, nameof(@params.Deadline))
             : null;
-
-        PositionOrder = 0;
+        IsCompleted = @params.IsCompleted;
+        PositionOrder = @params.PositionOrder;
     }
 
 
@@ -106,15 +106,15 @@ public class TaskEntity
     public void UpdatePositionOrder(int positionOrder) => PositionOrder = positionOrder;
     public void MarkCompleted()
     {
-        if (IsCompleted.HasValue) throw new InvalidOperationException("Task is already completed");
-        if (IsFailed.HasValue) throw new InvalidOperationException("Cannot complete a failed task");
+        if (IsCompleted) throw new InvalidOperationException("Task is already completed");
+        if (IsFailed) throw new InvalidOperationException("Cannot complete a failed task");
         IsCompleted = true;
     }
 
     public void MarkFailed()
     {
-        if (IsFailed.HasValue) throw new InvalidOperationException("Task is already failed");
-        if (IsCompleted.HasValue) throw new InvalidOperationException("Cannot fail a completed task");
+        if (IsFailed) throw new InvalidOperationException("Task is already failed");
+        if (IsCompleted) throw new InvalidOperationException("Cannot fail a completed task");
         IsFailed = true;
     }
 
@@ -185,7 +185,7 @@ public class TaskEntity
     }
 }
 
-public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline);
+public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline, bool IsCompleted, int PositionOrder);
 public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline,
-    bool? IsCompleted, bool? IsFailed, int PositionOrder,
+    bool IsCompleted, bool IsFailed, int PositionOrder,
     List<TaskAttachment> Attachments, List<TaskReminder> Reminders, List<TaskRelation> TaskRelations, List<ShopItem> ShopItems);

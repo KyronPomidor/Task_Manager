@@ -19,26 +19,23 @@ public class UpdateTaskUseCase
             ?? throw new KeyNotFoundException($"Task with Id '{request.TaskId}' not found.");
 
         // Применяем изменения через доменные методы
-        if (!string.IsNullOrWhiteSpace(request.NewTitle))
-            task.Rename(request.NewTitle);
+        task.Rename(request.NewTitle);
 
-        if (request.NewDescription is not null)
-            task.UpdateDescription(request.NewDescription);
+        task.UpdateDescription(request.NewDescription);
 
-        if (request.NewStatusId.HasValue)
-            task.ChangeStatus(request.NewStatusId.Value);
+        task.ChangeStatus(request.NewStatusId);
 
-        if (request.NewCategoryId.HasValue)
-            task.ChangeCategory(request.NewCategoryId.Value);
+        task.ChangeCategory(request.NewCategoryId);
 
-        if (request.NewDeadline.HasValue)
-            task.ChangeDeadline(request.NewDeadline);
+        task.ChangeDeadline(request.NewDeadline);
 
-        if (request.IsCompleted == true)
-            task.MarkCompleted();
+        task.ChangePriority(request.NewPriority);
 
-        if (request.IsFailed == true)
-            task.MarkFailed();
+        task.ChangeColor(request.NewColor);
+
+        task.MarkCompleted();
+
+        task.MarkFailed();
 
         await _taskRepository.UpdateAsync(task);
     }

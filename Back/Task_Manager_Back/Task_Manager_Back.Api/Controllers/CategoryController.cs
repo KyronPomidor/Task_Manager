@@ -26,6 +26,12 @@ public class TaskCategoryController : ControllerBase
         var category = await _mediator.Send(new GetTaskUserCategoryByIdRequest(id));
         return category is null ? NotFound() : Ok(category);
     }
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var categories = await _mediator.Send(new GetTaskUserCategoriesRequest());
+        return Ok(categories);
+    }
 
     /// <summary>
     /// Get or create inbox category for a user.

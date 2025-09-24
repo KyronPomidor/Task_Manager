@@ -20,8 +20,6 @@ import {
   Divider,
   Space,
 } from "antd";
-
-
 import dayjs from "dayjs";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -29,6 +27,7 @@ import { MoreOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 
 const { Title, Text, Paragraph } = Typography;
+
 /* ------------------ Utility ------------------ */
 function priorityColor(p) {
   if (p === "Medium") return { backgroundColor: "#8fc1feff", borderColor: "#2563eb" };
@@ -170,7 +169,7 @@ export function Tasks({
   searchText,
   setSelectedCategory,
   addTask,
-  updateTask
+  updateTask,
 }) {
   /* ---------- State ---------- */
   const [editOpen, setEditOpen] = useState(false);
@@ -209,10 +208,10 @@ export function Tasks({
       return prev.map((t) =>
         t.id === id
           ? {
-            ...t,
-            completed: !t.completed,
-            categoryId: !t.completed ? "done" : t.categoryId,
-          }
+              ...t,
+              completed: !t.completed,
+              categoryId: !t.completed ? "done" : t.categoryId,
+            }
           : t
       );
     });
@@ -255,7 +254,6 @@ export function Tasks({
       return;
     }
     addTask(editTask);
-
     setAddOpen(false);
     setEditTask(null);
   }
@@ -373,10 +371,10 @@ export function Tasks({
     return Math.abs(hash) % mod;
   }
 
-  const getParentColor = (parentId) => {
+  function getParentColor(parentId) {
     const idx = hashStringToIndex(parentId, DEP_COLORS.length);
     return DEP_COLORS[idx];
-  };
+  }
 
   function getChildren(taskId) {
     return allTasks.filter((t) => t.parentIds.includes(taskId) && !t.completed);
@@ -405,7 +403,6 @@ export function Tasks({
             const bg = task.completed ? "#ececec" : "white";
             const hasChildren = allTasks.some((t) => t.parentIds.includes(task.id) && !t.completed);
             const parentBorderColor = hasChildren ? getParentColor(task.id) : "#fff";
-            const childIndicatorColors = task.parentIds.map(getParentColor);
             const isChild = task.parentIds.length > 0;
             const isParent = hasChildren;
 
@@ -479,7 +476,7 @@ export function Tasks({
                             <motion.div
                               animate={{ x: menuOpenId === task.id ? -60 : 0 }}
                               transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                              style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: 40 }}
+                              style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", width: "100%" }}
                             >
                               <span
                                 {...dragListeners}
@@ -488,6 +485,7 @@ export function Tasks({
                                   display: "flex",
                                   alignItems: "center",
                                   gap: "8px",
+                                  justifyContent: "center",
                                 }}
                               >
                                 <span className={`title ${task.completed ? "done" : ""}`}>
@@ -510,7 +508,6 @@ export function Tasks({
                                   marginTop: "2px",
                                   textAlign: "center",
                                   width: "100%",
-                                  position: "relative",
                                 }}
                               >
                                 {task.deadline}
@@ -574,7 +571,7 @@ export function Tasks({
                                       width: 16,
                                       height: 16,
                                       borderRadius: "50%",
-                                      background: childIndicatorColors[idx],
+                                      background: getParentColor(pid),
                                       border: "2px solid #fff",
                                       boxShadow: "0 0 0 1px #ccc",
                                       cursor: "pointer",
@@ -686,7 +683,6 @@ export function Tasks({
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {getChildren(task.id).map((child) => {
-                                  const childIndicatorColors = child.parentIds.map(getParentColor);
                                   return (
                                     <Card
                                       key={child.id}
@@ -698,8 +694,8 @@ export function Tasks({
                                         borderLeft:
                                           child.parentIds.length > 0
                                             ? `5px solid ${getParentColor(
-                                              child.parentIds[child.parentIds.length - 1]
-                                            )}`
+                                                child.parentIds[child.parentIds.length - 1]
+                                              )}`
                                             : "5px solid #fff",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
                                         position: "relative",
@@ -710,7 +706,9 @@ export function Tasks({
                                           <span className={`title ${child.completed ? "done" : ""}`}>
                                             {child.title.length > 20 ? `${child.title.substring(0, 20)}...` : child.title}
                                           </span>
-                                          <Tag color={priorityColor(child.priority)}>{child.priority}</Tag>
+                                          <Tag style={typeof priorityColor(child.priority) === "object" ? priorityColor(child.priority) : {}} color={typeof priorityColor(child.priority) === "string" ? priorityColor(child.priority) : undefined}>
+                                            {child.priority}
+                                          </Tag>
                                           {child.deadline && (
                                             <div style={{ fontSize: "0.85rem", color: "#60a5fa", marginTop: 2 }}>
                                               {child.deadline}
@@ -790,7 +788,7 @@ export function Tasks({
 
       {/* -------- Details Modal -------- */}
       <Modal
-        title={null}
+        title="Task Details"
         open={detailsOpen}
         centered
         destroyOnClose
@@ -819,16 +817,14 @@ export function Tasks({
             Close
           </Button>,
         ]}
+        className="custom-modal"
         bodyStyle={{ padding: "24px 32px" }}
       >
         {selectedTask && (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {/* Title */}
             <Title level={3} style={{ margin: 0, color: "#1a2233" }}>
               {selectedTask.title}
             </Title>
-
-            {/* Meta Info */}
             <Row gutter={[16, 12]}>
               {selectedTask.deadline && (
                 <Col span={12}>
@@ -841,7 +837,7 @@ export function Tasks({
               )}
               <Col span={12}>
                 <Text strong>Priority: </Text>
-                <Tag color={priorityColor(selectedTask.priority)}>
+                <Tag style={typeof priorityColor(selectedTask.priority) === "object" ? priorityColor(selectedTask.priority) : {}} color={typeof priorityColor(selectedTask.priority) === "string" ? priorityColor(selectedTask.priority) : undefined}>
                   {selectedTask.priority}
                 </Tag>
               </Col>
@@ -850,16 +846,15 @@ export function Tasks({
                 <Text style={{ color: "#000" }}>{selectedTask.categoryId}</Text>
               </Col>
             </Row>
-
             <Divider style={{ margin: "12px 0" }} />
-
-            {/* Description */}
             <div
               style={{
                 background: "#f9fafb",
                 padding: "12px 16px",
                 borderRadius: "8px",
                 border: "1px solid #e5e7eb",
+                maxHeight: "200px",
+                overflowY: "auto",
               }}
             >
               <Text strong>Description:</Text>
@@ -867,8 +862,6 @@ export function Tasks({
                 {selectedTask.description || "No description provided"}
               </Paragraph>
             </div>
-
-            {/* Parents */}
             {selectedTask.parentIds.length > 0 && (
               <div>
                 <Text strong>Parent Tasks:</Text>
@@ -895,8 +888,6 @@ export function Tasks({
                 </div>
               </div>
             )}
-
-            {/* Expenses */}
             {selectedTask.budgetItems && selectedTask.budgetItems.length > 0 && (
               <>
                 <Divider />
@@ -940,6 +931,8 @@ export function Tasks({
         }}
         onOk={saveBudgetItems}
         okText="Save"
+        className="custom-modal"
+        bodyStyle={{ padding: "24px 32px" }}
       >
         <Form layout="inline" style={{ marginBottom: 12 }}>
           <Form.Item label="Name">
@@ -963,7 +956,6 @@ export function Tasks({
             </Button>
           </Form.Item>
         </Form>
-
         <List
           bordered
           dataSource={tempBudgetItems}
@@ -973,7 +965,6 @@ export function Tasks({
             </List.Item>
           )}
         />
-
         {tempBudgetItems.length > 0 && (
           <p style={{ marginTop: 10 }}>
             <strong>Total:</strong>{" "}
@@ -994,100 +985,8 @@ export function Tasks({
         }}
         onOk={handleSaveEdit}
         okText="Save"
-      >
-        {editTask && (
-          <Form layout="vertical">
-            {/* same as before */}
-          </Form>
-        )}
-      </Modal>
-
-      {/* -------- Add Modal -------- */}
-      <Modal
-        title="Add new task"
-        open={addOpen}
-        centered
-        destroyOnClose
-        onCancel={() => {
-          setAddOpen(false);
-          setEditTask(null);
-        }}
-        onOk={handleSaveNew}
-        okText="Save"
-      >
-        {editTask && (
-          <Form layout="vertical">
-            {/* same as before */}
-          </Form>
-        )}
-      </Modal>
-
-
-      <Modal
-        title="Budget Tracker"
-        open={budgetOpen}
-        centered
-        destroyOnClose
-        onCancel={() => {
-          setBudgetOpen(false);
-          setBudgetTask(null);
-          setTempBudgetItems([]);
-        }}
-        onOk={saveBudgetItems}
-        okText="Save"
-      >
-        <Form layout="inline" style={{ marginBottom: 12 }}>
-          <Form.Item label="Name">
-            <Input
-              value={budgetName}
-              onChange={(e) => setBudgetName(e.target.value)}
-              placeholder="e.g. Hosting"
-            />
-          </Form.Item>
-          <Form.Item label="Sum">
-            <Input
-              type="number"
-              value={budgetSum}
-              onChange={(e) => setBudgetSum(e.target.value)}
-              placeholder="100"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Button type="dashed" onClick={addTempBudgetItem}>
-              Add Item
-            </Button>
-          </Form.Item>
-        </Form>
-
-        <List
-          bordered
-          dataSource={tempBudgetItems}
-          renderItem={(item) => (
-            <List.Item>
-              {item.name}: ${item.sum.toFixed(2)}
-            </List.Item>
-          )}
-        />
-
-        {tempBudgetItems.length > 0 && (
-          <p style={{ marginTop: 10 }}>
-            <strong>Total:</strong>{" "}
-            ${tempBudgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
-          </p>
-        )}
-      </Modal>
-
-      <Modal
-        title="Edit task"
-        open={editOpen}
-        centered
-        destroyOnClose
-        onCancel={() => {
-          setEditOpen(false);
-          setEditTask(null);
-        }}
-        onOk={handleSaveEdit}
-        okText="Save"
+        className="custom-modal"
+        bodyStyle={{ padding: "16px 24px", maxHeight: "400px", overflowY: "auto" }}
       >
         {editTask && (
           <Form layout="vertical">
@@ -1097,15 +996,13 @@ export function Tasks({
                 onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
               />
             </Form.Item>
-
             <Form.Item label="Description">
               <Input.TextArea
                 value={editTask.description}
                 onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
-                style={{ height: 120, resize: "none", overflowY: "auto" }} // fixed height + scroll
+                style={{ height: 120, resize: "none", overflowY: "auto" }}
               />
             </Form.Item>
-
             <Form.Item label="Priority">
               <Select
                 value={editTask.priority}
@@ -1116,7 +1013,6 @@ export function Tasks({
                 <Select.Option value="High">High</Select.Option>
               </Select>
             </Form.Item>
-
             <Form.Item label="Deadline (date)">
               <DatePicker
                 style={{ width: "100%" }}
@@ -1124,7 +1020,6 @@ export function Tasks({
                 onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
               />
             </Form.Item>
-
             <Form.Item label="Deadline (time, optional)">
               <TimePicker
                 style={{ width: "100%" }}
@@ -1133,7 +1028,6 @@ export function Tasks({
                 onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
               />
             </Form.Item>
-
             <Form.Item label="Parent Tasks">
               <Select
                 mode="multiple"
@@ -1147,7 +1041,6 @@ export function Tasks({
                 ))}
               </Select>
             </Form.Item>
-
             <Form.Item label="Category">
               <Select
                 value={editTask.categoryId}
@@ -1165,6 +1058,7 @@ export function Tasks({
         )}
       </Modal>
 
+      {/* -------- Add Modal -------- */}
       <Modal
         title="Add new task"
         open={addOpen}
@@ -1176,6 +1070,8 @@ export function Tasks({
         }}
         onOk={handleSaveNew}
         okText="Save"
+        className="custom-modal"
+        bodyStyle={{ padding: "16px 24px", maxHeight: "400px", overflowY: "auto" }}
       >
         {editTask && (
           <Form layout="vertical">
@@ -1185,16 +1081,13 @@ export function Tasks({
                 onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
               />
             </Form.Item>
-
             <Form.Item label="Description">
               <Input.TextArea
                 value={editTask.description}
                 onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
-                style={{ height: 120, resize: "none", overflowY: "auto" }} // fixed height + scroll
+                style={{ height: 120, resize: "none", overflowY: "auto" }}
               />
             </Form.Item>
-
-
             <Form.Item label="Priority">
               <Select
                 value={editTask.priority}
@@ -1205,7 +1098,6 @@ export function Tasks({
                 <Select.Option value="High">High</Select.Option>
               </Select>
             </Form.Item>
-
             <Form.Item label="Deadline (date)">
               <DatePicker
                 style={{ width: "100%" }}
@@ -1213,7 +1105,6 @@ export function Tasks({
                 onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
               />
             </Form.Item>
-
             <Form.Item label="Deadline (time, optional)">
               <TimePicker
                 style={{ width: "100%" }}
@@ -1222,7 +1113,6 @@ export function Tasks({
                 onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
               />
             </Form.Item>
-
             <Form.Item label="Parent Tasks">
               <Select
                 mode="multiple"
@@ -1236,7 +1126,6 @@ export function Tasks({
                 ))}
               </Select>
             </Form.Item>
-
             <Form.Item label="Category">
               <Select
                 value={editTask.categoryId}

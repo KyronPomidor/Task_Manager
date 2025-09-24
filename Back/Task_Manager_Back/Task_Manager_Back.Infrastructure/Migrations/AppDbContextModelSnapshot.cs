@@ -337,10 +337,10 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<bool?>("IsCompleted")
+                    b.Property<bool>("IsCompleted")
                         .HasColumnType("bit");
 
-                    b.Property<bool?>("IsFailed")
+                    b.Property<bool>("IsFailed")
                         .HasColumnType("bit");
 
                     b.Property<int>("PositionOrder")

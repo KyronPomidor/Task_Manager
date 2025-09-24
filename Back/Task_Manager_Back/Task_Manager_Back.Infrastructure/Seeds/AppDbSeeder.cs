@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Task_Manager_Back.Domain.Entities.Enums;
 using Task_Manager_Back.Domain.Entities.TaskCategories;
 using Task_Manager_Back.Domain.Entities.TaskRelated;
+using Task_Manager_Back.Application.IRepositories;
 using Task_Manager_Back.Infrastructure.DbContext;
 
 namespace Task_Manager_Back.Infrastructure.Seeds;
@@ -16,6 +18,8 @@ public static class AppDbSeeder
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var categoryRepo = scope.ServiceProvider.GetRequiredService<ITaskCategoryRepository>();
+        var taskRepo = scope.ServiceProvider.GetRequiredService<ITaskRepository>();
 
         // Ensure database is up to date
         await db.Database.MigrateAsync();
@@ -55,38 +59,61 @@ public static class AppDbSeeder
             user = existingUser;
         }
 
-        // Seed default user category (TaskUserCategory)
         var userGuid = Guid.Parse(user.Id);
 
-        if (!await db.Categories.OfType<TaskUserCategory>().AnyAsync(c => c.UserId == userGuid))
+        // --- CATEGORIES ---
+        // Inbox (always exists)
+        var inbox = await categoryRepo.GetOrCreateInboxForUser(userGuid);
+
+        // Work category
+        var work = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "Work", "Work related tasks", null, "#FFD700"));
+        await categoryRepo.CreateAsync(work);
+
+        // Work subcategories
+        var firstTaskCategory = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "First task", "Subcategory of Work", work.Id, "#87CEEB"));
+        await categoryRepo.CreateAsync(firstTaskCategory);
+
+        var secondTaskCategory = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "Second task", "Subcategory of Work", work.Id, "#90EE90"));
+        await categoryRepo.CreateAsync(secondTaskCategory);
+
+        // Personal category
+        var personal = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "Personal", "Personal life tasks", null, "#FF69B4"));
+        await categoryRepo.CreateAsync(personal);
+
+        // Personal subcategory
+        var fun = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            userGuid, "Fun", "Personal fun activities", personal.Id, "#BA55D3"));
+        await categoryRepo.CreateAsync(fun);
+
+        // --- TASKS ---
+        // Clear old seeded tasks
+        var oldTasks = db.Tasks.Where(t => t.UserId == userGuid && t.Title.StartsWith("Seeded Task"));
+        db.Tasks.RemoveRange(oldTasks);
+        await db.SaveChangesAsync();
+
+        // Add fresh demo tasks into Inbox
+        var priorities = Enum.GetValues<TaskPriority>();
+        for (int i = 1; i <= 10; i++)
         {
-            var category = new TaskUserCategory(new TaskUserCategoryCreateParams(
-                UserId: userGuid,
-                Title: "Default Category",
-                Description: "Seeded category",
-                ParentCategoryId: null,
-                Color: "#FFFFFF"
-            ));
-
-            await db.Categories.AddAsync(category);
-            await db.SaveChangesAsync();
-
-            // Seed a task in that category
+            var priority = priorities[(i - 1) % priorities.Length];
             var task = new TaskEntity(new TaskEntityCreateParams(
                 UserId: userGuid,
-                Title: "Sample Task",
+                Title: $"Seeded Task {i}",
                 Color: "#FFFFFF",
-                Description: "This is a seeded task",
+                Description: $"This is seeded task number {i} with {priority} priority",
                 StatusId: null,
-                Priority: null,
-                CategoryId: category.Id,
-                Deadline: null
+                Priority: priority,
+                CategoryId: inbox.Id, // assign to Inbox
+                Deadline: DateTime.UtcNow.AddDays(i),
+                IsCompleted: false,
+                PositionOrder: i
             ));
 
-
-            await db.Tasks.AddAsync(task);
-            await db.SaveChangesAsync();
+            await taskRepo.CreateAsync(task);
         }
-
     }
 }

@@ -7,7 +7,7 @@ import { Welcome } from "../Widgets/Welcome";
 import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import Authorization from "../pages/authorization";
-import useAuth from "../hooks/useAuth"; // kept, but you can remove if not needed
+import useAuth from "../hooks/useAuth";
 import UserProfileMenu from "../Widgets/UserProfile";
 import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration";
 import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
@@ -96,23 +96,24 @@ export default function App() {
     setTasks((prev) => [...prev, tempTask]);
 
     const backendTask = {
+      taskId: updateTask.id,
       userId: fixedUserId,
-      title: newTask.title,
-      description: newTask.description || null,
-      color: "#FFFFFF",
-      statusId: null,
-      // 🔹 priority mapping (string → number)
-      priority:
-        newTask.priority === "Low"
+      newTitle: updateTask.title,
+      newDescription: updateTask.description || null,
+      newStatusId: null,
+      newCategoryId: fixedCategoryId,
+      newDeadline: updateTask.deadline
+        ? `${updateTask.deadline}T${updateTask.deadlineTime || "00:00"}:00`
+        : null,
+      newPriority:
+        updateTask.priority === "Low"
           ? 0
-          : newTask.priority === "High"
+          : updateTask.priority === "High"
             ? 2
             : 1,
-      categoryId: fixedCategoryId,
-      deadline: newTask.deadline
-        ? `${newTask.deadline}T${newTask.deadlineTime || "00:00"}:00`
-        : null,
-      positionOrder: tasks.length + 1,
+      newColor: updateTask.color || "#FFFFFF",
+      isCompleted: updateTask.completed || false,
+      isFailed: null,
     };
 
     try {
@@ -140,37 +141,34 @@ export default function App() {
     }
   };
 
-
-  const updateTask = async (updatedTask) => {
+  const updateTask = async (updateTask) => {
     setTasks((prev) =>
-      prev.map((t) => (t.id === updatedTask.id ? { ...t, ...updatedTask } : t))
+      prev.map((t) => (t.id === updateTask.id ? { ...t, ...updateTask } : t))
     );
 
     const backendTask = {
-      taskId: updatedTask.id,
-      userId: fixedUserId,
-      newTitle: updatedTask.title,
-      newDescription: updatedTask.description || null,
-      newStatusId: null,
-      newCategoryId: fixedCategoryId,
-      newDeadline: updatedTask.deadline
-        ? `${updatedTask.deadline}T${updatedTask.deadlineTime || "00:00"}:00`
+      taskId: updateTask.id,
+      title: updateTask.title || null,
+      description: updateTask.description || null,
+      statusId: null,
+      categoryId: fixedCategoryId,
+      deadline: updateTask.deadline
+        ? `${updateTask.deadline}T${updateTask.deadlineTime || "00:00"}:00`
         : null,
-      newPriority:
-        updatedTask.priority === "Low"
+      priority:
+        updateTask.priority === "Low"
           ? 0
-          : updatedTask.priority === "High"
+          : updateTask.priority === "High"
             ? 2
             : 1,
-      newColor: updatedTask.color || "#FFFFFF",   // 🔹 added color
-      isCompleted: updatedTask.completed || false, // 🔹 sync done state
-      isFailed: null,
+      markCompleted: updateTask.completed || false,
+      markFailed: null,
     };
 
     try {
-      console.log("Sending update to backend:", backendTask);
-      const response = await axios.put(
-        `http://localhost:5053/api/tasks/${updatedTask.id}`,
+      console.log("Sending update (PATCH) to backend:", backendTask);
+      const response = await axios.patch(
+        `http://localhost:5053/api/tasks/${updateTask.id}`,
         backendTask,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -183,6 +181,7 @@ export default function App() {
       });
     }
   };
+
 
   // --- Drag handler
   const droppableCategoryIds = new Set(categories.map((c) => c.id));
@@ -299,7 +298,7 @@ export default function App() {
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "flex-end", 
+                    justifyContent: "flex-end",
                     gap: "16px",
                     marginTop: "1vh",
                     marginRight: "1vw",
