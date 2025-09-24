@@ -21,12 +21,11 @@ import dayjs from "dayjs";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MoreOutlined } from "@ant-design/icons";
-import { getParentColor, DEP_COLORS, hashStringToIndex } from "../../../utils/colorUtils";
 import { motion, AnimatePresence } from "framer-motion";
 
 /* ------------------ Utility ------------------ */
 function priorityColor(p) {
-  if (p === "Medium") return { backgroundColor: "#cadbffff", borderColor: "#2563eb" };
+  if (p === "Medium") return { backgroundColor: "#8fc1feff", borderColor: "#2563eb" };
   return p === "Low" ? "default" : "red";
 }
 
@@ -219,16 +218,10 @@ export function Tasks({
   }
 
   function handleSaveEdit() {
-    setTasks((prev) => prev.map((t) => (t.id === editTask.id ? editTask : t)));
-
-    if (typeof updateTask === "function") {
-      updateTask(editTask);
-    }
-
+    updateTask(editTask);
     setEditOpen(false);
     setEditTask(null);
   }
-
 
   function handleAddNew() {
     const newTask = {
@@ -255,19 +248,11 @@ export function Tasks({
       Modal.error({ title: "Title is required" });
       return;
     }
-
-    // Add to local state immediately (at the front of the array)
-    setTasks((prev) => [editTask, ...prev]);
-
-    // Push to backend (simplified object)
-    if (typeof addTask === "function") {
-      addTask(editTask);
-    }
+    addTask(editTask);
 
     setAddOpen(false);
     setEditTask(null);
   }
-
 
   function handleCardClick(task) {
     setSelectedTask(task);
@@ -334,6 +319,14 @@ export function Tasks({
     }
   }
 
+  function calculateTotalExpenses() {
+    if (selectedCategory !== "done") return 0;
+    return filteredTasks
+      .filter((t) => t.completed && t.budgetItems && t.budgetItems.length > 0)
+      .reduce((acc, task) => acc + task.budgetItems.reduce((sum, item) => sum + (item.sum || 0), 0), 0)
+      .toFixed(2);
+  }
+
   /* ---------- Filters ---------- */
   const [filters, setFilters] = useState({
     priority: "All",
@@ -359,6 +352,20 @@ export function Tasks({
     return true;
   });
 
+  /* ---------- Parent/Child Coloring ---------- */
+  const DEP_COLORS = [
+    "#FFD93D", "#FF6B6B", "#6BCB77", "#4D96FF", "#845EC2",
+    "#FF9671", "#FFC75F", "#0081CF", "#B39CD0", "#3705dcff"
+  ];
+
+  function hashStringToIndex(str, mod) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash) % mod;
+  }
 
   const getParentColor = (parentId) => {
     const idx = hashStringToIndex(parentId, DEP_COLORS.length);
@@ -372,13 +379,18 @@ export function Tasks({
   /* ---------- Render ---------- */
   return (
     <div className="tasks-container">
-      <div className="composer" style={{ display: "flex", alignItems: "center" }}>
+      <div className="composer" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
         {selectedCategory !== "done" && (
           <Button type="primary" onClick={handleAddNew}>
             Add
           </Button>
         )}
         <TaskFilters filters={filters} setFilters={setFilters} />
+        {selectedCategory === "done" && (
+          <span style={{ fontSize: "0.9rem", color: "#4d5156", fontWeight: 600 }}>
+            Total Expenses: ${calculateTotalExpenses()}
+          </span>
+        )}
       </div>
 
       <SortableContext items={filteredAndSortedTasks.map((t) => t.id)}>
@@ -515,28 +527,19 @@ export function Tasks({
                           />
                         }
                       >
-                        {(() => {
-                          const desc = task.description || "";
-                          return (
-                            <div
-                              className="desc"
-                              style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                textAlign: "center",
-                                minHeight: "50px",
-                                width: "100%",
-                                overflow: desc.length > 50 ? "hidden" : "visible",
-                                textOverflow: desc.length > 50 ? "ellipsis" : "clip",
-                                whiteSpace: desc.length > 50 ? "nowrap" : "normal",
-                                maxWidth: "100%",
-                              }}
-                            >
-                              {desc.length > 50 ? `${desc.substring(0, 50)}...` : desc || "No description"}
-                            </div>
-                          );
-                        })()}
+                        <div
+                          className="desc"
+                          style={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            textAlign: "center",
+                            minHeight: "50px",
+                            width: "100%",
+                          }}
+                        >
+                          {task.description || "No description"}
+                        </div>
 
                         {/* Dependency Indicators (Bottom-Left) */}
                         {isChild && (
@@ -552,17 +555,20 @@ export function Tasks({
                               zIndex: 10,
                             }}
                           >
-                            {task.parentIds.map((pid) => {
+                            {task.parentIds.map((pid, idx) => {
                               const parentTask = allTasks.find((t) => t.id === pid);
                               return (
-                                <Tooltip key={pid} title={parentTask ? parentTask.title : "Unknown Parent"}>
+                                <Tooltip
+                                  key={idx}
+                                  title={parentTask ? parentTask.title : "Unknown Parent"}
+                                >
                                   <span
                                     style={{
                                       display: "inline-block",
                                       width: 16,
                                       height: 16,
                                       borderRadius: "50%",
-                                      background: getParentColor(pid),
+                                      background: childIndicatorColors[idx],
                                       border: "2px solid #fff",
                                       boxShadow: "0 0 0 1px #ccc",
                                       cursor: "pointer",
@@ -674,6 +680,7 @@ export function Tasks({
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {getChildren(task.id).map((child) => {
+                                  const childIndicatorColors = child.parentIds.map(getParentColor);
                                   return (
                                     <Card
                                       key={child.id}
@@ -697,9 +704,7 @@ export function Tasks({
                                           <span className={`title ${child.completed ? "done" : ""}`}>
                                             {child.title.length > 20 ? `${child.title.substring(0, 20)}...` : child.title}
                                           </span>
-                                          <Tag style={typeof priorityColor(child.priority) === "object" ? priorityColor(child.priority) : {}} color={typeof priorityColor(child.priority) === "string" ? priorityColor(child.priority) : undefined}>
-                                            {child.priority}
-                                          </Tag>
+                                          <Tag color={priorityColor(child.priority)}>{child.priority}</Tag>
                                           {child.deadline && (
                                             <div style={{ fontSize: "0.85rem", color: "#60a5fa", marginTop: 2 }}>
                                               {child.deadline}
@@ -709,29 +714,19 @@ export function Tasks({
                                         </div>
                                       }
                                     >
-                                      {(() => {
-                                        const desc = child.description || "";
-                                        return (
-                                          <div
-                                            className="desc"
-                                            style={{
-                                              display: "flex",
-                                              justifyContent: "center",
-                                              alignItems: "center",
-                                              textAlign: "center",
-                                              minHeight: "50px",
-                                              width: "100%",
-                                              overflow: desc.length > 50 ? "hidden" : "visible",
-                                              textOverflow: desc.length > 50 ? "ellipsis" : "clip",
-                                              whiteSpace: desc.length > 50 ? "nowrap" : "normal",
-                                              maxWidth: "100%",
-                                            }}
-                                          >
-                                            {desc.length > 50 ? `${desc.substring(0, 50)}...` : desc || "No description"}
-                                          </div>
-                                        );
-                                      })()}
-
+                                      <div
+                                        className="desc"
+                                        style={{
+                                          display: "flex",
+                                          justifyContent: "center",
+                                          alignItems: "center",
+                                          textAlign: "center",
+                                          minHeight: "50px",
+                                          width: "100%",
+                                        }}
+                                      >
+                                        {child.description || "No description"}
+                                      </div>
                                       {child.parentIds.length > 0 && (
                                         <div
                                           className="dependency-indicators"
@@ -745,10 +740,13 @@ export function Tasks({
                                             zIndex: 10,
                                           }}
                                         >
-                                          {child.parentIds.map((pid) => {
+                                          {child.parentIds.map((pid, idx) => {
                                             const parentTask = allTasks.find((t) => t.id === pid);
                                             return (
-                                              <Tooltip key={pid} title={parentTask ? parentTask.title : "Unknown Parent"}>
+                                              <Tooltip
+                                                key={idx}
+                                                title={parentTask ? parentTask.title : "Unknown Parent"}
+                                              >
                                                 <span
                                                   style={{
                                                     display: "inline-block",
@@ -813,29 +811,43 @@ export function Tasks({
             Close
           </Button>,
         ]}
+        styles={{
+          header: {
+            background: "#60a5fa",
+            color: "#ffffff",
+            padding: "16px 24px",
+            borderRadius: "8px 8px 0 0",
+            margin: "-24px -24px 0 -24px", // Extend header to edges
+          },
+          body: {
+            padding: "24px",
+          },
+        }}
       >
         {selectedTask && (
-          <div className="task-details">
-            <h2>{selectedTask.title.length > 20 ? `${selectedTask.title.substring(0, 20)}...` : selectedTask.title}</h2>
+          <div className="task-details" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#222e3a", margin: 0 }}>
+              {selectedTask.title.length > 20 ? `${selectedTask.title.substring(0, 20)}...` : selectedTask.title}
+            </h2>
             {selectedTask.deadline && (
-              <p>
-                <strong>Deadline:</strong> {selectedTask.deadline}
+              <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+                <strong style={{ fontWeight: 600 }}>Deadline:</strong> {selectedTask.deadline}
                 {selectedTask.deadlineTime ? ` ${selectedTask.deadlineTime}` : ""}
               </p>
             )}
-            <p>
-              <strong>Description:</strong>{" "}
+            <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+              <strong style={{ fontWeight: 600 }}>Description:</strong>{" "}
               {selectedTask.description || "No description"}
             </p>
-            <p>
-              <strong>Priority:</strong> {selectedTask.priority}
+            <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+              <strong style={{ fontWeight: 600 }}>Priority:</strong> {selectedTask.priority}
             </p>
-            <p>
-              <strong>Category:</strong> {selectedTask.categoryId}
+            <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+              <strong style={{ fontWeight: 600 }}>Category:</strong> {selectedTask.categoryId}
             </p>
             {selectedTask.parentIds.length > 0 && (
-              <p>
-                <strong>Parent Tasks:</strong>{" "}
+              <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+                <strong style={{ fontWeight: 600 }}>Parent Tasks:</strong>{" "}
                 {allTasks
                   .filter((t) => selectedTask.parentIds.includes(t.id))
                   .map((t) => (t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title))
@@ -844,17 +856,19 @@ export function Tasks({
             )}
             {selectedTask.budgetItems && selectedTask.budgetItems.length > 0 && (
               <>
-                <h3>Expenses</h3>
+                <h3 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#222e3a", margin: "12px 0 8px" }}>
+                  Expenses
+                </h3>
                 <List
                   dataSource={selectedTask.budgetItems}
                   renderItem={(item) => (
-                    <List.Item>
+                    <List.Item style={{ fontSize: "1rem", color: "#4d5156", padding: "8px 0" }}>
                       {item.name}: ${item.sum.toFixed(2)}
                     </List.Item>
                   )}
                 />
-                <p>
-                  <strong>Total:</strong>{" "}
+                <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
+                  <strong style={{ fontWeight: 600 }}>Total:</strong>{" "}
                   ${selectedTask.budgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
                 </p>
               </>

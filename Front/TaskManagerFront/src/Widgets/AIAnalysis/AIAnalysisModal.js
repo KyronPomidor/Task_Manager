@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Modal, Input, Button } from "antd";
-import aiIcon from "./ai.png";
 
 export function AIAnalysisModal({ visible, onClose, onSend }) {
   const [inputText, setInputText] = useState("");

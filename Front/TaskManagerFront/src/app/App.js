@@ -7,22 +7,15 @@ import { Welcome } from "../Widgets/Welcome";
 import { DndContext, closestCenter, DragOverlay } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import Authorization from "../pages/authorization";
-import useAuth from "../hooks/useAuth";
+import useAuth from "../hooks/useAuth"; // kept, but you can remove if not needed
 import UserProfileMenu from "../Widgets/UserProfile";
 import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration";
 import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
-import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import aiIcon from "./ai.png";
 import axios from "axios";
 
-const priorityMap = {
-  Low: 0,
-  Medium: 1,
-  High: 2,
-  Urgent: 3,
-};
-
 export default function App() {
+  // 🔹 if you don’t use auth at all, you can remove next line and the check below
   const { user, loading } = useAuth();
 
   const [categories, setCategories] = useState([
@@ -39,78 +32,77 @@ export default function App() {
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
 
   const [tasks, setTasks] = useState([]);
-
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const [searchText, setSearchText] = useState("");
 
-  useEffect(() => {
-    if (!user || loading) return;
+  // Fixed values for backend
+  const fixedUserId = "283118eb-f3c5-4447-afa2-f5a93762a5e3";
+  const fixedCategoryId = "3f34e2d1-aaaa-bbbb-cccc-1234567890ab";
 
+  // --- Load from backend once
+  useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await fetch("http://localhost:5053/api/tasks", {
-          headers: {
-            Authorization: `Bearer ${user.token}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
+        const response = await axios.get("http://localhost:5053/api/tasks");
+        console.log("Fetched tasks from backend:", response.data);
 
-        const mappedTasks = data.map((backendTask) => ({
-          id: backendTask.id,
-          title: backendTask.title,
-          description: backendTask.description || "",
+        const mapped = response.data.map((t) => ({
+          id: t.id, // keep backend id
+          title: t.title,
+          description: t.description || "",
+          
           priority:
-            backendTask.priority === 0
+            t.priority === 0
               ? "Low"
-              : backendTask.priority === 2
+              : t.priority >= 2 
                 ? "High"
-                : backendTask.priority === 3
-                  ? "Urgent"
                   : "Medium",
-          deadline: backendTask.deadline
-            ? backendTask.deadline.split("T")[0]
-            : null,
+          deadline: t.deadline ? t.deadline.split("T")[0] : null,
           deadlineTime:
-            backendTask.deadline && backendTask.deadline.includes("T")
-              ? backendTask.deadline.split("T")[1].slice(0, 5)
+            t.deadline && t.deadline.includes("T")
+              ? t.deadline.split("T")[1].slice(0, 5)
               : null,
-          categoryId: "inbox", // map to inbox for now
-          completed: backendTask.isCompleted || false,
+          categoryId: "inbox", // frontend category only
+          completed: t.isCompleted || false,
           parentIds: [],
-          graphNode: { id: backendTask.title, x: 100, y: 100 },
-          positionOrder: backendTask.positionOrder || 0,
+          graphNode: { id: t.title, x: 100, y: 100 },
+          positionOrder: t.positionOrder || 0,
         }));
-
-        const sortedTasks = mappedTasks.sort(
-          (a, b) => a.positionOrder - b.positionOrder
-        );
-        setTasks(sortedTasks);
-      } catch (error) {
-        console.error("Failed to fetch tasks:", error);
-        setTasks([]);
-        Modal.error({
-          title: "Error",
-          content: "Failed to fetch tasks. Please try again.",
-        });
+        setTasks(mapped);
+      } catch (err) {
+        console.error("Error loading tasks:", err);
       }
     };
 
     fetchTasks();
-  }, [user, loading]);
+  }, []);
 
-  // define addTask
+  // --- Add task locally first, then backend
   const addTask = async (newTask) => {
+    const tempId = Date.now().toString();
+    const tempTask = {
+      id: tempId,
+      title: newTask.title,
+      description: newTask.description || "",
+      priority: newTask.priority || "Medium",
+      deadline: newTask.deadline || null,
+      deadlineTime: newTask.deadlineTime || null,
+      categoryId: selectedCategory,
+      completed: false,
+      parentIds: [],
+      graphNode: { id: newTask.title, x: 200, y: 200 },
+    };
+
+    setTasks((prev) => [...prev, tempTask]);
+
     const backendTask = {
-      userId: "283118eb-f3c5-4447-afa2-f5a93762a5e3",
+      userId: fixedUserId,
       title: newTask.title,
       description: newTask.description || null,
       color: "#FFFFFF",
       statusId: null,
-      priority: priorityMap[newTask.priority] || 1,
-      categoryId: null,
+      priority: null,
+      categoryId: fixedCategoryId,
       deadline: newTask.deadline
         ? `${newTask.deadline}T${newTask.deadlineTime || "00:00"}:00`
         : null,
@@ -118,71 +110,43 @@ export default function App() {
     };
 
     try {
-      console.log("Sending POST payload:", backendTask); // Debug payload
-      await axios.post("http://localhost:5053/api/tasks", backendTask, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${user.token}`,
-        },
-      });
-
-      // Fetch updated tasks
-      const response = await fetch("http://localhost:5053/api/tasks", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
-
-      const sorted = data
-        .map((t) => ({
-          id: t.id,
-          title: t.title,
-          description: t.description || "",
-          priority:
-            t.priority === 0
-              ? "Low"
-              : t.priority === 2
-                ? "High"
-                : t.priority === 3
-                  ? "Urgent"
-                  : "Medium",
-          deadline: t.deadline ? t.deadline.split("T")[0] : null,
-          deadlineTime:
-            t.deadline && t.deadline.includes("T")
-              ? t.deadline.split("T")[1].slice(0, 5)
-              : null,
-          categoryId: "inbox",
-          completed: t.isCompleted || false,
-          parentIds: [],
-          graphNode: { id: t.title, x: 100, y: 100 },
-          positionOrder: t.positionOrder || 0,
-        }))
-        .sort((a, b) => a.positionOrder - b.positionOrder);
-
-      setTasks(sorted);
-    } catch (error) {
-      console.error(
-        "Failed to add task:",
-        error.response?.data || error.message
+      console.log("Sending new task to backend:", backendTask);
+      const response = await axios.post(
+        "http://localhost:5053/api/tasks",
+        backendTask,
+        { headers: { "Content-Type": "application/json" } }
       );
+
+      console.log("Backend created task:", response.data);
+
+      const newId = response.data?.id;
+      if (newId) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === tempId ? { ...t, id: newId } : t))
+        );
+      }
+    } catch (err) {
+      console.error("Backend save failed:", err.response?.data || err.message);
       Modal.error({
-        title: "Error",
-        content: "Failed to add task. Please try again.",
+        title: "Save Failed",
+        content: `Could not save to DB: ${err.response?.data || err.message}`,
       });
     }
   };
 
-  // define updateTask
+  // --- Update local then backend
   const updateTask = async (updatedTask) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === updatedTask.id ? { ...t, ...updatedTask } : t))
+    );
+
     const backendTask = {
       taskId: updatedTask.id,
-      userId: "283118eb-f3c5-4447-afa2-f5a93762a5e3",
+      userId: fixedUserId,
       newTitle: updatedTask.title,
       newDescription: updatedTask.description || "",
       newStatusId: null,
-      newCategoryId: null,
+      newCategoryId: fixedCategoryId,
       newDeadline: updatedTask.deadline
         ? `${updatedTask.deadline}T${updatedTask.deadlineTime || "00:00"}:00`
         : null,
@@ -191,67 +155,24 @@ export default function App() {
     };
 
     try {
-      console.log("Sending PUT payload:", backendTask); // Debug payload
-      await axios.put(
+      console.log("Sending update to backend:", backendTask);
+      const response = await axios.put(
         `http://localhost:5053/api/tasks/${updatedTask.id}`,
         backendTask,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${user.token}`,
-          },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
-
-      // Fetch updated tasks
-      const response = await fetch("http://localhost:5053/api/tasks", {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
-
-      const sorted = data
-        .map((t) => ({
-          id: t.id,
-          title: t.title,
-          description: t.description || "",
-          priority:
-            t.priority === 0
-              ? "Low"
-              : t.priority === 2
-                ? "High"
-                : t.priority === 3
-                  ? "Urgent"
-                  : "Medium",
-          deadline: t.deadline ? t.deadline.split("T")[0] : null,
-          deadlineTime:
-            t.deadline && t.deadline.includes("T")
-              ? t.deadline.split("T")[1].slice(0, 5)
-              : null,
-          categoryId: "inbox",
-          completed: t.isCompleted || false,
-          parentIds: [],
-          graphNode: { id: t.title, x: 100, y: 100 },
-          positionOrder: t.positionOrder || 0,
-        }))
-        .sort((a, b) => a.positionOrder - b.positionOrder);
-
-      setTasks(sorted);
-    } catch (error) {
-      console.error(
-        "Failed to update task:",
-        error.response?.data || error.message
-      );
+      console.log("Backend updated task:", response.data);
+    } catch (err) {
+      console.error("Backend update failed:", err.response?.data || err.message);
       Modal.error({
         title: "Update Failed",
-        content: `There was an error updating the task: ${error.response?.data || error.message
-          }`,
+        content: `Could not sync with DB: ${err.response?.data || err.message}`,
       });
     }
   };
 
+
+  // --- Drag handler
   const droppableCategoryIds = new Set(categories.map((c) => c.id));
   droppableCategoryIds.add("today");
 
@@ -266,7 +187,11 @@ export default function App() {
         const todayStr = new Date().toISOString().split("T")[0];
         const activeTask = tasks.find((t) => t.id === active.id);
         if (activeTask) {
-          updateTask({ ...activeTask, deadline: todayStr });
+          const updated = { ...activeTask, deadline: todayStr };
+          setTasks((prev) =>
+            prev.map((t) => (t.id === active.id ? updated : t))
+          );
+          updateTask(updated);
         }
         setHoveredCategory(null);
         return;
@@ -274,7 +199,11 @@ export default function App() {
 
       const activeTask = tasks.find((t) => t.id === active.id);
       if (activeTask) {
-        updateTask({ ...activeTask, categoryId });
+        const updated = { ...activeTask, categoryId };
+        setTasks((prev) =>
+          prev.map((t) => (t.id === active.id ? updated : t))
+        );
+        updateTask(updated);
       }
       setHoveredCategory(null);
       return;
@@ -282,22 +211,20 @@ export default function App() {
 
     if (active.id !== over.id) {
       setTasks((prev) => {
-        const activeTask = (prev || []).find((t) => t.id === active.id);
-        if (!activeTask) return prev || [];
+        const activeTask = prev.find((t) => t.id === active.id);
+        if (!activeTask) return prev;
 
-        const categoryTasks = (prev || []).filter(
+        const categoryTasks = prev.filter(
           (t) => t.categoryId === activeTask.categoryId
         );
         const oldIndex = categoryTasks.findIndex((t) => t.id === active.id);
         const newIndex = categoryTasks.findIndex((t) => t.id === over.id);
-
-        if (oldIndex === -1 || newIndex === -1) return prev || [];
+        if (oldIndex === -1 || newIndex === -1) return prev;
 
         const reordered = arrayMove(categoryTasks, oldIndex, newIndex);
-
         let result = [];
         let i = 0;
-        for (const t of prev || []) {
+        for (const t of prev) {
           if (t.categoryId === activeTask.categoryId) {
             result.push({ ...reordered[i], positionOrder: i });
             i++;
@@ -307,22 +234,19 @@ export default function App() {
         }
         return result;
       });
-      setHoveredCategory(null);
     }
+    setHoveredCategory(null);
   }
 
   if (loading) return <div className="App">Loading...</div>;
   if (!user) return <Authorization />;
 
   const todayStr = new Date().toISOString().split("T")[0];
-  const filteredTasks = (tasks || []).filter((t) => {
-    if (selectedCategory === "today") {
-      return t.deadline === todayStr;
-    }
-    if (selectedCategory === "graphs") {
-      return true;
-    }
-    return true; // show all for now
+  const filteredTasks = tasks.filter((t) => {
+    if (selectedCategory === "today") return t.deadline === todayStr;
+    if (selectedCategory !== "graphs" && t.categoryId !== selectedCategory)
+      return false;
+    return true;
   });
 
   return (
@@ -339,7 +263,6 @@ export default function App() {
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <CalendarButton />
             <img
               src={aiIcon}
               alt="AI Icon"
@@ -354,16 +277,12 @@ export default function App() {
 
         <DndContext
           collisionDetection={closestCenter}
-          onDragStart={({ active }) => {
-            setActiveTaskId(active.id);
-          }}
-          onDragOver={({ over }) => {
-            if (over && over.id.startsWith("category:")) {
-              setHoveredCategory(over.id.replace("category:", ""));
-            } else {
-              setHoveredCategory(null);
-            }
-          }}
+          onDragStart={({ active }) => setActiveTaskId(active.id)}
+          onDragOver={({ over }) =>
+            setHoveredCategory(
+              over?.id.startsWith("category:") ? over.id.replace("category:", "") : null
+            )
+          }
           onDragEnd={(event) => {
             setActiveTaskId(null);
             handleDragEnd(event);
@@ -421,7 +340,7 @@ export default function App() {
                       alignItems: "center",
                       padding: "6px 12px",
                       background: "#fff",
-                      border: "1px solid #60a5fa",
+                      border: "1px solid #2563eb",
                       borderRadius: 8,
                       boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
                       fontWeight: 500,
@@ -444,9 +363,7 @@ export default function App() {
         <AIAnalysisModal
           visible={isAIAnalysisOpen}
           onClose={() => setIsAIAnalysisOpen(false)}
-          onSend={(input) => {
-            console.log("AI analysis input:", input);
-          }}
+          onSend={(input) => console.log("AI analysis input:", input)}
         />
       </div>
     </div>
