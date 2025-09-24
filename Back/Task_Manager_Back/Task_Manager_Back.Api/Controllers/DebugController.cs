@@ -43,4 +43,61 @@ public class DebugController : Controller
 
         return Ok(categories);
     }
+
+    // Все dependency relations
+    [HttpGet("dependencies")]
+    public IActionResult GetAllDependencies()
+    {
+        var deps = _dbContext.DatabaseTaskDependencyRelations
+            .ToList();
+
+        var options = new System.Text.Json.JsonSerializerOptions
+        {
+            ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles,
+            WriteIndented = true
+        };
+
+        return new JsonResult(deps, options);
+    }
+
+
+    // Все reminders
+    [HttpGet("reminders")]
+    public IActionResult GetAllReminders()
+    {
+        var reminders = _dbContext.DatabaseTaskReminders
+            .ToList();
+
+        return Ok(reminders);
+    }
+
+    // Все attachments
+    [HttpGet("attachments")]
+    public IActionResult GetAllAttachments()
+    {
+        var attachments = _dbContext.DatabaseTaskAttachments
+            .ToList();
+
+        return Ok(attachments);
+    }
+
+    // Все custom relations
+    [HttpGet("custom-relations")]
+    public IActionResult GetAllCustomRelations()
+    {
+        var customRelations = _dbContext.DatabaseTaskCustomRelations
+            .ToList();
+
+        return Ok(customRelations);
+    }
+
+    // Все задачи
+    [HttpGet("tasks")]
+    public IActionResult GetAllTasks()
+    {
+        var tasks = _dbContext.DatabaseTaskEntities
+            .ToList();
+
+        return Ok(tasks);
+    }
 }
