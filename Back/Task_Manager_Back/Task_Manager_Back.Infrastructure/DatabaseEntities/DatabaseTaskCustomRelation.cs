@@ -10,7 +10,7 @@ public class DatabaseTaskCustomRelation
     public Guid ToTaskId { get; set; }
     public Guid RelationTypeId { get; set; }
 
-    // Навигационные свойства
+    // Navigation properties
     public DatabaseTaskEntity FromTask { get; set; } = null!;
     public DatabaseTaskEntity ToTask { get; set; } = null!;
     public DatabaseRelationType RelationType { get; set; } = null!;

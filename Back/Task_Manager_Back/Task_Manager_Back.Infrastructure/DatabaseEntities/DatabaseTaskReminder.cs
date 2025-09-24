@@ -10,6 +10,6 @@ public class DatabaseTaskReminder
     public string? Message { get; set; }
     public bool IsSent { get; set; }
 
-    // Навигационное свойство для связи с задачей
+    // Navigation properties
     public DatabaseTaskEntity Task { get; set; } = null!;
 }

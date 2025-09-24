@@ -8,10 +8,11 @@ public class DatabaseRelationType
     public Guid UserId { get; set; }
     public string Name { get; set; } = null!;
     public string? Description { get; set; }
-    
+
     // Color храним как строку HEX, т.к. EF Core не умеет напрямую хранить System.Drawing.Color
     public string Color { get; set; } = "#808080"; // Gray по умолчанию
 
-    // Навигационное свойство: какие CustomRelations используют этот тип
+    // Navigation properties
     public ICollection<DatabaseTaskCustomRelation> CustomRelations { get; set; } = new List<DatabaseTaskCustomRelation>();
+    public ApplicationUser User { get; set; } = null!;
 }

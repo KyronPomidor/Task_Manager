@@ -20,6 +20,7 @@ public class CreateTaskUseCase
     public async Task<Guid> ExecuteAsync(CreateTaskRequest request)
     {
         // later use not the constructor but a factory method in the Domain service. It will handle the order position and other business logic
+        // To create Task, the category shoyld exist. But I don't check it here, because the repository will throw exception if category not found
         //TO CHECK: do I passed all params needed?
         var createParams = new TaskEntityCreateParams(
             userId: request.UserId,

@@ -3,6 +3,7 @@ using System;
 namespace Task_Manager_Back.Api.ApiRequests.TaskApiRequests;
 
 public record CreateTaskApiRequest(
+    Guid UserId,
     string Title,
     Guid CategoryId,
     string? Description = null,

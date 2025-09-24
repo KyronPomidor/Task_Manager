@@ -26,7 +26,7 @@ public static class TaskMappers
             IsFailed = task.IsFailed,
             PriorityId = task.PriorityId,
             StatusId = task.StatusId,
-            CategoryId = task.CategoryId,
+            DatabaseCustomCategoryId = task.CategoryId,
             CreatedAt = task.CreatedAt,
             UpdatedAt = task.UpdatedAt,
             Deadline = task.Deadline,
@@ -35,10 +35,13 @@ public static class TaskMappers
             PositionOrder = task.PositionOrder
         };
 
-        // Labels: many-to-many join
+        // Если в домене хранятся только Guid лейблов
         dbEntity.Labels = task.LabelIds
-            ?.Select(labelId => new DatabaseTaskTaskLabel { TaskId = task.Id, LabelId = labelId })
-            .ToList() ?? new List<DatabaseTaskTaskLabel>();
+            ?.Select(labelId => new DatabaseTaskLabel { Id = labelId })
+            .ToList() ?? new List<DatabaseTaskLabel>();
+
+
+
 
         // Вложенные коллекции (EF каскадно добавит)
         dbEntity.Reminders = task.Reminders
@@ -47,11 +50,18 @@ public static class TaskMappers
         dbEntity.Attachments = task.Attachments
             ?.Select(a => a.ToDbEntity()).ToList() ?? new List<DatabaseTaskAttachment>();
 
-        dbEntity.Dependencies = task.Dependencies
+        dbEntity.DependenciesFrom = task.Dependencies
             ?.Select(d => d.ToDbEntity()).ToList() ?? new List<DatabaseTaskDependencyRelation>();
 
-        dbEntity.CustomRelations = task.CustomRelations
-            ?.Select(c => c.ToDbEntity()).ToList() ?? new List<DatabaseTaskCustomRelation>();
+        dbEntity.CustomRelationsFrom = task.CustomRelations
+            ?.Where(c => c.FromTaskId == task.Id) // outgoing
+            .Select(c => c.ToDbEntity())
+            .ToList() ?? new List<DatabaseTaskCustomRelation>();
+
+        dbEntity.CustomRelationsTo = task.CustomRelations
+            ?.Where(c => c.ToTaskId == task.Id) // incoming
+            .Select(c => c.ToDbEntity())
+            .ToList() ?? new List<DatabaseTaskCustomRelation>();
 
         return dbEntity;
     }
@@ -71,17 +81,17 @@ public static class TaskMappers
             isFailed: dbEntity.IsFailed,
             priorityId: dbEntity.PriorityId,
             statusId: dbEntity.StatusId,
-            categoryId: dbEntity.CategoryId,
+            categoryId: dbEntity.DatabaseCustomCategoryId,
             createdAt: dbEntity.CreatedAt,
             updatedAt: dbEntity.UpdatedAt,
             deadline: dbEntity.Deadline,
             completedAt: dbEntity.CompletedAt,
             failedAt: dbEntity.FailedAt,
-            labels: dbEntity.Labels?.Select(l => l.LabelId) ?? Enumerable.Empty<Guid>(),
+            labels: dbEntity.Labels?.Select(l => l.Id) ?? Enumerable.Empty<Guid>(),
             reminders: dbEntity.Reminders?.Select(r => r.ToDomain()) ?? Enumerable.Empty<TaskReminder>(),
             attachments: dbEntity.Attachments?.Select(a => a.ToDomain()) ?? Enumerable.Empty<TaskAttachment>(),
-            dependencies: dbEntity.Dependencies?.Select(d => d.ToDomain()) ?? Enumerable.Empty<TaskDependencyRelation>(),
-            customRelations: dbEntity.CustomRelations?.Select(c => c.ToDomain()) ?? Enumerable.Empty<TaskCustomRelation>(),
+            dependencies: dbEntity.DependenciesFrom?.Select(d => d.ToDomain()) ?? Enumerable.Empty<TaskDependencyRelation>(),
+            customRelations: dbEntity.CustomRelationsFrom?.Select(c => c.ToDomain()) ?? Enumerable.Empty<TaskCustomRelation>(),
             order: dbEntity.PositionOrder
         );
 

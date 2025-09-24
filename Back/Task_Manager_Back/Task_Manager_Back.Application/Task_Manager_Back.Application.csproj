@@ -11,8 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Queries/" />
-    <Folder Include="QueryHandlers/" />
     <Folder Include="Requests\ShopRequests\" />
     <Folder Include="UseCases\ShopUseCases\" />
   </ItemGroup>

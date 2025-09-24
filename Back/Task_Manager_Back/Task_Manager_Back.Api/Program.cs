@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Task_Manager_Back.Infrastructure.DatabaseEntities;
 using Task_Manager_Back.Application.IServices;
 using Task_Manager_Back.Infrastructure.Services.Auth;
+using Task_Manager_Back.Infrastructure.Seeds;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -99,6 +100,7 @@ builder.Services.AddTransient<ITaskRepository, TaskRepository>();
 
 // Register use cases
 builder.Services.AddTransient<CreateTaskUseCase>();
+builder.Services.AddTransient<GetTasksByUserIdUseCase>();
 
 
 // OpenAPI / Swagger
@@ -110,8 +112,12 @@ builder.Services.AddOpenApi();
 var app = builder.Build();
 
 // --- Call seeding logic here ---
-// TODO: add later
-// await AppDbSeeder.SeedAsync(app.Services);
+// TODO: add later, done TODO.
+// --- Call seeding logic here ---
+using (var scope = app.Services.CreateScope())
+{
+    await AppDbSeeder.SeedAsync(scope.ServiceProvider);
+}
 
 // ---------------------
 // Configure the HTTP request pipeline

@@ -13,6 +13,8 @@ public class DatabaseTaskAttachment
     public string FileName { get; set; } = null!;
     public long? Size { get; set; }
 
-    // Навигационное свойство для связи с задачей
+    // Navigation properties
     public DatabaseTaskEntity Task { get; set; } = null!;
+    public ApplicationUser User { get; set; } = null!;
+
 }

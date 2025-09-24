@@ -24,7 +24,7 @@ public class TaskRepository : ITaskRepository
         var dbEntity = task.ToDbEntity();  // Теперь использую TaskMappers.ToDbEntity(task);
         _logger.LogDebug("Full TaskEntity mapped to DB: {@dbEntity}", dbEntity);
         
-        _context.Tasks.Add(dbEntity);  // EF добавит все коллекции каскадно
+        _context.DatabaseTaskEntities.Add(dbEntity);  // EF добавит все коллекции каскадно
         await _context.SaveChangesAsync();
         return dbEntity.Id;
     }
@@ -36,13 +36,14 @@ public class TaskRepository : ITaskRepository
 
     public async Task<List<TaskEntity>> GetAllAsync(Guid userId)
     {
-        var dbEntities = await _context.Tasks
+        var dbEntities = await _context.DatabaseTaskEntities
             .Where(t => t.UserId == userId)
-            .Include(t => t.Labels).ThenInclude(l => l.Label) // Загружаем Labels и связанные DatabaseTaskLabel
+            .Include(t => t.Labels) // Загружаем Labels и связанные DatabaseTaskLabel
             .Include(t => t.Reminders) // Загружаем Reminders
             .Include(t => t.Attachments) // Загружаем Attachments
-            .Include(t => t.Dependencies) // Загружаем Dependencies
-            .Include(t => t.CustomRelations) // Загружаем CustomRelations
+            .Include(t => t.DependenciesFrom) // Загружаем Dependencies
+            .Include(t => t.CustomRelationsFrom)
+            .Include(t => t.CustomRelationsTo) // Загружаем CustomRelations
             .ToListAsync();
         
         if (dbEntities == null || !dbEntities.Any())
@@ -54,12 +55,13 @@ public class TaskRepository : ITaskRepository
 
     public async Task<TaskEntity> GetByIdAsync(Guid id)
     {
-        var dbEntity = await _context.Tasks
-            .Include(t => t.Labels).ThenInclude(l => l.Label)  // Если нужно полные labels
+        var dbEntity = await _context.DatabaseTaskEntities
+            .Include(t => t.Labels)  // Если нужно полные labels
             .Include(t => t.Reminders)
             .Include(t => t.Attachments)
-            .Include(t => t.Dependencies)
-            .Include(t => t.CustomRelations)
+            .Include(t => t.DependenciesFrom)
+            .Include(t => t.CustomRelationsFrom)
+            .Include(t => t.CustomRelationsTo)
             .FirstOrDefaultAsync(t => t.Id == id);
 
         if (dbEntity == null)

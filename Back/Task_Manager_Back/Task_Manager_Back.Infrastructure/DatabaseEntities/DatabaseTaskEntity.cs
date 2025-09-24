@@ -15,10 +15,8 @@ public class DatabaseTaskEntity
     public bool IsFailed { get; set; }
     public Guid? PriorityId { get; set; }
     public Guid? StatusId { get; set; }
-    public Guid CategoryId { get; set; }
+    public Guid DatabaseCustomCategoryId { get; set; }
 
-    // Т.к. EF Core не умеет хранить List<Guid> напрямую — сделаем отдельную таблицу TaskLabels
-    public ICollection<DatabaseTaskTaskLabel> Labels { get; set; } = new List<DatabaseTaskTaskLabel>();
 
     public DateTime? CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
@@ -28,10 +26,21 @@ public class DatabaseTaskEntity
 
     public int PositionOrder { get; set; }
 
-    // Навигационные свойства для зависимостей и других сущностей
+    // Navigation properties
+    public ApplicationUser User { get; set; } = null!;
+    public DatabaseTaskPriority? Priority { get; set; }
+    public DatabaseTaskStatus? Status { get; set; }
+    public DatabaseCustomCategory DatabaseCustomCategory { get; set; } = null!;
+    public ICollection<DatabaseTaskLabel> Labels { get; set; } = new List<DatabaseTaskLabel>();
     public ICollection<DatabaseTaskReminder> Reminders { get; set; } = new List<DatabaseTaskReminder>();
     public ICollection<DatabaseTaskAttachment> Attachments { get; set; } = new List<DatabaseTaskAttachment>();
-    public ICollection<DatabaseTaskDependencyRelation> Dependencies { get; set; } = new List<DatabaseTaskDependencyRelation>();
-    public ICollection<DatabaseTaskCustomRelation> CustomRelations { get; set; } = new List<DatabaseTaskCustomRelation>();
+
+    // In Dependencies, a task can be both the source and the target
+    public ICollection<DatabaseTaskDependencyRelation> DependenciesFrom { get; set; } = new List<DatabaseTaskDependencyRelation>();
+    public ICollection<DatabaseTaskDependencyRelation> DependenciesTo { get; set; } = new List<DatabaseTaskDependencyRelation>();
+
+    // In CustomRelations, a task can be both the source and the target
+    public ICollection<DatabaseTaskCustomRelation> CustomRelationsFrom { get; set; } = new List<DatabaseTaskCustomRelation>();
+    public ICollection<DatabaseTaskCustomRelation> CustomRelationsTo { get; set; } = new List<DatabaseTaskCustomRelation>();
     
 }
