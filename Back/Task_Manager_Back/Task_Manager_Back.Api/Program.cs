@@ -101,6 +101,7 @@ builder.Services.AddTransient<ITaskRepository, TaskRepository>();
 // Register use cases
 builder.Services.AddTransient<CreateTaskUseCase>();
 builder.Services.AddTransient<GetTasksByUserIdUseCase>();
+builder.Services.AddTransient<GetTaskUseCase>();
 builder.Services.AddTransient<DeleteTaskUseCase>();
 
 

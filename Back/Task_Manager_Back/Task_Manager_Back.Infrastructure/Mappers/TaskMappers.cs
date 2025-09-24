@@ -80,6 +80,7 @@ public static class TaskMappers
             isCompleted: dbEntity.IsCompleted,
             isFailed: dbEntity.IsFailed,
             priorityId: dbEntity.PriorityId,
+            priorityLevel: dbEntity.PriorityLevel, // TEMP FIELD
             statusId: dbEntity.StatusId,
             categoryId: dbEntity.DatabaseCustomCategoryId,
             createdAt: dbEntity.CreatedAt,

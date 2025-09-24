@@ -23,6 +23,7 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Guid>
             Description: command.Description,
             Color: command.Color,  //TODO: do it optional
             PriorityId: command.PriorityId,
+            PriorityLevel: command.PriorityLevel, // TEMPORARY
             StatusId: command.StatusId,
             CategoryId: command.CategoryId,
             Deadline: command.Deadline,

@@ -12,7 +12,7 @@ using Task_Manager_Back.Infrastructure.DbContext;
 namespace Task_Manager_Back.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250924092419_InitialCreate")]
+    [Migration("20250924205813_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -411,6 +411,9 @@ namespace Task_Manager_Back.Infrastructure.Migrations
 
                     b.Property<Guid?>("PriorityId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PriorityLevel")
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("StatusId")
                         .HasColumnType("uniqueidentifier");

@@ -14,6 +14,7 @@ public class DatabaseTaskEntity
     public bool IsCompleted { get; set; }
     public bool IsFailed { get; set; }
     public Guid? PriorityId { get; set; }
+    public int PriorityLevel { get; set; } // TEMP FIELD
     public Guid? StatusId { get; set; }
     public Guid DatabaseCustomCategoryId { get; set; }
 

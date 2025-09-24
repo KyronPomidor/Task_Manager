@@ -88,7 +88,6 @@ public static class AppDbSeeder
         await db.SaveChangesAsync();
 
 
-
         // -------------------------
         // Seed default relation type
         // -------------------------
@@ -108,6 +107,14 @@ public static class AppDbSeeder
             await db.SaveChangesAsync();
         }
 
+
+        // Check if any tasks exist
+        if (await db.DatabaseTaskEntities.AnyAsync())
+        {
+            Console.WriteLine("Tasks already exist. Seeding skipped.");
+            return; // Stop seeding if at least one task exists
+        }
+        
         // -------------------------
         // Seed some tasks with relations
         // -------------------------

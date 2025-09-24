@@ -11,6 +11,7 @@ public record CreateTaskRequest(
     string? Description,
     string Color, //TODO: do it optional
     Guid? PriorityId,
+    int PriorityLevel,
     Guid? StatusId,
     Guid CategoryId,
     DateTime? Deadline,

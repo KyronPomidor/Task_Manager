@@ -276,6 +276,7 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     IsCompleted = table.Column<bool>(type: "bit", nullable: false),
                     IsFailed = table.Column<bool>(type: "bit", nullable: false),
                     PriorityId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    PriorityLevel = table.Column<int>(type: "int", nullable: false),
                     StatusId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     DatabaseCustomCategoryId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: true),

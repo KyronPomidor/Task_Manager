@@ -16,6 +16,7 @@ public class GetTasksByUserIdQueryHandler : IRequestHandler<GetTasksByUserIdQuer
     {
         var tasks = await _getTasksByUserIdUseCase.ExecuteAsync(request.UserId);
 
+
         var taskDtos = tasks.Select(task => new TaskDto(
             Id: task.Id,
             UserId: task.UserId,
@@ -23,6 +24,7 @@ public class GetTasksByUserIdQueryHandler : IRequestHandler<GetTasksByUserIdQuer
             Description: task.Description,
             Color: task.Color,
             PriorityId: task.PriorityId,
+            PriorityLevel: task.PriorityLevel, // TEMPORARY
             StatusId: task.StatusId,
             CategoryId: task.CategoryId,
             CreatedAt: task.CreatedAt,

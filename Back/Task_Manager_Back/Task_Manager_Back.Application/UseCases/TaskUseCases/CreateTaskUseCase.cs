@@ -28,6 +28,7 @@ public class CreateTaskUseCase
             description: request.Description,
             color: request.Color, //TODO: validate in domain service, do it optional, generate random color if not provided
             priorityId: request.PriorityId,
+            priorityLevel: request.PriorityLevel, // TEMP FIELD
             statusId: request.StatusId,
             categoryId: request.CategoryId,
             deadline: request.Deadline,

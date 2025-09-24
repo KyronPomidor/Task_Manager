@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Task_Manager_Back.Api.ApiRequests.TaskApiRequests;
 using Task_Manager_Back.Application.Commands.Tasks;
 using Task_Manager_Back.Application.Queries;
+using Task_Manager_Back.Application.Queries.Tasks;
 
 namespace Task_Manager_Back.Api.Controllers;
 
@@ -40,6 +41,7 @@ public class TaskEntityController : Controller
             Description: request.Description,
             Color: request.Color, //TODO: do it optional
             PriorityId: request.PriorityId,
+            PriorityLevel: request.PriorityLevel, // TEMPORARY
             StatusId: request.StatusId,
             CategoryId: request.CategoryId,
             Deadline: request.Deadline,
@@ -92,7 +94,36 @@ public class TaskEntityController : Controller
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
+    /// <summary>
+    /// Get a task by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the task to retrieve.</param>
+    /// <returns>The task if found; otherwise, 404.</returns>
+    /// <remarks>
+    [HttpGet("{id:guid}")]
+    public async Task<IActionResult> GetById(Guid id)
+    {
+        try
+        {
+            var task = await _mediator.Send(new GetTaskByIdQuery(id));
+            return Ok(task);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (not shown here for brevity)
+            return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
 
+    /// <summary>
+    /// Delete a task by its ID.
+    /// </summary>
+    /// <param name="id">The ID of the task to delete.</param>
+    /// <returns>200 if successful.</returns>
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteTask(Guid id) //DeleteTaskApiRequest for now not used for consistency
     {

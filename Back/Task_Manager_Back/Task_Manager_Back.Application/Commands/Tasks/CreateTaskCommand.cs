@@ -12,6 +12,7 @@ public record CreateTaskCommand
     Guid CategoryId,
     Guid? StatusId = null,
     Guid? PriorityId = null,
+    int PriorityLevel = 0,
     DateTime? Deadline = null,
     List<Guid>? LabelIds = null,
     int OrderPosition = 0

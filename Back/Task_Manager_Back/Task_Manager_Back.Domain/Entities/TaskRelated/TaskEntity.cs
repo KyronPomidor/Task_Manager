@@ -16,6 +16,7 @@ public class TaskEntity
     public bool IsCompleted { get; private set; }
     public bool IsFailed { get; private set; }
     public Guid? PriorityId { get; private set; }
+    public int PriorityLevel { get; private set; } // TEMP FIELD
     public Guid? StatusId { get; private set; }
     public Guid CategoryId { get; private set; }
 
@@ -53,6 +54,7 @@ public class TaskEntity
         Description = @params.description;
 
         PriorityId = @params.priorityId;
+        PriorityLevel = @params.priorityLevel; // TEMP FIELD
         StatusId = @params.statusId;
         CategoryId = @params.categoryId;
 
@@ -291,6 +293,7 @@ public class TaskEntity
             IsCompleted = state.isCompleted,
             IsFailed = state.isFailed,
             PriorityId = state.priorityId,
+            PriorityLevel = state.priorityLevel, // TEMP FIELD
             StatusId = state.statusId,
             CategoryId = state.categoryId,
 
@@ -328,6 +331,7 @@ public record TaskEntityCreateParams(
         string? description,
         string color,
         Guid? priorityId,
+        int priorityLevel,  // TEMP FIELD
         Guid? statusId,
         Guid categoryId,
         DateTime? deadline,
@@ -344,6 +348,7 @@ public record TaskEntityState(
         bool isCompleted,
         bool isFailed,
         Guid? priorityId,
+        int priorityLevel,  // TEMP FIELD
         Guid? statusId,
         Guid categoryId,
         DateTime? createdAt,

@@ -409,6 +409,9 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.Property<Guid?>("PriorityId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("PriorityLevel")
+                        .HasColumnType("int");
+
                     b.Property<Guid?>("StatusId")
                         .HasColumnType("uniqueidentifier");
 

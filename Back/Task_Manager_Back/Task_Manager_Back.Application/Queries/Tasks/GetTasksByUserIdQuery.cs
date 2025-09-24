@@ -11,6 +11,7 @@ public record TaskDto(
     string? Description,
     string Color,
     Guid? PriorityId,
+    int PriorityLevel,
     Guid? StatusId,
     Guid CategoryId,
     DateTime? CreatedAt,
