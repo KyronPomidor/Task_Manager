@@ -108,7 +108,8 @@ public static class AppDbSeeder
                 StatusId: null,
                 Priority: priority,
                 CategoryId: inbox.Id, // assign to Inbox
-                Deadline: DateTime.UtcNow.AddDays(i)
+                Deadline: DateTime.UtcNow.AddDays(i),
+                PositionOrder: i
             ));
 
             await taskRepo.CreateAsync(task);
