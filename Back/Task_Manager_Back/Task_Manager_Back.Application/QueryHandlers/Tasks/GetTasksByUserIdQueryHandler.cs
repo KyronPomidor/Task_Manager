@@ -25,15 +25,40 @@ public class GetTasksByUserIdQueryHandler : IRequestHandler<GetTasksByUserIdQuer
             PriorityId: task.PriorityId,
             StatusId: task.StatusId,
             CategoryId: task.CategoryId,
+            CreatedAt: task.CreatedAt,
+            UpdatedAt: task.UpdatedAt,
             Deadline: task.Deadline,
+            CompletedAt: task.CompletedAt,
+            FailedAt: task.FailedAt,
+            IsCompleted: task.IsCompleted,
+            IsFailed: task.IsFailed,
             LabelIds: task.LabelIds?.ToList(),
             OrderPosition: task.PositionOrder,
+            Reminders: task.Reminders.Select(r => new TaskReminderDto(
+                Id: r.Id,
+                ReminderAt: r.ReminderAt,
+                Message: r.Message,
+                IsSent: r.IsSent
+            )).ToList(),
+            Attachments: task.Attachments.Select(a => new TaskAttachmentDto(
+                Id: a.Id,
+                UserId: a.UserId,
+                TaskId: a.TaskId,
+                FilePath: a.FilePath,
+                FileType: a.FileType,
+                FileName: a.FileName,
+                Size: a.Size
+            )).ToList(),
+            Dependencies: task.Dependencies.Select(d => new TaskDependencyRelationDto(
+                FromTaskId: d.FromTaskId,
+                ToTaskId: d.ToTaskId
+            )).ToList(),
             CustomRelations: task.CustomRelations.Select(c => new TaskCustomRelationDto(
                 FromTaskId: c.FromTaskId,
                 ToTaskId: c.ToTaskId,
                 RelationTypeId: c.RelationTypeId
             )).ToList()
-        )).ToList(); // <-- make it a List because your query expects List<TaskDto>
+        )).ToList();
 
         return taskDtos;
     }
