@@ -29,6 +29,10 @@ public class UpdateTaskUseCase
 
         task.ChangeDeadline(request.NewDeadline);
 
+        task.ChangePriority(request.NewPriority);
+
+        task.ChangeColor(request.NewColor);
+
         task.MarkCompleted();
 
         task.MarkFailed();

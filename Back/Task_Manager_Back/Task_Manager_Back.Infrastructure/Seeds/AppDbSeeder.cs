@@ -109,6 +109,7 @@ public static class AppDbSeeder
                 Priority: priority,
                 CategoryId: inbox.Id, // assign to Inbox
                 Deadline: DateTime.UtcNow.AddDays(i),
+                IsCompleted: false,
                 PositionOrder: i
             ));
 
