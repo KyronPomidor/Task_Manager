@@ -119,6 +119,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
 
 
 
+        // Task → CustomCategory
+        builder.Entity<DatabaseTaskEntity>()
+            .HasOne(t => t.DatabaseCustomCategory)
+            .WithMany(c => c.Tasks)  // Предположим, в DatabaseCustomCategory есть ICollection<DatabaseTaskEntity> Tasks
+            .HasForeignKey(t => t.DatabaseCustomCategoryId)
+            .OnDelete(DeleteBehavior.Restrict); // или Cascade, если нужно
+
 
     }
 

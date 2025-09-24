@@ -12,7 +12,7 @@ using Task_Manager_Back.Infrastructure.DbContext;
 namespace Task_Manager_Back.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250923151542_InitialCreate")]
+    [Migration("20250924092419_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -385,9 +385,6 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.Property<Guid>("DatabaseCustomCategoryId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("DatabaseCustomCategoryId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<Guid?>("DatabaseTaskPriorityId")
                         .HasColumnType("uniqueidentifier");
 
@@ -431,8 +428,6 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("DatabaseCustomCategoryId");
-
-                    b.HasIndex("DatabaseCustomCategoryId1");
 
                     b.HasIndex("DatabaseTaskPriorityId");
 
@@ -704,14 +699,10 @@ namespace Task_Manager_Back.Infrastructure.Migrations
             modelBuilder.Entity("Task_Manager_Back.Infrastructure.DatabaseEntities.DatabaseTaskEntity", b =>
                 {
                     b.HasOne("Task_Manager_Back.Infrastructure.DatabaseEntities.DatabaseCustomCategory", "DatabaseCustomCategory")
-                        .WithMany()
+                        .WithMany("Tasks")
                         .HasForeignKey("DatabaseCustomCategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("Task_Manager_Back.Infrastructure.DatabaseEntities.DatabaseCustomCategory", null)
-                        .WithMany("Tasks")
-                        .HasForeignKey("DatabaseCustomCategoryId1");
 
                     b.HasOne("Task_Manager_Back.Infrastructure.DatabaseEntities.DatabaseTaskPriority", null)
                         .WithMany("Tasks")

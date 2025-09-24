@@ -168,6 +168,140 @@ public static class AppDbSeeder
 
         await db.SaveChangesAsync();
 
+        // -------------------------
+        // Seed priorities
+        // -------------------------
+        if (!await db.DatabaseTaskPriorities.AnyAsync(p => p.UserId == user.Id))
+        {
+            var priorities = new[]
+            {
+                new DatabaseTaskPriority { Id = Guid.NewGuid(), UserId = user.Id, Name = "Low", Level = 1 },
+                new DatabaseTaskPriority { Id = Guid.NewGuid(), UserId = user.Id, Name = "Medium", Level = 2 },
+                new DatabaseTaskPriority { Id = Guid.NewGuid(), UserId = user.Id, Name = "High", Level = 3 }
+            };
+            db.DatabaseTaskPriorities.AddRange(priorities);
+            await db.SaveChangesAsync();
+        }
+
+        // -------------------------
+        // Seed statuses
+        // -------------------------
+        if (!await db.DatabaseTaskStatuses.AnyAsync(s => s.UserId == user.Id))
+        {
+            var statuses = new[]
+            {
+                new DatabaseTaskStatus { Id = Guid.NewGuid(), UserId = user.Id, Tittle = "Todo" },
+                new DatabaseTaskStatus { Id = Guid.NewGuid(), UserId = user.Id, Tittle = "In Progress" },
+                new DatabaseTaskStatus { Id = Guid.NewGuid(), UserId = user.Id, Tittle = "Done" }
+            };
+            db.DatabaseTaskStatuses.AddRange(statuses);
+            await db.SaveChangesAsync();
+        }
+
+        // -------------------------
+        // Seed labels
+        // -------------------------
+        if (!await db.DatabaseTaskLabels.AnyAsync(l => l.UserId == user.Id))
+        {
+            var labels = new[]
+            {
+                new DatabaseTaskLabel { Id = Guid.NewGuid(), UserId = user.Id, Name = "Urgent", Color = "#FF0000" },
+                new DatabaseTaskLabel { Id = Guid.NewGuid(), UserId = user.Id, Name = "Optional", Color = "#00FF00" }
+            };
+            db.DatabaseTaskLabels.AddRange(labels);
+            await db.SaveChangesAsync();
+        }
+
+        // -------------------------
+        // Create tasks with all details
+        // -------------------------
+        var priority = await db.DatabaseTaskPriorities.FirstAsync(p => p.UserId == user.Id);
+        var status = await db.DatabaseTaskStatuses.FirstAsync(s => s.UserId == user.Id);
+        var label = await db.DatabaseTaskLabels.FirstAsync(l => l.UserId == user.Id);
+        var category = await db.DatabaseTaskCustomCategories.FirstAsync(c => c.UserId == user.Id);
+
+        var task4 = new DatabaseTaskEntity
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            Title = "Task 1",
+            Description = "Seeded task with full details",
+            Color = "#FFFFFF",
+            DatabaseCustomCategoryId = category.Id,
+            PriorityId = priority.Id,
+            StatusId = status.Id,
+            CreatedAt = DateTime.UtcNow,
+            Deadline = DateTime.UtcNow.AddDays(7),
+            PositionOrder = 1,
+            Labels = new List<DatabaseTaskLabel> { label }
+        };
+
+        var task5 = new DatabaseTaskEntity
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            Title = "Task 2",
+            Description = "Second seeded task",
+            Color = "#AAAAAA",
+            DatabaseCustomCategoryId = category.Id,
+            PriorityId = priority.Id,
+            StatusId = status.Id,
+            CreatedAt = DateTime.UtcNow,
+            Deadline = DateTime.UtcNow.AddDays(3),
+            PositionOrder = 2
+        };
+
+        db.DatabaseTaskEntities.AddRange(task4, task5);
+        await db.SaveChangesAsync();
+
+        // -------------------------
+        // Add reminders
+        // -------------------------
+        db.DatabaseTaskReminders.Add(new DatabaseTaskReminder
+        {
+            Id = Guid.NewGuid(),
+            TaskId = task1.Id,
+            ReminderAt = DateTime.UtcNow.AddDays(1),
+            Message = "Reminder for Task 1",
+            IsSent = false
+        });
+
+        // -------------------------
+        // Add attachments
+        // -------------------------
+        db.DatabaseTaskAttachments.Add(new DatabaseTaskAttachment
+        {
+            Id = Guid.NewGuid(),
+            TaskId = task1.Id,
+            UserId = user.Id,
+            FilePath = "/files/doc1.pdf",
+            FileType = "application/pdf",
+            FileName = "doc1.pdf",
+            Size = 12345
+        });
+
+        // -------------------------
+        // Add dependencies
+        // -------------------------
+        db.DatabaseTaskDependencyRelations.Add(new DatabaseTaskDependencyRelation
+        {
+            FromTaskId = task2.Id,
+            ToTaskId = task1.Id
+        });
+
+        // -------------------------
+        // Add custom relations
+        // -------------------------
+        var relationType1 = await db.DatabaseRelationTypes.FirstAsync(rt => rt.UserId == user.Id);
+
+        db.DatabaseTaskCustomRelations.Add(new DatabaseTaskCustomRelation
+        {
+            FromTaskId = task1.Id,
+            ToTaskId = task2.Id,
+            RelationTypeId = relationType.Id
+        });
+
+        await db.SaveChangesAsync();
 
 
     }

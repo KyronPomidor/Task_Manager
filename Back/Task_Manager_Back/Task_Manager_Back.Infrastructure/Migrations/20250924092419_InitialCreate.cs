@@ -284,7 +284,6 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     FailedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     PositionOrder = table.Column<int>(type: "int", nullable: false),
-                    DatabaseCustomCategoryId1 = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     DatabaseTaskPriorityId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
                     DatabaseTaskStatusId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
@@ -303,11 +302,6 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                         principalTable: "DatabaseTaskCustomCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_DatabaseTaskEntities_DatabaseTaskCustomCategories_DatabaseCustomCategoryId1",
-                        column: x => x.DatabaseCustomCategoryId1,
-                        principalTable: "DatabaseTaskCustomCategories",
-                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_DatabaseTaskEntities_DatabaseTaskPriorities_DatabaseTaskPriorityId",
                         column: x => x.DatabaseTaskPriorityId,
@@ -544,11 +538,6 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                 name: "IX_DatabaseTaskEntities_DatabaseCustomCategoryId",
                 table: "DatabaseTaskEntities",
                 column: "DatabaseCustomCategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_DatabaseTaskEntities_DatabaseCustomCategoryId1",
-                table: "DatabaseTaskEntities",
-                column: "DatabaseCustomCategoryId1");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DatabaseTaskEntities_DatabaseTaskPriorityId",
