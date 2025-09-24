@@ -10,6 +10,5 @@ public record CreateTaskRequest(
     Guid? StatusId,
     TaskPriority? Priority,
     Guid CategoryId,
-    DateTime? Deadline,
-    int PositionOrder
-) : IRequest<Guid>;
+    DateTime? Deadline
+) : IRequest;

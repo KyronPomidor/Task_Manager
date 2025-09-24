@@ -49,7 +49,7 @@ public class TaskEntity
             ? ValidationHelper.ValidateNotPast(@params.Deadline.Value, nameof(@params.Deadline))
             : null;
 
-        PositionOrder = @params.PositionOrder;
+        PositionOrder = 0;
     }
 
 
@@ -185,7 +185,7 @@ public class TaskEntity
     }
 }
 
-public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline, int PositionOrder);
+public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline);
 public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline,
     bool? IsCompleted, bool? IsFailed, int PositionOrder,
     List<TaskAttachment> Attachments, List<TaskReminder> Reminders, List<TaskRelation> TaskRelations, List<ShopItem> ShopItems);

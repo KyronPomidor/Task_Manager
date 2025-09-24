@@ -6,7 +6,7 @@ using Task_Manager_Back.Application.UseCases.TaskUseCases;
 
 namespace Task_Manager_Back.Application.Handlers.TaskHandlers;
 
-public class CreateTaskHandler : IRequestHandler<CreateTaskRequest, Guid>
+public class CreateTaskHandler : IRequestHandler<CreateTaskRequest>
 {
     private readonly CreateTaskUseCase _createTaskUseCase;
 
@@ -15,9 +15,8 @@ public class CreateTaskHandler : IRequestHandler<CreateTaskRequest, Guid>
         _createTaskUseCase=createTaskUseCase;
     }
 
-    public async Task<Guid> Handle(CreateTaskRequest request, CancellationToken cancellationToken)
+    public async Task Handle(CreateTaskRequest request, CancellationToken cancellationToken)
     {
-        Guid taskId = await _createTaskUseCase.ExecuteAsync(request);
-        return taskId;
+        await _createTaskUseCase.ExecuteAsync(request);
     }
 }

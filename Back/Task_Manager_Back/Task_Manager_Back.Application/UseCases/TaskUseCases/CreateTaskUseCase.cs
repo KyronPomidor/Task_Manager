@@ -13,7 +13,7 @@ public class CreateTaskUseCase
         _taskRepository = taskRepository;
     }
 
-    public async Task<Guid> ExecuteAsync(CreateTaskRequest request)
+    public async Task ExecuteAsync(CreateTaskRequest request)
     {
         var task = new TaskEntity(new TaskEntityCreateParams(
             UserId: request.UserId,
@@ -23,12 +23,10 @@ public class CreateTaskUseCase
             StatusId: request.StatusId,
             Priority: request.Priority,
             CategoryId: request.CategoryId,
-            Deadline: request.Deadline,
-            PositionOrder: request.PositionOrder
+            Deadline: request.Deadline
         ));
 
 
         await _taskRepository.CreateAsync(task);
-        return task.Id;
     }
 }

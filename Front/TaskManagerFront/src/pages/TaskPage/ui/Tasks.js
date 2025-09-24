@@ -16,13 +16,19 @@ import {
   Button,
   List,
   Tooltip,
+  Typography,
+  Divider,
+  Space,
 } from "antd";
+
+
 import dayjs from "dayjs";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MoreOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 
+const { Title, Text, Paragraph } = Typography;
 /* ------------------ Utility ------------------ */
 function priorityColor(p) {
   if (p === "Medium") return { backgroundColor: "#8fc1feff", borderColor: "#2563eb" };
@@ -782,8 +788,9 @@ export function Tasks({
         </Row>
       </SortableContext>
 
+      {/* -------- Details Modal -------- */}
       <Modal
-        title="Task Details"
+        title={null}
         open={detailsOpen}
         centered
         destroyOnClose
@@ -794,6 +801,7 @@ export function Tasks({
         footer={[
           <Button
             key="edit"
+            type="primary"
             onClick={() => {
               setDetailsOpen(false);
               startEdit(selectedTask);
@@ -811,71 +819,209 @@ export function Tasks({
             Close
           </Button>,
         ]}
-        styles={{
-          header: {
-            background: "#60a5fa",
-            color: "#ffffff",
-            padding: "16px 24px",
-            borderRadius: "8px 8px 0 0",
-            margin: "-24px -24px 0 -24px", // Extend header to edges
-          },
-          body: {
-            padding: "24px",
-          },
-        }}
+        bodyStyle={{ padding: "24px 32px" }}
       >
         {selectedTask && (
-          <div className="task-details" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 600, color: "#222e3a", margin: 0 }}>
-              {selectedTask.title.length > 20 ? `${selectedTask.title.substring(0, 20)}...` : selectedTask.title}
-            </h2>
-            {selectedTask.deadline && (
-              <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
-                <strong style={{ fontWeight: 600 }}>Deadline:</strong> {selectedTask.deadline}
-                {selectedTask.deadlineTime ? ` ${selectedTask.deadlineTime}` : ""}
-              </p>
-            )}
-            <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
-              <strong style={{ fontWeight: 600 }}>Description:</strong>{" "}
-              {selectedTask.description || "No description"}
-            </p>
-            <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
-              <strong style={{ fontWeight: 600 }}>Priority:</strong> {selectedTask.priority}
-            </p>
-            <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
-              <strong style={{ fontWeight: 600 }}>Category:</strong> {selectedTask.categoryId}
-            </p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* Title */}
+            <Title level={3} style={{ margin: 0, color: "#1a2233" }}>
+              {selectedTask.title}
+            </Title>
+
+            {/* Meta Info */}
+            <Row gutter={[16, 12]}>
+              {selectedTask.deadline && (
+                <Col span={12}>
+                  <Text strong>Deadline: </Text>
+                  <Text style={{ color: "#000" }}>
+                    {selectedTask.deadline}
+                    {selectedTask.deadlineTime ? ` ${selectedTask.deadlineTime}` : ""}
+                  </Text>
+                </Col>
+              )}
+              <Col span={12}>
+                <Text strong>Priority: </Text>
+                <Tag color={priorityColor(selectedTask.priority)}>
+                  {selectedTask.priority}
+                </Tag>
+              </Col>
+              <Col span={12}>
+                <Text strong>Category: </Text>
+                <Text style={{ color: "#000" }}>{selectedTask.categoryId}</Text>
+              </Col>
+            </Row>
+
+            <Divider style={{ margin: "12px 0" }} />
+
+            {/* Description */}
+            <div
+              style={{
+                background: "#f9fafb",
+                padding: "12px 16px",
+                borderRadius: "8px",
+                border: "1px solid #e5e7eb",
+              }}
+            >
+              <Text strong>Description:</Text>
+              <Paragraph style={{ margin: "8px 0 0", color: "#000" }}>
+                {selectedTask.description || "No description provided"}
+              </Paragraph>
+            </div>
+
+            {/* Parents */}
             {selectedTask.parentIds.length > 0 && (
-              <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
-                <strong style={{ fontWeight: 600 }}>Parent Tasks:</strong>{" "}
-                {allTasks
-                  .filter((t) => selectedTask.parentIds.includes(t.id))
-                  .map((t) => (t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title))
-                  .join(", ")}
-              </p>
+              <div>
+                <Text strong>Parent Tasks:</Text>
+                <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {allTasks
+                    .filter((t) => selectedTask.parentIds.includes(t.id))
+                    .map((t) => (
+                      <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            width: 14,
+                            height: 14,
+                            borderRadius: "50%",
+                            backgroundColor: getParentColor(t.id),
+                            border: "1px solid #ccc",
+                          }}
+                        />
+                        <Text style={{ color: "#000" }}>
+                          {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
+                        </Text>
+                      </div>
+                    ))}
+                </div>
+              </div>
             )}
+
+            {/* Expenses */}
             {selectedTask.budgetItems && selectedTask.budgetItems.length > 0 && (
               <>
-                <h3 style={{ fontSize: "1.25rem", fontWeight: 600, color: "#222e3a", margin: "12px 0 8px" }}>
+                <Divider />
+                <Title level={4} style={{ marginBottom: 8 }}>
                   Expenses
-                </h3>
+                </Title>
                 <List
+                  size="small"
                   dataSource={selectedTask.budgetItems}
                   renderItem={(item) => (
-                    <List.Item style={{ fontSize: "1rem", color: "#4d5156", padding: "8px 0" }}>
-                      {item.name}: ${item.sum.toFixed(2)}
+                    <List.Item>
+                      <Space>
+                        <Text style={{ color: "#000" }}>{item.name}:</Text>
+                        <Text strong>${item.sum.toFixed(2)}</Text>
+                      </Space>
                     </List.Item>
                   )}
                 />
-                <p style={{ fontSize: "1rem", color: "#4d5156", margin: 0 }}>
-                  <strong style={{ fontWeight: 600 }}>Total:</strong>{" "}
-                  ${selectedTask.budgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
-                </p>
+                <Text strong style={{ marginTop: 8 }}>
+                  Total: $
+                  {selectedTask.budgetItems
+                    .reduce((acc, item) => acc + item.sum, 0)
+                    .toFixed(2)}
+                </Text>
               </>
             )}
           </div>
         )}
       </Modal>
+
+      {/* -------- Budget Modal -------- */}
+      <Modal
+        title="Budget Tracker"
+        open={budgetOpen}
+        centered
+        destroyOnClose
+        onCancel={() => {
+          setBudgetOpen(false);
+          setBudgetTask(null);
+          setTempBudgetItems([]);
+        }}
+        onOk={saveBudgetItems}
+        okText="Save"
+      >
+        <Form layout="inline" style={{ marginBottom: 12 }}>
+          <Form.Item label="Name">
+            <Input
+              value={budgetName}
+              onChange={(e) => setBudgetName(e.target.value)}
+              placeholder="e.g. Hosting"
+            />
+          </Form.Item>
+          <Form.Item label="Sum">
+            <Input
+              type="number"
+              value={budgetSum}
+              onChange={(e) => setBudgetSum(e.target.value)}
+              placeholder="100"
+            />
+          </Form.Item>
+          <Form.Item>
+            <Button type="dashed" onClick={addTempBudgetItem}>
+              Add Item
+            </Button>
+          </Form.Item>
+        </Form>
+
+        <List
+          bordered
+          dataSource={tempBudgetItems}
+          renderItem={(item) => (
+            <List.Item>
+              {item.name}: ${item.sum.toFixed(2)}
+            </List.Item>
+          )}
+        />
+
+        {tempBudgetItems.length > 0 && (
+          <p style={{ marginTop: 10 }}>
+            <strong>Total:</strong>{" "}
+            ${tempBudgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
+          </p>
+        )}
+      </Modal>
+
+      {/* -------- Edit Modal -------- */}
+      <Modal
+        title="Edit task"
+        open={editOpen}
+        centered
+        destroyOnClose
+        onCancel={() => {
+          setEditOpen(false);
+          setEditTask(null);
+        }}
+        onOk={handleSaveEdit}
+        okText="Save"
+      >
+        {editTask && (
+          <Form layout="vertical">
+            {/* same as before */}
+          </Form>
+        )}
+      </Modal>
+
+      {/* -------- Add Modal -------- */}
+      <Modal
+        title="Add new task"
+        open={addOpen}
+        centered
+        destroyOnClose
+        onCancel={() => {
+          setAddOpen(false);
+          setEditTask(null);
+        }}
+        onOk={handleSaveNew}
+        okText="Save"
+      >
+        {editTask && (
+          <Form layout="vertical">
+            {/* same as before */}
+          </Form>
+        )}
+      </Modal>
+
 
       <Modal
         title="Budget Tracker"
@@ -956,7 +1102,7 @@ export function Tasks({
               <Input.TextArea
                 value={editTask.description}
                 onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
-                autoSize={{ minRows: 3, maxRows: 6 }}
+                style={{ height: 120, resize: "none", overflowY: "auto" }} // fixed height + scroll
               />
             </Form.Item>
 
@@ -1044,9 +1190,10 @@ export function Tasks({
               <Input.TextArea
                 value={editTask.description}
                 onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
-                autoSize={{ minRows: 3, maxRows: 6 }}
+                style={{ height: 120, resize: "none", overflowY: "auto" }} // fixed height + scroll
               />
             </Form.Item>
+
 
             <Form.Item label="Priority">
               <Select

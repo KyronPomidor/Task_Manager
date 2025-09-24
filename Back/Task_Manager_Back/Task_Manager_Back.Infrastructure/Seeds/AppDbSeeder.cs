@@ -1,7 +1,6 @@
-﻿﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Task_Manager_Back.Domain.Entities.Enums;
 using Task_Manager_Back.Domain.Entities.TaskCategories;
 using Task_Manager_Back.Domain.Entities.TaskRelated;
 using Task_Manager_Back.Infrastructure.DbContext;
@@ -56,54 +55,38 @@ public static class AppDbSeeder
             user = existingUser;
         }
 
-        // inside SeedAsync
+        // Seed default user category (TaskUserCategory)
         var userGuid = Guid.Parse(user.Id);
 
-        // find demo category
-        var category = await db.Categories
-            .OfType<TaskUserCategory>()
-            .FirstOrDefaultAsync(c => c.UserId == userGuid && c.Title == "Default Category");
-
-        if (category == null)
+        if (!await db.Categories.OfType<TaskUserCategory>().AnyAsync(c => c.UserId == userGuid))
         {
-            category = new TaskUserCategory(new TaskUserCategoryCreateParams(
+            var category = new TaskUserCategory(new TaskUserCategoryCreateParams(
                 UserId: userGuid,
                 Title: "Default Category",
                 Description: "Seeded category",
                 ParentCategoryId: null,
                 Color: "#FFFFFF"
             ));
+
             await db.Categories.AddAsync(category);
             await db.SaveChangesAsync();
-        }
 
-        // 🔄 clear old demo tasks
-        var oldTasks = db.Tasks.Where(t => t.UserId == userGuid && t.Title.StartsWith("Seeded Task"));
-        db.Tasks.RemoveRange(oldTasks);
-        await db.SaveChangesAsync();
-
-        // 🔁 add fresh tasks
-        var priorities = Enum.GetValues<TaskPriority>();
-        var tasks = new List<TaskEntity>();
-
-        for (int i = 1; i <= 10; i++)
-        {
-            var priority = priorities[(i - 1) % priorities.Length];
-            tasks.Add(new TaskEntity(new TaskEntityCreateParams(
+            // Seed a task in that category
+            var task = new TaskEntity(new TaskEntityCreateParams(
                 UserId: userGuid,
-                Title: $"Seeded Task {i}",
+                Title: "Sample Task",
                 Color: "#FFFFFF",
-                Description: $"This is seeded task number {i} with {priority} priority",
+                Description: "This is a seeded task",
                 StatusId: null,
-                Priority: priority,
+                Priority: null,
                 CategoryId: category.Id,
-                Deadline: DateTime.UtcNow.AddDays(i),
-                PositionOrder: i
-            )));
-        }
+                Deadline: null
+            ));
 
-        await db.Tasks.AddRangeAsync(tasks);
-        await db.SaveChangesAsync();
+
+            await db.Tasks.AddAsync(task);
+            await db.SaveChangesAsync();
+        }
 
     }
 }

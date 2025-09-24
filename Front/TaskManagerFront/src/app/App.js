@@ -141,7 +141,6 @@ export default function App() {
   };
 
 
-  // --- Update local then backend
   const updateTask = async (updatedTask) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === updatedTask.id ? { ...t, ...updatedTask } : t))
@@ -157,14 +156,14 @@ export default function App() {
       newDeadline: updatedTask.deadline
         ? `${updatedTask.deadline}T${updatedTask.deadlineTime || "00:00"}:00`
         : null,
-      // 🔹 priority mapping (string → number)
-      Newpriority:
+      newPriority:
         updatedTask.priority === "Low"
           ? 0
           : updatedTask.priority === "High"
             ? 2
             : 1,
-      isCompleted: updatedTask.completed || null,
+      newColor: updatedTask.color || "#FFFFFF",   // 🔹 added color
+      isCompleted: updatedTask.completed || false, // 🔹 sync done state
       isFailed: null,
     };
 
@@ -184,8 +183,6 @@ export default function App() {
       });
     }
   };
-
-
 
   // --- Drag handler
   const droppableCategoryIds = new Set(categories.map((c) => c.id));
@@ -259,36 +256,17 @@ export default function App() {
   const todayStr = new Date().toISOString().split("T")[0];
   const filteredTasks = tasks.filter((t) => {
     if (selectedCategory === "today") return t.deadline === todayStr;
+    if (selectedCategory === "done") return t.completed;   // 🔹 done = completed
     if (selectedCategory !== "graphs" && t.categoryId !== selectedCategory)
       return false;
     return true;
   });
 
+
+
   return (
     <div className="App">
       <div className="AppBody">
-        <div
-          style={{
-            position: "absolute",
-            top: 10,
-            right: 30,
-            display: "flex",
-            alignItems: "center",
-            gap: "16px",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <img
-              src={aiIcon}
-              alt="AI Icon"
-              style={{ width: "24px", height: "24px" }}
-            />
-            <Button type="primary" onClick={() => setIsAIAnalysisOpen(true)}>
-              AI Analysis
-            </Button>
-          </div>
-          <UserProfileMenu user={user} />
-        </div>
 
         <DndContext
           collisionDetection={closestCenter}
@@ -317,7 +295,29 @@ export default function App() {
           />
           <div className="MainPanel">
             {selectedCategory !== "graphs" ? (
-              <div className="MainScroll" style={{ paddingTop: "11vh" }}>
+              <div className="MainScroll">
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end", 
+                    gap: "16px",
+                    marginTop: "1vh",
+                    marginRight: "1vw",
+                    marginBottom: "10vh"
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <img
+                      src={aiIcon}
+                      alt="FIcon"
+                      style={{ width: "24px", height: "24px" }}
+                    />
+                    <Button type="primary" onClick={() => setIsAIAnalysisOpen(true)}>
+                      AI Analysis
+                    </Button>
+                  </div>
+                  <UserProfileMenu user={user} />
+                </div>
                 <Welcome
                   user={user}
                   selectedCategory={selectedCategory}
