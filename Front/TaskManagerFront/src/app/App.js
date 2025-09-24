@@ -50,13 +50,13 @@ export default function App() {
           id: t.id, // keep backend id
           title: t.title,
           description: t.description || "",
-          
+
           priority:
-            t.priority === 0
+            t.priority === 0 || t.priority === null
               ? "Low"
-              : t.priority >= 2 
+              : t.priority >= 2
                 ? "High"
-                  : "Medium",
+                : "Medium",
           deadline: t.deadline ? t.deadline.split("T")[0] : null,
           deadlineTime:
             t.deadline && t.deadline.includes("T")
@@ -101,7 +101,13 @@ export default function App() {
       description: newTask.description || null,
       color: "#FFFFFF",
       statusId: null,
-      priority: null,
+      // 🔹 priority mapping (string → number)
+      priority:
+        newTask.priority === "Low"
+          ? 0
+          : newTask.priority === "High"
+            ? 2
+            : 1,
       categoryId: fixedCategoryId,
       deadline: newTask.deadline
         ? `${newTask.deadline}T${newTask.deadlineTime || "00:00"}:00`
@@ -134,6 +140,7 @@ export default function App() {
     }
   };
 
+
   // --- Update local then backend
   const updateTask = async (updatedTask) => {
     setTasks((prev) =>
@@ -144,12 +151,19 @@ export default function App() {
       taskId: updatedTask.id,
       userId: fixedUserId,
       newTitle: updatedTask.title,
-      newDescription: updatedTask.description || "",
+      newDescription: updatedTask.description || null,
       newStatusId: null,
       newCategoryId: fixedCategoryId,
       newDeadline: updatedTask.deadline
         ? `${updatedTask.deadline}T${updatedTask.deadlineTime || "00:00"}:00`
         : null,
+      // 🔹 priority mapping (string → number)
+      Newpriority:
+        updatedTask.priority === "Low"
+          ? 0
+          : updatedTask.priority === "High"
+            ? 2
+            : 1,
       isCompleted: updatedTask.completed || null,
       isFailed: null,
     };
@@ -170,6 +184,7 @@ export default function App() {
       });
     }
   };
+
 
 
   // --- Drag handler
