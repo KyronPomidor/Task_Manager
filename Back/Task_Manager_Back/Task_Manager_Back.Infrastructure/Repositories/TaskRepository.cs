@@ -29,10 +29,49 @@ public class TaskRepository : ITaskRepository
         return dbEntity.Id;
     }
 
-    public Task DeleteAsync(TaskEntity task)
+    public async Task DeleteAsync(TaskEntity task)
     {
-        throw new NotImplementedException();
+        // 1. Загружаем задачу из базы вместе с зависимостями
+        var dbEntity = await _context.DatabaseTaskEntities
+            .Include(t => t.Reminders)
+            .Include(t => t.Attachments)
+            .Include(t => t.DependenciesFrom)
+            .Include(t => t.CustomRelationsFrom)
+            .Include(t => t.CustomRelationsTo)
+            .FirstOrDefaultAsync(t => t.Id == task.Id);
+
+        if (dbEntity == null)
+            throw new KeyNotFoundException($"Task with ID {task.Id} not found.");
+
+        // Проверяем зависимости снаружи
+        var dependentTasks = await _context.DatabaseTaskDependencyRelations
+            .Where(r => r.ToTaskId == task.Id)
+            .Select(r => r.FromTask)
+            .ToListAsync();
+
+        if (dependentTasks.Any())
+        {
+            var names = string.Join(", ", dependentTasks.Select(t => t.Title));
+            throw new InvalidOperationException($"Can not delete '{dbEntity.Title}', because from it are dependent: {names}");
+        }
+
+        // 2. Удаляем агрегаты (EF каскадно удалит, если настроено, но мы можем явно подчистить)
+        _context.DatabaseTaskReminders.RemoveRange(dbEntity.Reminders);
+        _context.DatabaseTaskAttachments.RemoveRange(dbEntity.Attachments);
+        _context.DatabaseTaskDependencyRelations.RemoveRange(dbEntity.DependenciesFrom);
+        _context.DatabaseTaskCustomRelations.RemoveRange(dbEntity.CustomRelationsFrom);
+        _context.DatabaseTaskCustomRelations.RemoveRange(dbEntity.CustomRelationsTo);
+
+        // Важно: Labels не трогаем! Только связи на стороне Task останутся пустыми.
+
+        // 3. Удаляем сам таск
+        _context.DatabaseTaskEntities.Remove(dbEntity);
+
+        // 4. Сохраняем
+        await _context.SaveChangesAsync();
     }
+
+
 
     public async Task<List<TaskEntity>> GetAllAsync(Guid userId)
     {

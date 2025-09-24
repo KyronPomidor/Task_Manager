@@ -259,19 +259,19 @@ public class TaskEntity
 
     public void Delete()
     {
-        // Here you can add logic to handle cascading deletes if needed
-        // For example, clear reminders, attachments, dependencies, etc.
-        // _reminders.Clear();
-        // _attachments.Clear();
-        // _dependencies.Clear();
-        // _customRelations.Clear();
-        // _labelIds.Clear();
+        // Очистка всех внутренних коллекций
+        _reminders.Clear();
+        _attachments.Clear();
+        _dependencies.Clear();
+        _customRelations.Clear();
+        _labelIds.Clear();
+        // this clearing doesn't make any sense here, because the entity will be deleted anyway, but whatever
 
-        //commented for now as have no idea how to handle it properly
-
-        // Note: Actual deletion from the database should be handled in the repository layer
+        // Можно добавить дополнительную логику:
+        // - проверка, можно ли удалять задачу
+        // - уведомление других сервисов о удалении
+        UpdatedAt = DateTime.UtcNow;
     }
-
     // to lazy to read this, but I hope it will work
     private TaskEntity() { } // this is not for EFC as usual, but for LoadFromPersistence method, which is for EFC. 
                              // I want to make it private, so nobody else can use it, only infrastructure layer.

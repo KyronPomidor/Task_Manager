@@ -17,7 +17,7 @@ public class GetTasksByUserIdUseCase
     {
         var tasks = await _taskRepository.GetAllAsync(userId);
         if (tasks == null)
-            throw new Exception("Tasks not found for user with id: " + userId);
+            throw new KeyNotFoundException("Tasks not found for user with id: " + userId);
 
         return tasks;
     }

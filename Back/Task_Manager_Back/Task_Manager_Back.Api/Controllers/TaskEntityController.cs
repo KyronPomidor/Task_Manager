@@ -74,9 +74,30 @@ public class TaskEntityController : Controller
 
         // Here should be a query to get tasks by userId
         // For example:
-         var tasks = await _mediator.Send(new GetTasksByUserIdQuery(UserId));
 
-        // For now, return an empty list
-        return Ok(tasks);
+        try
+        {
+            var tasks = await _mediator.Send(new GetTasksByUserIdQuery(UserId));
+
+            // For now, return an empty list
+            return Ok(tasks);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (not shown here for brevity)
+            return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteTask(Guid id) //DeleteTaskApiRequest for now not used for consistency
+    {
+        DeleteTaskCommand command = new DeleteTaskCommand(id); //userId later
+        await _mediator.Send(command);
+        return Ok(); // IDk to return Ok or NoContent. NoContent is used for delete usually, said me AI. 
     }
 }
