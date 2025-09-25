@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Task_Manager_Back.Domain.Entities.TaskEntity;
 using Task_Manager_Back.Domain.IRepositories;
 
@@ -16,7 +17,7 @@ public class TaskCategoryDomainService
     #region Public methods
 
     // Method to assign a parent category with circular reference check
-    public void AssignParent(CustomCategory category, Guid? newParentId)
+    public async void AssignParent(CustomCategory category, Guid? newParentId)
     {
         if (newParentId == null)
         {
@@ -25,7 +26,7 @@ public class TaskCategoryDomainService
         }
 
         // Load full ancestry chain of the new parent
-        var ancestors = GetAncestors(newParentId.Value);
+        var ancestors = await GetAncestors(newParentId.Value);
 
         // TODO: CHECK in Load full ancestry chain of the new parent if parent exists
         // if not, throw exception
@@ -44,11 +45,11 @@ public class TaskCategoryDomainService
     }
 
     // Method to create a new CustomCategory with validation
-    public CustomCategory CreateCustomCategory(Guid userId, string title, string? description, Guid? parentCategoryId)
+    public async Task<CustomCategory> CreateCustomCategory(Guid userId, string title, string? description, Guid? parentCategoryId)
     {
         if (parentCategoryId != null)
         {
-            var parent = _repository.GetById(parentCategoryId.Value);
+            var parent = await _repository.GetByIdAsync(parentCategoryId.Value);
             if (parent == null)
                 throw new InvalidOperationException("Parent category does not exist.");
         }
@@ -59,14 +60,14 @@ public class TaskCategoryDomainService
     #endregion
 
     #region Private Helpers
-    private IEnumerable<TaskCategory> GetAncestors(Guid categoryId)
+    private async Task<IEnumerable<TaskCategory>> GetAncestors(Guid categoryId)
     {
         var result = new List<TaskCategory>();
-        var current = _repository.GetById(categoryId);
+        var current = await _repository.GetByIdAsync(categoryId);
 
         while (current?.ParentCategoryId != null)
         {
-            var parent = _repository.GetById(current.ParentCategoryId.Value);
+            var parent = await _repository.GetByIdAsync(current.ParentCategoryId.Value);
             if (parent == null) break;
             result.Add(parent);
             current = parent;

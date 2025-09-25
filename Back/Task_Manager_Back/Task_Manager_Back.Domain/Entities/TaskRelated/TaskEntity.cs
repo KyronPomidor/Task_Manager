@@ -277,6 +277,16 @@ public class TaskEntity
         UpdatedAt = DateTime.UtcNow;
     }
     // to lazy to read this, but I hope it will work
+
+    public void AssignToCategory(Guid categoryId){ //normally it should be in DomainService, so TODO:
+        if(categoryId == Guid.Empty)
+            throw new ArgumentException("CategoryId cannot be empty", nameof(categoryId));
+        CategoryId = categoryId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+
+
     private TaskEntity() { } // this is not for EFC as usual, but for LoadFromPersistence method, which is for EFC. 
                              // I want to make it private, so nobody else can use it, only infrastructure layer.
                              // I understand that this constructor is needed for the LoadFromPersistence method to work properly.

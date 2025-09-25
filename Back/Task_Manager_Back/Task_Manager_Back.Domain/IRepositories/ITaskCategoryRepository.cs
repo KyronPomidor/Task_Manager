@@ -5,5 +5,5 @@ namespace Task_Manager_Back.Domain.IRepositories;
 
 public interface ITaskCategoryRepository
 {
-    CustomCategory? GetById(Guid id);
+    Task<CustomCategory?> GetByIdAsync(Guid id);
 }

@@ -240,4 +240,33 @@ public class TaskEntityController : Controller
             return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
         }
     }
+
+    /// <summary>
+    /// Assign a task to a category.
+    /// </summary>
+    /// <param name="request">The category assignment request.</param>
+    /// <returns>200 if successful.</returns>
+    [HttpPatch("assign-category")]
+    public async Task<IActionResult> AssignToCategory([FromBody] AssignTaskToCategoryApiRequest request)
+    {
+        var command = new AssignTaskToCategoryCommand(
+            TaskId: request.TaskId,
+            CategoryId: request.CategoryId
+        );
+
+        try
+        {
+            await _mediator.Send(command);
+            return Ok();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (not shown here for brevity)
+            return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
 }
