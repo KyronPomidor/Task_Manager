@@ -35,6 +35,9 @@ public class PatchTaskUseCase
         if (request.Deadline.HasValue)
             task.ChangeDeadline(request.Deadline.Value);
 
+        if (request.Color != null)
+            task.ChangeColor(request.Color);
+
         if (request.MarkCompleted != null)
             task.SetIsCompleted(request.MarkCompleted ?? false);
 
