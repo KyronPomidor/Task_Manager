@@ -530,7 +530,11 @@ export function Tasks({
                             width: "97%",
                           }}
                         >
-                          {task.description || "No description"}
+                          {task.description
+                            ? task.description.length > 100
+                              ? `${task.description.substring(0, 100)}...`
+                              : task.description
+                            : "No description"}
                         </div>
 
                         {isChild && (
@@ -669,7 +673,6 @@ export function Tasks({
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {getChildren(task.id).map((child) => {
-                                  const childIndicatorColors = child.parentIds.map(getParentColor);
                                   return (
                                     <Card
                                       key={child.id}
@@ -693,7 +696,9 @@ export function Tasks({
                                           <span className={`title ${child.completed ? "done" : ""}`}>
                                             {child.title.length > 20 ? `${child.title.substring(0, 20)}...` : child.title}
                                           </span>
-                                          <Tag color={priorityColor(child.priority)}>{child.priority}</Tag>
+                                          <Tag style={typeof priorityColor(child.priority) === "object" ? priorityColor(child.priority) : {}} color={typeof priorityColor(child.priority) === "string" ? priorityColor(child.priority) : undefined}>
+                                            {child.priority}
+                                          </Tag>
                                           {child.deadline && (
                                             <div style={{ fontSize: "0.85rem", color: "#60a5fa", marginTop: 2 }}>
                                               {child.deadline}
@@ -776,6 +781,8 @@ export function Tasks({
         open={detailsOpen}
         centered
         destroyOnClose
+        maskClosable={true}
+        keyboard={true}
         onCancel={() => {
           setDetailsOpen(false);
           setSelectedTask(null);
@@ -788,6 +795,7 @@ export function Tasks({
               setDetailsOpen(false);
               startEdit(selectedTask);
             }}
+            style={{ marginRight: 8 }}
           >
             Edit
           </Button>,
@@ -803,6 +811,11 @@ export function Tasks({
         ]}
         width={600}
         styles={{
+          header: {
+            background: "#e6f4ff",
+            padding: "16px 24px",
+            borderRadius: "8px 8px 0 0",
+          },
           body: {
             padding: "24px",
             background: "#f9fafb",
@@ -812,6 +825,10 @@ export function Tasks({
             padding: 0,
             borderRadius: "8px",
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
+          footer: {
+            padding: "16px",
+            borderRadius: "0 0 8px 8px",
           },
         }}
       >
@@ -845,7 +862,13 @@ export function Tasks({
               </div>
               <div style={{ marginBottom: "12px" }}>
                 <Text strong style={{ color: "#4d5156" }}>Priority:</Text>
-                <Tag style={typeof priorityColor(selectedTask.priority) === "object" ? priorityColor(selectedTask.priority) : {}} color={typeof priorityColor(selectedTask.priority) === "string" ? priorityColor(selectedTask.priority) : undefined}>
+                <Tag
+                  style={{
+                    marginLeft: "8px",
+                    ...(typeof priorityColor(selectedTask.priority) === "object" ? priorityColor(selectedTask.priority) : {}),
+                  }}
+                  color={typeof priorityColor(selectedTask.priority) === "string" ? priorityColor(selectedTask.priority) : undefined}
+                >
                   {selectedTask.priority}
                 </Tag>
               </div>
@@ -893,15 +916,40 @@ export function Tasks({
         open={budgetOpen}
         centered
         destroyOnClose
+        maskClosable={true}
+        keyboard={true}
         onCancel={() => {
           setBudgetOpen(false);
           setBudgetTask(null);
           setTempBudgetItems([]);
         }}
-        onOk={saveBudgetItems}
-        okText="Save"
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => {
+              setBudgetOpen(false);
+              setBudgetTask(null);
+              setTempBudgetItems([]);
+            }}
+            style={{ marginRight: 8 }}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="save"
+            type="primary"
+            onClick={saveBudgetItems}
+          >
+            Save
+          </Button>,
+        ]}
         width={600}
         styles={{
+          header: {
+            background: "#e6f4ff",
+            padding: "16px 24px",
+            borderRadius: "8px 8px 0 0",
+          },
           body: {
             padding: "24px",
             background: "#f9fafb",
@@ -911,6 +959,10 @@ export function Tasks({
             padding: 0,
             borderRadius: "8px",
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
+          footer: {
+            padding: "16px",
+            borderRadius: "0 0 8px 8px",
           },
         }}
       >
@@ -985,14 +1037,38 @@ export function Tasks({
         open={editOpen}
         centered
         destroyOnClose
+        maskClosable={true}
+        keyboard={true}
         onCancel={() => {
           setEditOpen(false);
           setEditTask(null);
         }}
-        onOk={handleSaveEdit}
-        okText="Save"
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => {
+              setEditOpen(false);
+              setEditTask(null);
+            }}
+            style={{ marginRight: 8 }}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="save"
+            type="primary"
+            onClick={handleSaveEdit}
+          >
+            Save
+          </Button>,
+        ]}
         width={600}
         styles={{
+          header: {
+            background: "#e6f4ff",
+            padding: "16px 24px",
+            borderRadius: "8px 8px 0 0",
+          },
           body: {
             padding: "24px",
             background: "#f9fafb",
@@ -1004,6 +1080,10 @@ export function Tasks({
             padding: 0,
             borderRadius: "8px",
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
+          footer: {
+            padding: "16px",
+            borderRadius: "0 0 8px 8px",
           },
         }}
       >
@@ -1062,7 +1142,7 @@ export function Tasks({
                   </Form.Item>
                 </Col>
               </Row>
-              <Divider style={ { margin: "16px 0" }} />
+              <Divider style={{ margin: "16px 0" }} />
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item label="Deadline (Date)">
@@ -1108,14 +1188,38 @@ export function Tasks({
         open={addOpen}
         centered
         destroyOnClose
+        maskClosable={true}
+        keyboard={true}
         onCancel={() => {
           setAddOpen(false);
           setEditTask(null);
         }}
-        onOk={handleSaveNew}
-        okText="Save"
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => {
+              setAddOpen(false);
+              setEditTask(null);
+            }}
+            style={{ marginRight: 8 }}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="save"
+            type="primary"
+            onClick={handleSaveNew}
+          >
+            Save
+          </Button>,
+        ]}
         width={600}
         styles={{
+          header: {
+            background: "#e6f4ff",
+            padding: "16px 24px",
+            borderRadius: "8px 8px 0 0",
+          },
           body: {
             padding: "24px",
             background: "#f9fafb",
@@ -1127,6 +1231,10 @@ export function Tasks({
             padding: 0,
             borderRadius: "8px",
             boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
+          footer: {
+            padding: "16px",
+            borderRadius: "0 0 8px 8px",
           },
         }}
       >

@@ -6,7 +6,7 @@ namespace Task_Manager_Back.Api.Controllers;
 
 [ApiController]
 [Route("api/ai-chat")]
-public class AiChatController : ControllerBase
+public class AiChatController : Controller
 {
     private readonly IMediator _mediator;
 

@@ -8,9 +8,10 @@ public record CreateTaskRequest(
     string? Description,
     string Color,
     Guid? StatusId,
-    TaskPriority? Priority,
     Guid CategoryId,
+    TaskPriority? Priority,
     DateTime? Deadline,
-    bool IsCompleted,
-    int PositionOrder
+    bool? IsCompleted,
+    int PositionOrder,
+    int? Price
 ) : IRequest<Guid>;

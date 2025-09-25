@@ -13,5 +13,6 @@ public record UpdateTaskRequest(
     TaskPriority NewPriority,
     string NewColor,
     bool IsCompleted,
-    bool IsFailed
+    int NewPositionOrder,
+    int NewPrice
 ) : IRequest;

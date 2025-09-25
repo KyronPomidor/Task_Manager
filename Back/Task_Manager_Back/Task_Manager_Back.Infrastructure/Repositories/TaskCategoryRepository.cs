@@ -74,7 +74,7 @@ public class TaskCategoryRepository : ITaskCategoryRepository
     /// <summary>
     /// Gets the Inbox for a specific user. Creates it if it doesn't exist.
     /// </summary>
-    public async Task<TaskInbox> GetOrCreateInboxForUser(Guid userId)
+    public async Task<TaskInbox> GetOrCreateInboxByUserId(Guid userId)
     {
         var inbox = await _dbContext.Categories
             .OfType<TaskInbox>()

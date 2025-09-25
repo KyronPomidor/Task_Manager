@@ -6,14 +6,14 @@ public class TaskUserCategory : TaskCategory
 {
     public Guid? ParentCategoryId { get; private set; }
     public string Color { get; private set; } = string.Empty;
-    public int Order { get; set; }
+    public int PositionOrder { get; set; }
 
     public TaskUserCategory(TaskUserCategoryCreateParams createParams)
         : base(createParams)
     {
         ParentCategoryId = createParams.ParentCategoryId;
         Color = ValidationHelper.ValidateHexColor(createParams.Color, nameof(createParams.Color));
-        Order = 0;
+        PositionOrder = 0;
     }
 
     private TaskUserCategory() { }
@@ -24,7 +24,7 @@ public class TaskUserCategory : TaskCategory
         LoadBaseFromPersistence(category, state);
         category.ParentCategoryId = state.ParentCategoryId;
         category.Color = state.Color;
-        category.Order = state.Order;
+        category.PositionOrder = state.Order;
         return category;
     }
 
@@ -36,7 +36,7 @@ public class TaskUserCategory : TaskCategory
         Color = color;
     }
 
-    public void UpdateOrder(int order) => Order = order;
+    public void UpdateOrder(int order) => PositionOrder = order;
 }
 
 public record TaskUserCategoryCreateParams(

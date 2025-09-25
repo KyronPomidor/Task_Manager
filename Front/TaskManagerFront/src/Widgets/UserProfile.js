@@ -1,19 +1,16 @@
-// src/Widgets/UserProfile.js
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { Modal, Input, Button, Card, Typography, Form } from "antd";
+
+const { Title, Text } = Typography;
 
 export default function UserProfile({ user }) {
   const [open, setOpen] = useState(false);
-
-  // Fallbacks for name/email if missing
   const initialName = user?.displayName || user?.email?.split("@")[0] || "User";
   const initialEmail = user?.email || "unknown@example.com";
-
   const [name, setName] = useState(initialName);
   const [email, setEmail] = useState(initialEmail);
-
   const [tempName, setTempName] = useState(initialName);
   const [tempEmail, setTempEmail] = useState(initialEmail);
-
   const [userHover, setUserHover] = useState(false);
   const [userActive, setUserActive] = useState(false);
 
@@ -40,47 +37,6 @@ export default function UserProfile({ user }) {
       justifyContent: "center",
       fontWeight: 600,
     },
-    overlay: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      width: "100%",
-      height: "100%",
-      background: "rgba(0,0,0,0.3)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 9999,
-    },
-    card: {
-      background: "white",
-      borderRadius: "12px",
-      padding: "20px",
-      width: "400px",
-      boxShadow: "0 5px 20px rgba(0,0,0,0.2)",
-    },
-    input: {
-      width: "100%",
-      padding: "8px",
-      borderRadius: "6px",
-      border: "1px solid #ccc",
-      marginTop: "4px",
-    },
-    actionBtn: {
-      padding: "8px 14px",
-      borderRadius: "6px",
-      border: "1px solid #ccc",
-      background: "white",
-      cursor: "pointer",
-    },
-    actionPrimary: {
-      padding: "8px 14px",
-      borderRadius: "6px",
-      border: "none",
-      background: "#111111",
-      color: "white",
-      cursor: "pointer",
-    },
   };
 
   const openModal = () => {
@@ -95,18 +51,8 @@ export default function UserProfile({ user }) {
     setOpen(false);
   };
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
-
   return (
     <div>
-      {/* Profile button */}
       <button
         onClick={openModal}
         onMouseEnter={() => setUserHover(true)}
@@ -128,43 +74,79 @@ export default function UserProfile({ user }) {
         <span>{name}</span>
       </button>
 
-      {/* Modal */}
-      {open && (
-        <div style={styles.overlay}>
-          <div style={styles.card}>
-            <h2 style={{ marginBottom: "16px" }}>Profile Settings</h2>
-
-            <div style={{ marginBottom: "12px" }}>
-              <label>Name</label>
-              <input
-                type="text"
+      <Modal
+        title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>Profile Settings</Title>}
+        open={open}
+        onCancel={() => setOpen(false)}
+        centered
+        maskClosable={true}
+        keyboard={true}
+        footer={[
+          <Button
+            key="cancel"
+            onClick={() => setOpen(false)}
+            style={{ marginRight: 8 }}
+          >
+            Cancel
+          </Button>,
+          <Button
+            key="save"
+            type="primary"
+            onClick={saveChanges}
+          >
+            Save
+          </Button>,
+        ]}
+        width={400}
+        styles={{
+          header: {
+            background: "#e6f4ff",
+            padding: "16px 24px",
+            borderRadius: "8px 8px 0 0",
+          },
+          body: {
+            padding: "24px",
+            background: "#f9fafb",
+            borderRadius: "0 0 8px 8px",
+          },
+          content: {
+            padding: 0,
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
+          footer: {
+            padding: "16px",
+            borderRadius: "0 0 8px 8px",
+          },
+        }}
+      >
+        <Card
+          bordered={false}
+          style={{
+            background: "#ffffff",
+            borderRadius: "8px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+          }}
+        >
+          <Form layout="vertical">
+            <Form.Item label={<Text strong style={{ color: "#4d5156" }}>Name</Text>} required>
+              <Input
                 value={tempName}
                 onChange={(e) => setTempName(e.target.value)}
-                style={styles.input}
+                placeholder="Enter your name"
               />
-            </div>
-
-            <div style={{ marginBottom: "20px" }}>
-              <label>Email</label>
-              <input
+            </Form.Item>
+            <Form.Item label={<Text strong style={{ color: "#4d5156" }}>Email</Text>} required>
+              <Input
                 type="email"
                 value={tempEmail}
                 onChange={(e) => setTempEmail(e.target.value)}
-                style={styles.input}
+                placeholder="Enter your email"
               />
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-              <button onClick={() => setOpen(false)} style={styles.actionBtn}>
-                Cancel
-              </button>
-              <button onClick={saveChanges} style={styles.actionPrimary}>
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </Form.Item>
+          </Form>
+        </Card>
+      </Modal>
     </div>
   );
 }

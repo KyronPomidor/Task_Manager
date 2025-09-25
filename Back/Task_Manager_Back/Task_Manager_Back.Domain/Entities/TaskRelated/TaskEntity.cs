@@ -20,6 +20,7 @@ public class TaskEntity
     public bool IsCompleted { get; private set; }
     public bool IsFailed { get; private set; }
     public int PositionOrder { get; private set; }
+    public int Price { get; private set; }
 
     private List<TaskLabel> Labels { get; set; } = new();
     private List<TaskAttachment> Attachments { get; set; } = new();
@@ -50,6 +51,7 @@ public class TaskEntity
             : null;
         IsCompleted = @params.IsCompleted;
         PositionOrder = @params.PositionOrder;
+        Price = @params.Price;
     }
 
 
@@ -74,7 +76,8 @@ public class TaskEntity
             Attachments = state.Attachments ?? new(),
             Reminders = state.Reminders ?? new(),
             TaskRelations = state.TaskRelations ?? new(),
-            ShopItems = state.ShopItems ?? new()
+            ShopItems = state.ShopItems ?? new(),
+            Price = state.Price
         };
     }
 
@@ -104,13 +107,20 @@ public class TaskEntity
             Deadline = null;
     }
     public void UpdatePositionOrder(int positionOrder) => PositionOrder = positionOrder;
+    public void SetIsCompleted(bool value)
+    {
+        IsCompleted = value;
+    }
     public void MarkCompleted()
     {
         if (IsCompleted) throw new InvalidOperationException("Task is already completed");
         if (IsFailed) throw new InvalidOperationException("Cannot complete a failed task");
         IsCompleted = true;
     }
-
+    public void SetIsFailed(bool value)
+    {
+        IsFailed = value;
+    }
     public void MarkFailed()
     {
         if (IsFailed) throw new InvalidOperationException("Task is already failed");
@@ -185,7 +195,7 @@ public class TaskEntity
     }
 }
 
-public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline, bool IsCompleted, int PositionOrder);
+public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline, bool IsCompleted, int PositionOrder, int Price);
 public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline,
-    bool IsCompleted, bool IsFailed, int PositionOrder,
+    bool IsCompleted, bool IsFailed, int PositionOrder, int Price,
     List<TaskAttachment> Attachments, List<TaskReminder> Reminders, List<TaskRelation> TaskRelations, List<ShopItem> ShopItems);

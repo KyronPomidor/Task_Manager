@@ -37,7 +37,7 @@ export default function App() {
 
   // Fixed values
   const fixedUserId = "283118eb-f3c5-4447-afa2-f5a93762a5e3";
-  const fixedInboxId = "00000000-0000-0000-0000-000000000001"; // unique fixed id for inbox in DB
+  const fixedInboxId = "00000000-0000-0000-0000-000000000001";
 
   function normalizeCategories(raw) {
     const isFlat =
@@ -141,7 +141,14 @@ export default function App() {
           };
         });
 
-        setTasks(mapped);
+        // sort by positionOrder and reassign
+        const sorted = mapped.sort((a, b) => a.positionOrder - b.positionOrder);
+        const withLocalOrder = sorted.map((t, idx) => ({
+          ...t,
+          positionOrder: idx,
+        }));
+
+        setTasks(withLocalOrder);
       } catch (err) {
         console.error("Error loading tasks:", err);
       }
@@ -150,7 +157,7 @@ export default function App() {
     fetchTasks();
   }, [categories]);
 
-  // --- Add task
+  // --- Add task (insert at top, shift others)
   const addTask = async (newTask) => {
     const tempId = Date.now().toString();
     const tempTask = {
@@ -164,9 +171,14 @@ export default function App() {
       completed: false,
       parentIds: [],
       graphNode: { id: newTask.title, x: 200, y: 200 },
+      positionOrder: 0,
     };
 
-    setTasks((prev) => [...prev, tempTask]);
+    // shift all tasks forward, insert new one at 0
+    setTasks((prev) => [
+      tempTask,
+      ...prev.map((t) => ({ ...t, positionOrder: t.positionOrder + 1 })),
+    ]);
 
     const backendTask = {
       userId: fixedUserId,
@@ -189,7 +201,7 @@ export default function App() {
       deadline: newTask.deadline
         ? `${newTask.deadline}T${newTask.deadlineTime || "00:00"}:00`
         : null,
-      positionOrder: tasks.length + 1,
+      positionOrder: 0,
     };
 
     try {
@@ -217,7 +229,7 @@ export default function App() {
     }
   };
 
-  // --- Update task (unchanged except inbox handled)
+  // --- Update task
   const updateTask = async (updateTask) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === updateTask.id ? { ...t, ...updateTask } : t))
@@ -256,6 +268,7 @@ export default function App() {
             : 1,
       markCompleted: Boolean(updateTask.completed),
       isFailed: null,
+      positionOrder: updateTask.positionOrder ?? 0,
     };
 
     try {
@@ -275,21 +288,39 @@ export default function App() {
     }
   };
 
-  // Add category
+  // --- Update task order only
+  const updateTaskOrder = async (id, positionOrder) => {
+    console.log("updateTaskOrder called for task ${id} -> order ${positionOrder}");
+
+    try {
+      const response = await axios.patch(
+        `http://localhost:5053/api/tasks/${id}`,
+        {
+          taskId: id,
+          positionOrder,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      console.log("✅ Order updated on backend:", response.data);
+    } catch (err) {
+      console.error(
+        "❌ Order update failed for ${id}:",
+        err.response?.data || err.message
+      );
+    }
+  };
+  // --- Categories add/edit/delete (unchanged)
   const addCategory = async (title, parentId = null) => {
     const tempId = "temp-" + Date.now();
-
-    // 1. Optimistic update: show immediately with user’s title
     const optimistic = {
       id: tempId,
       name: title,
       parentId: parentId || null,
       order: 0,
     };
-    setCategories(prev => [...prev, optimistic]);
+    setCategories((prev) => [...prev, optimistic]);
 
     try {
-      // 2. Send to backend
       const payload = {
         userId: fixedUserId,
         title,
@@ -303,20 +334,12 @@ export default function App() {
         { headers: { "Content-Type": "application/json" } }
       );
 
-      // 3. Replace tempId with backend id, but KEEP title/parentId
-      setCategories(prev =>
-        prev.map(c =>
-          c.id === tempId
-            ? { ...c, id: data.id } // only swap the id
-            : c
-        )
+      setCategories((prev) =>
+        prev.map((c) => (c.id === tempId ? { ...c, id: data.id } : c))
       );
     } catch (err) {
       console.error("Add category failed:", err.response?.data || err.message);
-
-      // 4. Rollback if error
-      setCategories(prev => prev.filter(c => c.id !== tempId));
-
+      setCategories((prev) => prev.filter((c) => c.id !== tempId));
       Modal.error({
         title: "Save Failed",
         content: `Could not save category: ${err.response?.data || err.message}`,
@@ -324,7 +347,6 @@ export default function App() {
     }
   };
 
-  // Edit category
   const editCategory = async (id, newTitle, newParentId = null) => {
     const prevCats = categories;
     const old = categories.find((c) => c.id === id);
@@ -333,7 +355,8 @@ export default function App() {
     const normalizedParentId = newParentId === "" ? null : newParentId;
 
     const titleChanged = (old.name || "") !== (newTitle || "");
-    const parentChanged = (old.parentId || null) !== (normalizedParentId || null);
+    const parentChanged =
+      (old.parentId || null) !== (normalizedParentId || null);
 
     setCategories((prev) =>
       prev.map((c) =>
@@ -359,19 +382,26 @@ export default function App() {
     } catch (err) {
       console.error("Edit category failed:", err.response?.data || err.message);
       setCategories(prevCats);
-      Modal.error({ title: "Update Failed", content: `Could not update category: ${err.response?.data || err.message}` });
+      Modal.error({
+        title: "Update Failed",
+        content: `Could not update category: ${err.response?.data || err.message}`,
+      });
     }
   };
 
-  // Delete category
   const deleteCategory = async (id) => {
     const prevCats = categories;
     const prevTasks = tasks;
     const prevSelected = selectedCategory;
 
-    // Optimistic remove
-    setCategories((prev) => prev.filter((c) => c.id !== id && c.parentId !== id));
-    setTasks((prev) => prev.map((t) => (t.categoryId === id ? { ...t, categoryId: "inbox" } : t)));
+    setCategories((prev) =>
+      prev.filter((c) => c.id !== id && c.parentId !== id)
+    );
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.categoryId === id ? { ...t, categoryId: "inbox" } : t
+      )
+    );
     if (selectedCategory === id) setSelectedCategory("inbox");
 
     try {
@@ -381,7 +411,10 @@ export default function App() {
       setCategories(prevCats);
       setTasks(prevTasks);
       setSelectedCategory(prevSelected);
-      Modal.error({ title: "Delete Failed", content: `Could not delete category: ${err.response?.data || err.message}` });
+      Modal.error({
+        title: "Delete Failed",
+        content: `Could not delete category: ${err.response?.data || err.message}`,
+      });
     }
   };
 
@@ -421,6 +454,7 @@ export default function App() {
       return;
     }
 
+    // --- Handle reordering within same category
     if (active.id !== over.id) {
       setTasks((prev) => {
         const activeTask = prev.find((t) => t.id === active.id);
@@ -434,11 +468,17 @@ export default function App() {
         if (oldIndex === -1 || newIndex === -1) return prev;
 
         const reordered = arrayMove(categoryTasks, oldIndex, newIndex);
+
         let result = [];
         let i = 0;
         for (const t of prev) {
           if (t.categoryId === activeTask.categoryId) {
-            result.push({ ...reordered[i], positionOrder: i });
+            const updatedTask = { ...reordered[i], positionOrder: i };
+            result.push(updatedTask);
+
+            // 👇 PATCH order immediately
+            updateTaskOrder(updatedTask.id, updatedTask.positionOrder);
+
             i++;
           } else {
             result.push(t);
@@ -447,6 +487,7 @@ export default function App() {
         return result;
       });
     }
+
     setHoveredCategory(null);
   }
 
@@ -474,9 +515,7 @@ export default function App() {
           onDragStart={({ active }) => setActiveTaskId(active.id)}
           onDragOver={({ over }) =>
             setHoveredCategory(
-              over?.id.startsWith("category:")
-                ? over.id.replace("category:", "")
-                : null
+              over?.id.startsWith("category:") ? over.id.replace("category:", "") : null
             )
           }
           onDragEnd={(event) => {
@@ -528,7 +567,7 @@ export default function App() {
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <img
                       src={aiIcon}
-                      alt="FIcon"
+                      alt="AI"
                       style={{ width: "24px", height: "24px" }}
                     />
                     <Button type="primary" onClick={() => setIsAIAnalysisOpen(true)}>
@@ -543,6 +582,7 @@ export default function App() {
                   selectedCategory={selectedCategory}
                   categories={categories}
                 />
+
                 <Tasks
                   filteredTasks={filteredTasks}
                   allTasks={tasks}
@@ -557,6 +597,7 @@ export default function App() {
               </div>
             )}
           </div>
+
           <DragOverlay>
             {activeTaskId &&
               (() => {

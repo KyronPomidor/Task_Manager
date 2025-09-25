@@ -346,6 +346,9 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.Property<int>("PositionOrder")
                         .HasColumnType("int");
 
+                    b.Property<int>("Price")
+                        .HasColumnType("int");
+
                     b.Property<int?>("Priority")
                         .HasColumnType("int");
 
@@ -456,11 +459,11 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                         .HasMaxLength(7)
                         .HasColumnType("nvarchar(7)");
 
-                    b.Property<int>("Order")
-                        .HasColumnType("int");
-
                     b.Property<Guid?>("ParentCategoryId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("PositionOrder")
+                        .HasColumnType("int");
 
                     b.HasDiscriminator().HasValue("UserCategory");
                 });

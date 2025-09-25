@@ -35,11 +35,14 @@ public class PatchTaskUseCase
         if (request.Deadline.HasValue)
             task.ChangeDeadline(request.Deadline.Value);
 
-        if (request.MarkCompleted == true)
-            task.MarkCompleted();
+        if (request.Color != null)
+            task.ChangeColor(request.Color);
 
-        if (request.MarkFailed == true)
-            task.MarkFailed();
+        if (request.MarkCompleted != null)
+            task.SetIsCompleted(request.MarkCompleted ?? false);
+
+        if (request.MarkCompleted != null)
+            task.SetIsFailed(request.MarkCompleted ?? false);
 
         await _taskRepository.UpdateAsync(task);
     }

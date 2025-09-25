@@ -8,7 +8,7 @@ namespace Task_Manager_Back.Api.Controllers;
 
 [ApiController]
 [Route("api/categories")]
-public class TaskCategoryController : ControllerBase
+public class TaskCategoryController : Controller
 {
     private readonly IMediator _mediator;
 
@@ -39,7 +39,7 @@ public class TaskCategoryController : ControllerBase
     [HttpGet("inbox/{userId:guid}")]
     public async Task<IActionResult> GetOrCreateInbox(Guid userId)
     {
-        var inboxCategory = await _mediator.Send(new GetOrCreateInboxForUserRequest(userId));
+        var inboxCategory = await _mediator.Send(new GetOrCreateInboxByUserIdRequest(userId));
         return Ok(inboxCategory);
     }
     /// <summary>
@@ -52,7 +52,25 @@ public class TaskCategoryController : ControllerBase
 
         return CreatedAtAction(nameof(GetById), new { id = categoryId }, new { id = categoryId });
     }
+    [HttpPut("user/{categoryId:guid}")]
+    public async Task<IActionResult> UpdateUserCategory(Guid categoryId, [FromBody] UpdateTaskUserCategoryRequest request)
+    {
+        if (categoryId != request.CategoryId)
+            return BadRequest("CategoryId mismatch between route and body");
 
+        await _mediator.Send(request);
+        return NoContent();
+    }
+
+    [HttpPatch("user/{categoryId:guid}")]
+    public async Task<IActionResult> PatchUserCategory(Guid categoryId, [FromBody] PatchTaskUserCategoryRequest request)
+    {
+        if (categoryId != request.CategoryId)
+            return BadRequest("CategoryId mismatch between route and body");
+
+        await _mediator.Send(request);
+        return NoContent();
+    }
 
     /// <summary>
     /// Rename a category.
@@ -97,7 +115,7 @@ public class TaskCategoryController : ControllerBase
     /// Delete a category (Inbox cannot be deleted).
     /// </summary>
     [HttpDelete("{categoryId:guid}")]
-    public async Task<IActionResult> Delete(Guid categoryId)
+    public async Task<IActionResult> DeleteById(Guid categoryId)
     {
         await _mediator.Send(new DeleteTaskUserCategoryRequest(categoryId));
         return NoContent();

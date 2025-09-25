@@ -6,7 +6,7 @@ namespace Task_Manager_Back.Api.Controllers;
 
 [ApiController]
 [Route("api/tasks")]
-public class TaskEntityController : ControllerBase
+public class TaskEntityController : Controller
 {
     private readonly IMediator _mediator;
 
@@ -76,7 +76,7 @@ public class TaskEntityController : ControllerBase
     /// Delete a task by Id.
     /// </summary>
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> DeleteById(Guid id)
     {
         await _mediator.Send(new DeleteTaskByIdRequest(id));
         return NoContent();
