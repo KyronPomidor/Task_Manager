@@ -108,10 +108,14 @@ builder.Services.AddTransient<GetTaskUseCase>();
 builder.Services.AddTransient<DeleteTaskUseCase>();
 builder.Services.AddTransient<TaskAssignToCategoryUseCase>();
 
+builder.Services.AddTransient<TaskCategoryCreateUseCase>();
+
 builder.Services.AddTransient<AddTaskDependencyUseCase>();
 builder.Services.AddTransient<DeleteTaskDependencyUseCase>(); //why Transient? why not scoped/singleton?
 
 builder.Services.AddTransient<TaskDomainService>();
+builder.Services.AddTransient<TaskCategoryDomainService>();
+
 builder.Services.AddScoped<IRelationTypeRepository, RelationTypeRepository>();
 builder.Services.AddScoped<ITaskCategoryRepository, TaskCategoryRepository>();
 
