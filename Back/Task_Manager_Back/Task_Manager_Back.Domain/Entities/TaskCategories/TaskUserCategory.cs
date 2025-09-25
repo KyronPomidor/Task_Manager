@@ -36,7 +36,7 @@ public class TaskUserCategory : TaskCategory
         Color = color;
     }
 
-    public void UpdateOrder(int order) => PositionOrder = order;
+    public void ChangePositionOrder(int order) => PositionOrder = order;
 }
 
 public record TaskUserCategoryCreateParams(
