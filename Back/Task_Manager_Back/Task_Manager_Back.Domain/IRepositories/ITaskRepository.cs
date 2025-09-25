@@ -10,4 +10,6 @@ public interface ITaskRepository
     Task<Guid> CreateAsync(TaskEntity task); // <-- возвращаем Guid Id
     Task UpdateAsync(TaskEntity task);
     Task DeleteAsync(TaskEntity task);
+
+    Task RemoveDependencyAsync(Guid taskId, Guid dependsOnTaskId);//FAST Fix, costili
 }

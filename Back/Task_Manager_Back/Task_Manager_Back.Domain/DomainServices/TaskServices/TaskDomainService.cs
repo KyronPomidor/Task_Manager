@@ -31,6 +31,28 @@ public class TaskDomainService
         task.AddDependency(new TaskDependencyRelation(task.Id, dependency.Id));
     }
 
+    public async Task DeleteDependency(TaskEntity fromTask, TaskEntity toTask)
+    {
+        var fromTaskId = fromTask.Id;
+        var toTaskId = toTask.Id;
+        if (fromTaskId == Guid.Empty)
+            throw new ArgumentException("fromTaskId cannot be empty", nameof(fromTaskId));
+        if (toTaskId == Guid.Empty)
+            throw new ArgumentException("toTaskId cannot be empty", nameof(toTaskId));
+
+        // Fetch the task that has the dependency
+        var task = await _taskRepository.GetByIdAsync(fromTaskId)
+            ?? throw new InvalidOperationException("Task does not exist");
+
+        // Ensure that dependency exists before removing
+        if (!task.HasDependency(toTaskId))
+            throw new InvalidOperationException("The specified dependency does not exist.");
+
+        // Remove the dependency
+        task.RemoveDependency(toTaskId);
+    }
+
+
     /// <summary>
     /// Marks a task as completed, enforcing dependency rules.
     /// </summary>

@@ -23,7 +23,7 @@ public class TaskRepository : ITaskRepository
     {
         var dbEntity = task.ToDbEntity();  // Теперь использую TaskMappers.ToDbEntity(task);
         _logger.LogDebug("Full TaskEntity mapped to DB: {@dbEntity}", dbEntity);
-        
+
         _context.DatabaseTaskEntities.Add(dbEntity);  // EF добавит все коллекции каскадно
         await _context.SaveChangesAsync();
         return dbEntity.Id;
@@ -84,7 +84,7 @@ public class TaskRepository : ITaskRepository
             .Include(t => t.CustomRelationsFrom)
             .Include(t => t.CustomRelationsTo) // Загружаем CustomRelations
             .ToListAsync();
-        
+
         if (dbEntities == null || !dbEntities.Any())
             throw new KeyNotFoundException($"No tasks found for user ID {userId}."); // In tutorial exceptions in infrastructure is normal
 
@@ -127,11 +127,47 @@ public class TaskRepository : ITaskRepository
         var updatedDbEntity = task.ToDbEntity();
         _context.Entry(existingDbEntity).CurrentValues.SetValues(updatedDbEntity);
 
+        var toAdd = updatedDbEntity.DependenciesFrom
+            .Where(d => !existingDbEntity.DependenciesFrom
+                .Any(e => e.FromTaskId == d.FromTaskId && e.ToTaskId == d.ToTaskId))
+            .ToList();
+
+        var toRemove = existingDbEntity.DependenciesFrom
+            .Where(e => !updatedDbEntity.DependenciesFrom
+                .Any(d => d.FromTaskId == e.FromTaskId && d.ToTaskId == e.ToTaskId))
+            .ToList();
+
+        // Удаляем старые зависимости
+        _context.DatabaseTaskDependencyRelations.RemoveRange(toRemove);
+
+        // Добавляем новые
+        foreach (var d in toAdd)
+        {
+            existingDbEntity.DependenciesFrom.Add(d);
+        }
+
+
+
+
         // Collections (Reminders, Attachments, Dependencies, CustomRelations) 
         // are updated inside the domain entity itself, so no need to clear/re-add here.
 
         await _context.SaveChangesAsync();
     }
+    
+
+    // FAST FIX. Don't do like that, it is Costili
+    public async Task RemoveDependencyAsync(Guid taskId, Guid dependsOnTaskId)
+    {
+        var dependency = await _context.DatabaseTaskDependencyRelations
+            .FirstOrDefaultAsync(d => d.FromTaskId == taskId && d.ToTaskId == dependsOnTaskId);
+
+        if (dependency == null) return; // или выбросить ошибку
+
+        _context.DatabaseTaskDependencyRelations.Remove(dependency);
+        await _context.SaveChangesAsync();
+    }
+
 
 
 }

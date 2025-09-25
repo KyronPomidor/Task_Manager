@@ -181,4 +181,63 @@ public class TaskEntityController : Controller
             return StatusCode(500, "An error occurred while processing your request.");
         }
     }
+
+    // This is for Dependency relations between tasks:
+    /// <summary>
+    /// Add a dependency relation between two tasks.
+    /// </summary>
+    /// <param name="request">The dependency relation request.</param>
+    /// <returns>200 if successful.</returns>
+    [HttpPost("add-dependency")]
+    public async Task<IActionResult> AddDependency([FromBody] CreateTaskDependencyApiRequest request)
+    {
+        var command = new CreateTaskDependencyCommand(
+            TaskId: request.TaskId,
+            DependsOnTaskId: request.DependsOnTaskId
+        );
+
+        try
+        {
+            await _mediator.Send(command);
+            return Ok();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (not shown here for brevity)
+            return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
+
+    /// <summary>
+    /// Remove a dependency relation between two tasks.
+    /// </summary>
+    /// <param name="request">The dependency removal request.</param>
+    /// <returns>200 if successful.</returns>
+    [HttpDelete("remove-dependency")]
+    public async Task<IActionResult> RemoveDependency([FromBody] DeleteTaskDependencyApiRequest request)
+    {
+        var command = new DeleteTaskDependencyCommand(
+            TaskId: request.TaskId,
+            DependsOnTaskId: request.DependsOnTaskId
+        );
+
+        try
+        {
+            await _mediator.Send(command);
+            return Ok();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (not shown here for brevity)
+            return StatusCode(500, "An error occurred while processing your request: " + ex.Message);
+        }
+    }
 }

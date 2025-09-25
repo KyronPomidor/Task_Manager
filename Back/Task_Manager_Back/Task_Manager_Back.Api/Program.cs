@@ -14,6 +14,7 @@ using Task_Manager_Back.Infrastructure.DatabaseEntities;
 using Task_Manager_Back.Application.IServices;
 using Task_Manager_Back.Infrastructure.Services.Auth;
 using Task_Manager_Back.Infrastructure.Seeds;
+using Task_Manager_Back.Domain.DomainServices.TaskServices;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -104,6 +105,12 @@ builder.Services.AddTransient<UpdateTaskUseCase>();
 builder.Services.AddTransient<GetTasksByUserIdUseCase>();
 builder.Services.AddTransient<GetTaskUseCase>();
 builder.Services.AddTransient<DeleteTaskUseCase>();
+
+builder.Services.AddTransient<AddTaskDependencyUseCase>();
+builder.Services.AddTransient<DeleteTaskDependencyUseCase>(); //why Transient? why not scoped/singleton?
+
+builder.Services.AddTransient<TaskDomainService>();
+builder.Services.AddScoped<IRelationTypeRepository, RelationTypeRepository>();
 
 
 // OpenAPI / Swagger
