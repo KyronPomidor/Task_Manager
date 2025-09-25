@@ -379,7 +379,7 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("DatabaseCustomCategoryId")
+                    b.Property<Guid?>("DatabaseCustomCategoryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("DatabaseTaskPriorityId")
@@ -701,8 +701,7 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.HasOne("Task_Manager_Back.Infrastructure.DatabaseEntities.DatabaseCustomCategory", "DatabaseCustomCategory")
                         .WithMany("Tasks")
                         .HasForeignKey("DatabaseCustomCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Task_Manager_Back.Infrastructure.DatabaseEntities.DatabaseTaskPriority", null)
                         .WithMany("Tasks")

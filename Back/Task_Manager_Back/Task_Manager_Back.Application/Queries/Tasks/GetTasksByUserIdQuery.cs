@@ -13,7 +13,7 @@ public record TaskDto(
     Guid? PriorityId,
     int PriorityLevel,
     Guid? StatusId,
-    Guid CategoryId,
+    Guid? CategoryId, //Null means Inbox.
     DateTime? CreatedAt,
     DateTime? UpdatedAt,
     DateTime? Deadline,

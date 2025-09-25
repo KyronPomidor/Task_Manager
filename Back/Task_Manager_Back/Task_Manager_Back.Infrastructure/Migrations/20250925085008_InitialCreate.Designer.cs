@@ -12,7 +12,7 @@ using Task_Manager_Back.Infrastructure.DbContext;
 namespace Task_Manager_Back.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250924205813_InitialCreate")]
+    [Migration("20250925085008_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -382,7 +382,7 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid>("DatabaseCustomCategoryId")
+                    b.Property<Guid?>("DatabaseCustomCategoryId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("DatabaseTaskPriorityId")
@@ -704,8 +704,7 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.HasOne("Task_Manager_Back.Infrastructure.DatabaseEntities.DatabaseCustomCategory", "DatabaseCustomCategory")
                         .WithMany("Tasks")
                         .HasForeignKey("DatabaseCustomCategoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Task_Manager_Back.Infrastructure.DatabaseEntities.DatabaseTaskPriority", null)
                         .WithMany("Tasks")

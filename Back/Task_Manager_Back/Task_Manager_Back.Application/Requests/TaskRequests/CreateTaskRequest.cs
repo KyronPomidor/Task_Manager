@@ -13,7 +13,7 @@ public record CreateTaskRequest(
     Guid? PriorityId,
     int PriorityLevel,
     Guid? StatusId,
-    Guid CategoryId,
+    Guid? CategoryId, // can be null, then task goes to "Inbox" category
     DateTime? Deadline,
     IEnumerable<Guid>? LabelIds,
     int OrderPosition

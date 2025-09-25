@@ -18,7 +18,7 @@ public class TaskEntity
     public Guid? PriorityId { get; private set; }
     public int PriorityLevel { get; private set; } // TEMP FIELD
     public Guid? StatusId { get; private set; }
-    public Guid CategoryId { get; private set; }
+    public Guid? CategoryId { get; private set; } // Null means Inbox. Bad practice, but fast.
 
     // Labels
     private List<Guid> _labelIds = new();
@@ -56,7 +56,7 @@ public class TaskEntity
         PriorityId = @params.priorityId;
         PriorityLevel = @params.priorityLevel; // TEMP FIELD
         StatusId = @params.statusId;
-        CategoryId = @params.categoryId;
+        CategoryId = @params.categoryId; // Null means Inbox
 
         Deadline = @params.deadline;
         CreatedAt = DateTime.UtcNow;
@@ -285,6 +285,12 @@ public class TaskEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void AssignToInboxCategory() // TODO: normally it should be in DomainService, so TODO: (also the implementation is weird. Should be normal in database inbox category, not just null)
+    {
+        CategoryId = null;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
 
 
     private TaskEntity() { } // this is not for EFC as usual, but for LoadFromPersistence method, which is for EFC. 
@@ -307,7 +313,7 @@ public class TaskEntity
             PriorityId = state.priorityId,
             PriorityLevel = state.priorityLevel, // TEMP FIELD
             StatusId = state.statusId,
-            CategoryId = state.categoryId,
+            CategoryId = state.categoryId, // Null means Inbox
 
             CreatedAt = state.createdAt,
             UpdatedAt = state.updatedAt,
@@ -417,7 +423,7 @@ public record TaskEntityCreateParams(
         Guid? priorityId,
         int priorityLevel,  // TEMP FIELD
         Guid? statusId,
-        Guid categoryId,
+        Guid? categoryId, // Null = Inbox
         DateTime? deadline,
         IEnumerable<Guid>? labels = null,
         int order = 0); // creation parameters. 
@@ -434,7 +440,7 @@ public record TaskEntityState(
         Guid? priorityId,
         int priorityLevel,  // TEMP FIELD
         Guid? statusId,
-        Guid categoryId,
+        Guid? categoryId,
         DateTime? createdAt,
         DateTime? updatedAt,
         DateTime? deadline,

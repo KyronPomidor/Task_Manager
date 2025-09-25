@@ -16,7 +16,7 @@ public class DatabaseTaskEntity
     public Guid? PriorityId { get; set; }
     public int PriorityLevel { get; set; } // TEMP FIELD
     public Guid? StatusId { get; set; }
-    public Guid DatabaseCustomCategoryId { get; set; }
+    public Guid? DatabaseCustomCategoryId { get; set; } // Null means Inbox. TEMP.
 
 
     public DateTime? CreatedAt { get; set; }

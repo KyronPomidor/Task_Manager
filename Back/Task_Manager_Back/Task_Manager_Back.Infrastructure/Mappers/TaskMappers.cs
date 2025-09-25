@@ -27,7 +27,7 @@ public static class TaskMappers
             PriorityId = task.PriorityId,
             PriorityLevel = task.PriorityLevel, // TEMP FIELD
             StatusId = task.StatusId,
-            DatabaseCustomCategoryId = task.CategoryId,
+            DatabaseCustomCategoryId = task.CategoryId, // Null means inbox
             CreatedAt = task.CreatedAt,
             UpdatedAt = task.UpdatedAt,
             Deadline = task.Deadline,

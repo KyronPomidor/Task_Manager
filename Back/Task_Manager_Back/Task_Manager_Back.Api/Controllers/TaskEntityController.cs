@@ -43,7 +43,7 @@ public class TaskEntityController : Controller
             PriorityId: request.PriorityId,
             PriorityLevel: request.PriorityLevel, // TEMPORARY
             StatusId: request.StatusId,
-            CategoryId: request.CategoryId,
+            CategoryId: request.CategoryId, // Null means inbox
             Deadline: request.Deadline,
             LabelIds: request.LabelIds,
             OrderPosition: request.OrderPosition

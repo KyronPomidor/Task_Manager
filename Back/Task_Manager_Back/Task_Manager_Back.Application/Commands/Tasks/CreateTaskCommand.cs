@@ -9,7 +9,7 @@ public record CreateTaskCommand
     string Title,
     string? Description,
     string Color,  //TODO: do it optional
-    Guid CategoryId,
+    Guid? CategoryId, //Null means inbox
     Guid? StatusId = null,
     Guid? PriorityId = null,
     int PriorityLevel = 0,

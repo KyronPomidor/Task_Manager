@@ -30,7 +30,7 @@ public class CreateTaskUseCase
             priorityId: request.PriorityId,
             priorityLevel: request.PriorityLevel, // TEMP FIELD
             statusId: request.StatusId,
-            categoryId: request.CategoryId,
+            categoryId: request.CategoryId, // Null means Inbox category
             deadline: request.Deadline,
             labels: request.LabelIds,
             order: request.OrderPosition
