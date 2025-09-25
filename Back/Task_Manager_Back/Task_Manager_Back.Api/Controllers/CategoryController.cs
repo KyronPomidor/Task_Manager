@@ -8,7 +8,7 @@ namespace Task_Manager_Back.Api.Controllers;
 
 [ApiController]
 [Route("api/categories")]
-public class TaskCategoryController : ControllerBase
+public class TaskCategoryController : Controller
 {
     private readonly IMediator _mediator;
 
@@ -39,7 +39,7 @@ public class TaskCategoryController : ControllerBase
     [HttpGet("inbox/{userId:guid}")]
     public async Task<IActionResult> GetOrCreateInbox(Guid userId)
     {
-        var inboxCategory = await _mediator.Send(new GetOrCreateInboxForUserRequest(userId));
+        var inboxCategory = await _mediator.Send(new GetOrCreateInboxByUserIdRequest(userId));
         return Ok(inboxCategory);
     }
     /// <summary>
@@ -52,13 +52,8 @@ public class TaskCategoryController : ControllerBase
 
         return CreatedAtAction(nameof(GetById), new { id = categoryId }, new { id = categoryId });
     }
-
-
-    /// <summary>
-    /// Rename a category.
-    /// </summary>
-    [HttpPut("{categoryId:guid}/rename")]
-    public async Task<IActionResult> Rename(Guid categoryId, [FromBody] RenameTaskUserCategoryRequest request)
+    [HttpPut("user/{categoryId:guid}")]
+    public async Task<IActionResult> UpdateUserCategory(Guid categoryId, [FromBody] UpdateTaskUserCategoryRequest request)
     {
         if (categoryId != request.CategoryId)
             return BadRequest("CategoryId mismatch between route and body");
@@ -67,11 +62,8 @@ public class TaskCategoryController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Change category color (only user categories).
-    /// </summary>
-    [HttpPut("{categoryId:guid}/color")]
-    public async Task<IActionResult> ChangeColor(Guid categoryId, [FromBody] ChangeTaskUserCategoryColorRequest request)
+    [HttpPatch("user/{categoryId:guid}")]
+    public async Task<IActionResult> PatchUserCategory(Guid categoryId, [FromBody] PatchTaskUserCategoryRequest request)
     {
         if (categoryId != request.CategoryId)
             return BadRequest("CategoryId mismatch between route and body");
@@ -80,24 +72,50 @@ public class TaskCategoryController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Change parent category.
-    /// </summary>
-    [HttpPut("{categoryId:guid}/parent")]
-    public async Task<IActionResult> ChangeParent(Guid categoryId, [FromBody] ChangeTaskCategoryParentRequest request)
-    {
-        if (categoryId != request.CategoryId)
-            return BadRequest("CategoryId mismatch between route and body");
+    ///// <summary>
+    ///// Rename a category.
+    ///// </summary>
+    //[HttpPut("{categoryId:guid}/rename")]
+    //public async Task<IActionResult> Rename(Guid categoryId, [FromBody] RenameTaskUserCategoryRequest request)
+    //{
+    //    if (categoryId != request.CategoryId)
+    //        return BadRequest("CategoryId mismatch between route and body");
 
-        await _mediator.Send(request);
-        return NoContent();
-    }
+    //    await _mediator.Send(request);
+    //    return NoContent();
+    //}
+
+    ///// <summary>
+    ///// Change category color (only user categories).
+    ///// </summary>
+    //[HttpPut("{categoryId:guid}/color")]
+    //public async Task<IActionResult> ChangeColor(Guid categoryId, [FromBody] ChangeTaskUserCategoryColorRequest request)
+    //{
+    //    if (categoryId != request.CategoryId)
+    //        return BadRequest("CategoryId mismatch between route and body");
+
+    //    await _mediator.Send(request);
+    //    return NoContent();
+    //}
+
+    ///// <summary>
+    ///// Change parent category.
+    ///// </summary>
+    //[HttpPut("{categoryId:guid}/parent")]
+    //public async Task<IActionResult> ChangeParent(Guid categoryId, [FromBody] ChangeTaskCategoryParentRequest request)
+    //{
+    //    if (categoryId != request.CategoryId)
+    //        return BadRequest("CategoryId mismatch between route and body");
+
+    //    await _mediator.Send(request);
+    //    return NoContent();
+    //}
 
     /// <summary>
     /// Delete a category (Inbox cannot be deleted).
     /// </summary>
     [HttpDelete("{categoryId:guid}")]
-    public async Task<IActionResult> Delete(Guid categoryId)
+    public async Task<IActionResult> DeleteById(Guid categoryId)
     {
         await _mediator.Send(new DeleteTaskUserCategoryRequest(categoryId));
         return NoContent();

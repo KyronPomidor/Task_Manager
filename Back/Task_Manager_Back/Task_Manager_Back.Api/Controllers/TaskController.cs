@@ -6,7 +6,7 @@ namespace Task_Manager_Back.Api.Controllers;
 
 [ApiController]
 [Route("api/tasks")]
-public class TaskEntityController : ControllerBase
+public class TaskEntityController : Controller
 {
     private readonly IMediator _mediator;
 
@@ -76,7 +76,7 @@ public class TaskEntityController : ControllerBase
     /// Delete a task by Id.
     /// </summary>
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> DeleteById(Guid id)
     {
         await _mediator.Send(new DeleteTaskByIdRequest(id));
         return NoContent();
@@ -114,16 +114,16 @@ public class TaskEntityController : ControllerBase
         await _mediator.Send(new RemoveTaskRelationRequest(fromTaskId, toTaskId));
         return NoContent();
     }
-    /// <summary>
-    /// Change the color of a task.
-    /// </summary>
-    [HttpPut("{id:guid}/color")]
-    public async Task<IActionResult> ChangeColor(Guid id, [FromBody] ChangeTaskColorRequest request)
-    {
-        if (id != request.TaskId)
-            return BadRequest("TaskId mismatch between route and body");
+    //    /// <summary>
+    //    /// Change the color of a task.
+    //    /// </summary>
+    //    [HttpPut("{id:guid}/color")]
+    //    public async Task<IActionResult> ChangeColor(Guid id, [FromBody] ChangeTaskColorRequest request)
+    //    {
+    //        if (id != request.TaskId)
+    //            return BadRequest("TaskId mismatch between route and body");
 
-        await _mediator.Send(request);
-        return NoContent();
-    }
+    //        await _mediator.Send(request);
+    //        return NoContent();
+    //    }
 }

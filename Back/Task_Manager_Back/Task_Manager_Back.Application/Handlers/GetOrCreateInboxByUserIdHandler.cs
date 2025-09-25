@@ -6,20 +6,20 @@ using Task_Manager_Back.Domain.Entities.TaskCategories;
 
 namespace Task_Manager_Back.Application.Handlers;
 
-public class GetOrCreateInboxForUserHandler
-    : IRequestHandler<GetOrCreateInboxForUserRequest, TaskCategory>
+public class GetOrCreateInboxByUserIdHandler
+    : IRequestHandler<GetOrCreateInboxByUserIdRequest, TaskCategory>
 {
     private readonly ITaskCategoryRepository _repository;
 
-    public GetOrCreateInboxForUserHandler(ITaskCategoryRepository repository)
+    public GetOrCreateInboxByUserIdHandler(ITaskCategoryRepository repository)
     {
         _repository = repository;
     }
 
     public async Task<TaskCategory> Handle(
-        GetOrCreateInboxForUserRequest request,
+        GetOrCreateInboxByUserIdRequest request,
         CancellationToken cancellationToken)
     {
-        return (TaskInbox) await _repository.GetByIdAsync(request.UserId);
+        return await _repository.GetOrCreateInboxByUserId(request.UserId);
     }
 }

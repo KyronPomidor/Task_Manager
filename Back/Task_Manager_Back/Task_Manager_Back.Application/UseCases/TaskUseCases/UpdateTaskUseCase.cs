@@ -33,9 +33,9 @@ public class UpdateTaskUseCase
 
         task.ChangeColor(request.NewColor);
 
-        task.MarkCompleted();
+        task.SetIsCompleted(request.IsCompleted);
 
-        task.MarkFailed();
+        task.SetIsFailed(request.IsCompleted);
 
         await _taskRepository.UpdateAsync(task);
     }

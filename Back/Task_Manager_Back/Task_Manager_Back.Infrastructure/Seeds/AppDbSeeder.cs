@@ -63,7 +63,7 @@ public static class AppDbSeeder
 
         // --- CATEGORIES ---
         // Inbox (always exists)
-        var inbox = await categoryRepo.GetOrCreateInboxForUser(userGuid);
+        var inbox = await categoryRepo.GetOrCreateInboxByUserId(userGuid);
 
         // Work category
         var work = new TaskUserCategory(new TaskUserCategoryCreateParams(
@@ -115,7 +115,8 @@ public static class AppDbSeeder
                 CategoryId: inbox.Id, // assign to Inbox
                 Deadline: DateTime.UtcNow.AddDays(i),
                 IsCompleted: false,
-                PositionOrder: i
+                PositionOrder: i,
+                Price: Random.Shared.Next(50, 250)
             ));
 
             await taskRepo.CreateAsync(task);

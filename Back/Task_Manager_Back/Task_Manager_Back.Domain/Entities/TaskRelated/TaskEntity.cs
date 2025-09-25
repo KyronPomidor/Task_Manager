@@ -107,13 +107,20 @@ public class TaskEntity
             Deadline = null;
     }
     public void UpdatePositionOrder(int positionOrder) => PositionOrder = positionOrder;
+    public void SetIsCompleted(bool value)
+    {
+        IsCompleted = value;
+    }
     public void MarkCompleted()
     {
         if (IsCompleted) throw new InvalidOperationException("Task is already completed");
         if (IsFailed) throw new InvalidOperationException("Cannot complete a failed task");
         IsCompleted = true;
     }
-
+    public void SetIsFailed(bool value)
+    {
+        IsFailed = value;
+    }
     public void MarkFailed()
     {
         if (IsFailed) throw new InvalidOperationException("Task is already failed");

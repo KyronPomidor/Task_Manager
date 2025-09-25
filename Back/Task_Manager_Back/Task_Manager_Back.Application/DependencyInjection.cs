@@ -31,6 +31,8 @@ public static class DependencyInjection
         services.AddScoped<ChangeTaskUserCategoryColorUseCase>();
         services.AddScoped<ChangeTaskUserCategoryParentUseCase>();
         services.AddScoped<GetTaskUserCategoriesUseCase>();
+        services.AddScoped<UpdateTaskUserCategoryUseCase>();
+        services.AddScoped<PatchTaskUserCategoryUseCase>();
 
         return services;
     }
