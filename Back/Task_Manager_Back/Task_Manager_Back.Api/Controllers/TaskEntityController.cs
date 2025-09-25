@@ -131,4 +131,54 @@ public class TaskEntityController : Controller
         await _mediator.Send(command);
         return Ok(); // IDk to return Ok or NoContent. NoContent is used for delete usually, said me AI. 
     }
+
+
+    /// <summary>
+    /// Update an existing task.
+    /// </summary>
+    /// <param name="request">The task update request.</param>
+    /// <returns>200 if successful.</returns>
+    [HttpPut]
+    public async Task<IActionResult> Update([FromBody] UpdateTaskApiRequest request)
+    {
+        // Get UserId from identity
+        // var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier) ?? User.FindFirst("sub");
+        // if (userIdClaim == null)
+        //     return Unauthorized("User is not authenticated.");
+
+        // Guid userId = Guid.Parse(userIdClaim.Value);
+
+        var command = new UpdateTaskCommand(
+            TaskId: request.TaskId,
+            Title: request.Title,
+            Description: request.Description,
+            Color: request.Color,
+            PriorityId: request.PriorityId,
+            PriorityLevel: request.PriorityLevel,
+            StatusId: request.StatusId,
+            CategoryId: request.CategoryId,
+            Deadline: request.Deadline,
+            LabelIds: request.LabelIds,
+            OrderPosition: request.OrderPosition,
+            IsCompleted: request.IsCompleted,
+            IsFailed: request.IsFailed,
+            CompletedAt: request.CompletedAt,
+            FailedAt: request.FailedAt
+        );
+
+        try
+        {
+            await _mediator.Send(command);
+            return Ok();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (not shown here for brevity)
+            return StatusCode(500, "An error occurred while processing your request.");
+        }
+    }
 }

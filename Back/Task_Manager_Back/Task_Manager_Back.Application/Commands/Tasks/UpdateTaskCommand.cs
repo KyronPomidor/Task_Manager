@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
+using MediatR;
 
-namespace Task_Manager_Back.Application.Requests.TaskRequests;
-public record UpdateTaskRequest(
+namespace Task_Manager_Back.Application.Commands.Tasks;
+
+public record UpdateTaskCommand(
     Guid TaskId,                          // required to identify the task
     string? Title = null,
     string? Description = null,
@@ -25,4 +23,4 @@ public record UpdateTaskRequest(
     bool? IsFailed = null,
     DateTime? CompletedAt = null,
     DateTime? FailedAt = null
-);
+) : IRequest;

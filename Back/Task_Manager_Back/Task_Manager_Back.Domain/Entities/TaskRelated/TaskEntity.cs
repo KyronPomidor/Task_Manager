@@ -150,8 +150,10 @@ public class TaskEntity
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public void ChangeStatus(Guid newStatusId)
+    public void ChangeStatus(Guid? newStatusId)
     {
+        if (newStatusId == null && IsCompleted)
+            throw new InvalidOperationException("Cannot set status to null for a completed task.");
         StatusId = newStatusId;
         UpdatedAt = DateTime.UtcNow;
     }
@@ -278,7 +280,7 @@ public class TaskEntity
     private TaskEntity() { } // this is not for EFC as usual, but for LoadFromPersistence method, which is for EFC. 
                              // I want to make it private, so nobody else can use it, only infrastructure layer.
                              // I understand that this constructor is needed for the LoadFromPersistence method to work properly.
-    //Oh! It generates two warnings. So, TOASK. 
+                             //Oh! It generates two warnings. So, TOASK. 
 
     public static TaskEntity LoadFromPersistence(TaskEntityState state)
     {
@@ -322,6 +324,78 @@ public class TaskEntity
         return task;
     }
 
+    // Functionality for Updating the Entity. It is not good to do like that, but
+    // We have not much time, so I do it like that for now
+    public void Update(TaskEntityUpdateParams updateParams)
+    {
+        if (updateParams.Title != null)
+            Rename(updateParams.Title);
+
+        if (updateParams.Description != null)
+            UpdateDescription(updateParams.Description);
+
+        if (updateParams.Color != null)
+            ChangeColor(updateParams.Color);
+
+        if (updateParams.PriorityId.HasValue)
+            ChangePriority(updateParams.PriorityId.Value);
+
+        if (updateParams.PriorityLevel.HasValue)
+            PriorityLevel = updateParams.PriorityLevel.Value; // TEMP FIELD
+
+        if (updateParams.StatusId.HasValue)
+            ChangeStatus(updateParams.StatusId.Value);
+
+        if (updateParams.CategoryId.HasValue)
+            ChangeCategory(updateParams.CategoryId.Value);
+
+        if (updateParams.Deadline.HasValue)
+            ChangeDeadline(updateParams.Deadline);
+
+        if (updateParams.Order.HasValue)
+            Reorder(updateParams.Order.Value);
+
+        if (updateParams.Labels != null)
+            _labelIds = updateParams.Labels.ToList();
+
+        // Completion state
+        if (updateParams.IsCompleted.HasValue)
+        {
+            if (updateParams.IsCompleted.Value && !IsCompleted)
+                MarkCompleted();
+            else if (!updateParams.IsCompleted.Value && IsCompleted)
+            {
+                IsCompleted = false;
+                CompletedAt = null;
+                UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Failure state
+        if (updateParams.IsFailed.HasValue)
+        {
+            if (updateParams.IsFailed.Value && !IsFailed)
+                MarkFailed();
+            else if (!updateParams.IsFailed.Value && IsFailed)
+            {
+                IsFailed = false;
+                FailedAt = null;
+                UpdatedAt = DateTime.UtcNow;
+            }
+        }
+
+        // Optional CompletedAt override
+        if (updateParams.CompletedAt.HasValue)
+            CompletedAt = updateParams.CompletedAt;
+
+        // Optional FailedAt override
+        if (updateParams.FailedAt.HasValue)
+            FailedAt = updateParams.FailedAt;
+
+        UpdatedAt = DateTime.UtcNow; // finally update UpdatedAt
+    }
+
+
 
 }
 
@@ -362,3 +436,27 @@ public record TaskEntityState(
         IEnumerable<TaskDependencyRelation>? dependencies = null,
         IEnumerable<TaskCustomRelation>? customRelations = null,
         int order = 0);
+
+
+
+
+
+// Functionality for Updating the Entity. It is not good to do like that, but
+// We have not much time, so I do it like that for now
+public record TaskEntityUpdateParams(
+    string? Title,
+    string? Description,
+    string? Color,
+    Guid? PriorityId,
+    int? PriorityLevel,  // TEMP FIELD
+    Guid? StatusId,
+    Guid? CategoryId,
+    DateTime? Deadline,
+    IEnumerable<Guid>? Labels = null,
+    int? Order = 0,
+    bool? IsCompleted = false,
+    bool? IsFailed = false,
+    DateTime? CompletedAt = null,
+    DateTime? FailedAt = null
+);
+

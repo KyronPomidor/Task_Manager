@@ -25,6 +25,7 @@ public static class TaskMappers
             IsCompleted = task.IsCompleted,
             IsFailed = task.IsFailed,
             PriorityId = task.PriorityId,
+            PriorityLevel = task.PriorityLevel, // TEMP FIELD
             StatusId = task.StatusId,
             DatabaseCustomCategoryId = task.CategoryId,
             CreatedAt = task.CreatedAt,

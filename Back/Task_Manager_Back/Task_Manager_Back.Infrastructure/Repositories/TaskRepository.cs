@@ -109,8 +109,29 @@ public class TaskRepository : ITaskRepository
         return dbEntity.ToDomain();
     }
 
-    public Task UpdateAsync(TaskEntity task)
+    public async Task UpdateAsync(TaskEntity task)
     {
-        throw new NotImplementedException();
+        // Load the tracked entity from DB
+        var existingDbEntity = await _context.DatabaseTaskEntities
+            .Include(t => t.Reminders)
+            .Include(t => t.Attachments)
+            .Include(t => t.DependenciesFrom)
+            .Include(t => t.CustomRelationsFrom)
+            .Include(t => t.CustomRelationsTo)
+            .FirstOrDefaultAsync(t => t.Id == task.Id);
+
+        if (existingDbEntity == null)
+            throw new KeyNotFoundException($"Task with ID {task.Id} not found.");
+
+        // Update scalar fields from domain entity
+        var updatedDbEntity = task.ToDbEntity();
+        _context.Entry(existingDbEntity).CurrentValues.SetValues(updatedDbEntity);
+
+        // Collections (Reminders, Attachments, Dependencies, CustomRelations) 
+        // are updated inside the domain entity itself, so no need to clear/re-add here.
+
+        await _context.SaveChangesAsync();
     }
+
+
 }
