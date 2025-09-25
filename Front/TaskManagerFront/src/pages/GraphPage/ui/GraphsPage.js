@@ -8,25 +8,25 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks }) {
   const dragging = useRef(false);
   const fgRef = useRef();
 
-
   // Update graph data when props change
   useEffect(() => {
-    // This will update the internal state when parent passes new data
+    if (fgRef.current) {
+      // Update the link force when graphData changes
+      fgRef.current.d3Force("link").distance(50).strength(0.7);
+      fgRef.current.d3ReheatSimulation(); // Reheat to apply new data
+    }
   }, [graphData]);
-
-
 
   // Save positions and notify parent
   const savePositions = () => {
     const positions = {};
-    graphData.nodes.forEach(node => {
+    graphData.nodes.forEach((node) => {
       if (node.x !== undefined && node.y !== undefined) {
-        positions[node.id] = { x: node.x, y: node.y };
+        positions[node.id] = { x: node.x, y: node.y, fx: node.fx, fy: node.fy };
       }
     });
-    localStorage.setItem('graphNodePositions', JSON.stringify(positions));
+    localStorage.setItem("graphNodePositions", JSON.stringify(positions));
 
-    // Notify parent component about graph updates
     if (onGraphUpdate) {
       onGraphUpdate(graphData);
     }
@@ -34,7 +34,6 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks }) {
 
   const handleDelete = () => {
     if (!selectedNode) return;
-    // You might want to handle task deletion here too
     setSelectedNode(null);
   };
 
@@ -48,10 +47,9 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks }) {
     if (dragging.current) return;
 
     if (addingRelationFrom) {
-      // Create a link between nodes
       const newGraphData = {
         ...graphData,
-        links: [...graphData.links, { source: addingRelationFrom.id, target: node.id }]
+        links: [...graphData.links, { source: addingRelationFrom.id, target: node.id }],
       };
       onGraphUpdate(newGraphData);
       setAddingRelationFrom(null);
@@ -60,21 +58,28 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks }) {
     }
   };
 
+  const handleNodeDrag = () => {
+    dragging.current = true;
+  };
+
   const handleNodeDragEnd = (node) => {
-    setTimeout(() => {
-      dragging.current = false;
-      savePositions();
-    }, 0);
+    dragging.current = false;
+    // Fix the node's position after dragging
+    node.fx = node.x;
+    node.fy = node.y;
+    savePositions();
+    // Restart the simulation to stabilize
+    if (fgRef.current) {
+      fgRef.current.d3ReheatSimulation(); // Reheat simulation to apply fixed positions
+    }
   };
 
   const handleNodeDoubleClick = (node) => {
-    // Find if this node corresponds to a task
     const correspondingTask = tasks.find(
-      t => t.id === node.taskId || t.title === node.id
+      (t) => t.id === node.taskId || t.title === node.id
     );
 
     if (!correspondingTask && onCreateTask) {
-      // Create a new task from this node
       onCreateTask(node.id);
     }
   };
@@ -87,23 +92,22 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks }) {
     }
   };
 
+
   return (
     <div style={{ width: "100%", height: "100%", background: "#fff", position: "relative" }}>
       <ForceGraph2D
         ref={fgRef}
         graphData={graphData}
         onNodeClick={handleNodeClick}
-        onNodeDrag={() => (dragging.current = true)}
+        onNodeDrag={handleNodeDrag}
         onNodeDragEnd={handleNodeDragEnd}
         onNodeDoubleClick={handleNodeDoubleClick}
         onBackgroundClick={handleBackgroundClick}
         nodeLabel="id"
         nodeColor={(node) => {
-          // If node has parents, use the color of the first parent
           if (node.parentIds && node.parentIds.length > 0) {
-            // Find the parent node in the graph data
-            const parentNode = graphData.nodes.find(n =>
-              n.taskId === node.parentIds[0] || n.id === node.parentIds[0]
+            const parentNode = graphData.nodes.find(
+              (n) => n.taskId === node.parentIds[0] || n.id === node.parentIds[0]
             );
             return parentNode ? parentNode.color : node.color;
           }
@@ -121,15 +125,14 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks }) {
         linkDirectionalArrowLength={6}
         linkDirectionalArrowRelPos={1}
         linkColor={() => "gray"}
-        d3VelocityDecay={0.6}
-        d3AlphaTarget={0.3}
-        d3Force="link"
+        d3VelocityDecay={0.9} // High decay to reduce node movement
+        d3AlphaTarget={0} // Cool down simulation when idle
+        d3Force="charge" // Control node repulsion
         d3ForceConfig={{
-          distance: 50,
-          strength: 0.7
+          charge: { strength: -200 }, // Moderate repulsion
+          link: { distance: 50, strength: 0.7 },
         }}
       />
-
 
       {selectedNode && (
         <div
@@ -140,7 +143,7 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks }) {
             background: "#222",
             padding: "10px",
             borderRadius: "8px",
-            color: "white"
+            color: "white",
           }}
         >
           <p>Selected: {selectedNode.id}</p>
@@ -160,10 +163,12 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks }) {
             background: "#333",
             padding: "10px",
             borderRadius: "8px",
-            color: "white"
+            color: "white",
           }}
         >
-          <p>Click another node to link from <b>{addingRelationFrom.id}</b></p>
+          <p>
+            Click another node to link from <b>{addingRelationFrom.id}</b>
+          </p>
         </div>
       )}
     </div>

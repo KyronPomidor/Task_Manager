@@ -16,9 +16,8 @@ import {
   Button,
   List,
   Tooltip,
-  Typography,
   Divider,
-  Space,
+  Typography,
 } from "antd";
 import dayjs from "dayjs";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
@@ -26,15 +25,13 @@ import { CSS } from "@dnd-kit/utilities";
 import { MoreOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
 
-const { Title, Text, Paragraph } = Typography;
+const { Title, Text } = Typography;
 
-/* ------------------ Utility ------------------ */
 function priorityColor(p) {
-  if (p === "Medium") return { backgroundColor: "#8fc1feff", borderColor: "#2563eb" };
+  if (p === "Medium") return { backgroundColor: "#e6f4ff", borderColor: "#2563eb" };
   return p === "Low" ? "default" : "red";
 }
 
-/* ------------------ SortableTask ------------------ */
 function SortableTask({ task, children, onCardClick }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: task.id });
@@ -62,7 +59,6 @@ function SortableTask({ task, children, onCardClick }) {
   );
 }
 
-/* ------------------ TaskActions ------------------ */
 function TaskActions({
   task,
   toggleComplete,
@@ -159,7 +155,6 @@ function TaskActions({
   );
 }
 
-/* ------------------ Tasks Component ------------------ */
 export function Tasks({
   filteredTasks,
   allTasks,
@@ -171,7 +166,6 @@ export function Tasks({
   addTask,
   updateTask,
 }) {
-  /* ---------- State ---------- */
   const [editOpen, setEditOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -185,36 +179,36 @@ export function Tasks({
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [expandedParentId, setExpandedParentId] = useState(null);
 
-  /* ---------- Functions ---------- */
   function toggleComplete(id) {
+    let updated;
+
     setTasks((prev) => {
       const task = prev.find((t) => t.id === id);
       if (!task) return prev;
 
       if (!task.completed) {
         const children = allTasks.filter((t) => t.parentIds.includes(task.id));
-        if (children.length > 0) {
-          const hasUnfinishedChildren = children.some((c) => !c.completed);
-          if (hasUnfinishedChildren) {
-            Modal.warning({
-              title: "Cannot complete task",
-              content: "This parent task still has unfinished child tasks.",
-            });
-            return prev;
-          }
+        if (children.some((c) => !c.completed)) {
+          Modal.warning({
+            title: "Cannot complete task",
+            content: "This parent task still has unfinished child tasks.",
+          });
+          return prev;
         }
       }
 
-      return prev.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              completed: !t.completed,
-              categoryId: !t.completed ? "done" : t.categoryId,
-            }
-          : t
-      );
+      updated = {
+        ...task,
+        completed: !task.completed,
+        categoryId: !task.completed ? "done" : "inbox",
+      };
+
+      return prev.map((t) => (t.id === id ? updated : t));
     });
+
+    if (updated) {
+      updateTask(updated);
+    }
   }
 
   function startEdit(task) {
@@ -331,7 +325,6 @@ export function Tasks({
       .toFixed(2);
   }
 
-  /* ---------- Filters ---------- */
   const [filters, setFilters] = useState({
     priority: "All",
     status: "All",
@@ -356,7 +349,6 @@ export function Tasks({
     return true;
   });
 
-  /* ---------- Parent/Child Coloring ---------- */
   const DEP_COLORS = [
     "#FFD93D", "#FF6B6B", "#6BCB77", "#4D96FF", "#845EC2",
     "#FF9671", "#FFC75F", "#0081CF", "#B39CD0", "#3705dcff"
@@ -371,16 +363,15 @@ export function Tasks({
     return Math.abs(hash) % mod;
   }
 
-  function getParentColor(parentId) {
+  const getParentColor = (parentId) => {
     const idx = hashStringToIndex(parentId, DEP_COLORS.length);
     return DEP_COLORS[idx];
-  }
+  };
 
   function getChildren(taskId) {
     return allTasks.filter((t) => t.parentIds.includes(taskId) && !t.completed);
   }
 
-  /* ---------- Render ---------- */
   return (
     <div className="tasks-container">
       <div className="composer" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -403,6 +394,7 @@ export function Tasks({
             const bg = task.completed ? "#ececec" : "white";
             const hasChildren = allTasks.some((t) => t.parentIds.includes(task.id) && !t.completed);
             const parentBorderColor = hasChildren ? getParentColor(task.id) : "#fff";
+            const childIndicatorColors = task.parentIds.map(getParentColor);
             const isChild = task.parentIds.length > 0;
             const isParent = hasChildren;
 
@@ -421,6 +413,7 @@ export function Tasks({
                           flexDirection: "column",
                           justifyContent: "space-between",
                           zIndex: expandedParentId === task.id ? 1002 : 1,
+                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
                         }}
                         title={
                           <motion.div
@@ -433,7 +426,6 @@ export function Tasks({
                               overflow: "hidden",
                             }}
                           >
-                            {/* Done Indicator */}
                             <Button
                               type="text"
                               style={{
@@ -472,11 +464,10 @@ export function Tasks({
                               <span style={{ color: "#000000ff", display: task.completed ? "flex" : "none" }}>✓</span>
                             </Button>
 
-                            {/* Drag Handle + Title + Priority */}
                             <motion.div
                               animate={{ x: menuOpenId === task.id ? -60 : 0 }}
                               transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                              style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: "center", width: "100%" }}
+                              style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: 40 }}
                             >
                               <span
                                 {...dragListeners}
@@ -485,7 +476,6 @@ export function Tasks({
                                   display: "flex",
                                   alignItems: "center",
                                   gap: "8px",
-                                  justifyContent: "center",
                                 }}
                               >
                                 <span className={`title ${task.completed ? "done" : ""}`}>
@@ -497,7 +487,6 @@ export function Tasks({
                               </span>
                             </motion.div>
 
-                            {/* Deadline */}
                             {task.deadline && (
                               <motion.div
                                 animate={{ x: menuOpenId === task.id ? -60 : 0 }}
@@ -508,10 +497,10 @@ export function Tasks({
                                   marginTop: "2px",
                                   textAlign: "center",
                                   width: "100%",
+                                  position: "relative",
                                 }}
                               >
                                 {task.deadline}
-                                {task.deadlineTime ? ` ${task.deadlineTime}` : ""}
                               </motion.div>
                             )}
                           </motion.div>
@@ -538,13 +527,12 @@ export function Tasks({
                             alignItems: "center",
                             textAlign: "center",
                             minHeight: "50px",
-                            width: "100%",
+                            width: "97%",
                           }}
                         >
                           {task.description || "No description"}
                         </div>
 
-                        {/* Dependency Indicators (Bottom-Left) */}
                         {isChild && (
                           <div
                             className="dependency-indicators"
@@ -571,7 +559,7 @@ export function Tasks({
                                       width: 16,
                                       height: 16,
                                       borderRadius: "50%",
-                                      background: getParentColor(pid),
+                                      background: childIndicatorColors[idx],
                                       border: "2px solid #fff",
                                       boxShadow: "0 0 0 1px #ccc",
                                       cursor: "pointer",
@@ -584,7 +572,6 @@ export function Tasks({
                           </div>
                         )}
 
-                        {/* Expand arrow */}
                         {isParent && (
                           <div
                             style={{
@@ -632,7 +619,6 @@ export function Tasks({
                         )}
                       </Card>
 
-                      {/* Dropdown for parent task children */}
                       <AnimatePresence>
                         {expandedParentId === task.id && (
                           <>
@@ -683,6 +669,7 @@ export function Tasks({
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {getChildren(task.id).map((child) => {
+                                  const childIndicatorColors = child.parentIds.map(getParentColor);
                                   return (
                                     <Card
                                       key={child.id}
@@ -694,8 +681,8 @@ export function Tasks({
                                         borderLeft:
                                           child.parentIds.length > 0
                                             ? `5px solid ${getParentColor(
-                                                child.parentIds[child.parentIds.length - 1]
-                                              )}`
+                                              child.parentIds[child.parentIds.length - 1]
+                                            )}`
                                             : "5px solid #fff",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
                                         position: "relative",
@@ -706,9 +693,7 @@ export function Tasks({
                                           <span className={`title ${child.completed ? "done" : ""}`}>
                                             {child.title.length > 20 ? `${child.title.substring(0, 20)}...` : child.title}
                                           </span>
-                                          <Tag style={typeof priorityColor(child.priority) === "object" ? priorityColor(child.priority) : {}} color={typeof priorityColor(child.priority) === "string" ? priorityColor(child.priority) : undefined}>
-                                            {child.priority}
-                                          </Tag>
+                                          <Tag color={priorityColor(child.priority)}>{child.priority}</Tag>
                                           {child.deadline && (
                                             <div style={{ fontSize: "0.85rem", color: "#60a5fa", marginTop: 2 }}>
                                               {child.deadline}
@@ -786,9 +771,8 @@ export function Tasks({
         </Row>
       </SortableContext>
 
-      {/* -------- Details Modal -------- */}
       <Modal
-        title="Task Details"
+        title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>Task Details</Title>}
         open={detailsOpen}
         centered
         destroyOnClose
@@ -817,110 +801,95 @@ export function Tasks({
             Close
           </Button>,
         ]}
-        className="custom-modal"
-        bodyStyle={{ padding: "24px 32px" }}
+        width={600}
+        styles={{
+          body: {
+            padding: "24px",
+            background: "#f9fafb",
+            borderRadius: "0 0 8px 8px",
+          },
+          content: {
+            padding: 0,
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
+        }}
       >
         {selectedTask && (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <Title level={3} style={{ margin: 0, color: "#1a2233" }}>
-              {selectedTask.title}
-            </Title>
-            <Row gutter={[16, 12]}>
+            <Card
+              bordered={false}
+              style={{
+                background: "#ffffff",
+                borderRadius: "8px",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+              }}
+            >
+              <Title level={5} style={{ margin: "0 0 16px 0", color: "#1a2233" }}>
+                {selectedTask.title}
+              </Title>
+              <Divider style={{ margin: "12px 0" }} />
               {selectedTask.deadline && (
-                <Col span={12}>
-                  <Text strong>Deadline: </Text>
-                  <Text style={{ color: "#000" }}>
-                    {selectedTask.deadline}
-                    {selectedTask.deadlineTime ? ` ${selectedTask.deadlineTime}` : ""}
+                <div style={{ marginBottom: "12px" }}>
+                  <Text strong style={{ color: "#4d5156" }}>Deadline:</Text>
+                  <Text style={{ marginLeft: "8px", color: "#60a5fa" }}>
+                    {selectedTask.deadline}{selectedTask.deadlineTime ? ` ${selectedTask.deadlineTime}` : ""}
                   </Text>
-                </Col>
+                </div>
               )}
-              <Col span={12}>
-                <Text strong>Priority: </Text>
+              <div style={{ marginBottom: "12px" }}>
+                <Text strong style={{ color: "#4d5156" }}>Description:</Text>
+                <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
+                  {selectedTask.description || "No description"}
+                </Text>
+              </div>
+              <div style={{ marginBottom: "12px" }}>
+                <Text strong style={{ color: "#4d5156" }}>Priority:</Text>
                 <Tag style={typeof priorityColor(selectedTask.priority) === "object" ? priorityColor(selectedTask.priority) : {}} color={typeof priorityColor(selectedTask.priority) === "string" ? priorityColor(selectedTask.priority) : undefined}>
                   {selectedTask.priority}
                 </Tag>
-              </Col>
-              <Col span={12}>
-                <Text strong>Category: </Text>
-                <Text style={{ color: "#000" }}>{selectedTask.categoryId}</Text>
-              </Col>
-            </Row>
-            <Divider style={{ margin: "12px 0" }} />
-            <div
-              style={{
-                background: "#f9fafb",
-                padding: "12px 16px",
-                borderRadius: "8px",
-                border: "1px solid #e5e7eb",
-                maxHeight: "200px",
-                overflowY: "auto",
-              }}
-            >
-              <Text strong>Description:</Text>
-              <Paragraph style={{ margin: "8px 0 0", color: "#000" }}>
-                {selectedTask.description || "No description provided"}
-              </Paragraph>
-            </div>
-            {selectedTask.parentIds.length > 0 && (
-              <div>
-                <Text strong>Parent Tasks:</Text>
-                <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                  {allTasks
-                    .filter((t) => selectedTask.parentIds.includes(t.id))
-                    .map((t) => (
-                      <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span
-                          style={{
-                            display: "inline-block",
-                            width: 14,
-                            height: 14,
-                            borderRadius: "50%",
-                            backgroundColor: getParentColor(t.id),
-                            border: "1px solid #ccc",
-                          }}
-                        />
-                        <Text style={{ color: "#000" }}>
-                          {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
-                        </Text>
-                      </div>
-                    ))}
-                </div>
               </div>
-            )}
-            {selectedTask.budgetItems && selectedTask.budgetItems.length > 0 && (
-              <>
-                <Divider />
-                <Title level={4} style={{ marginBottom: 8 }}>
-                  Expenses
-                </Title>
-                <List
-                  size="small"
-                  dataSource={selectedTask.budgetItems}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <Space>
-                        <Text style={{ color: "#000" }}>{item.name}:</Text>
-                        <Text strong>${item.sum.toFixed(2)}</Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-                <Text strong style={{ marginTop: 8 }}>
-                  Total: $
-                  {selectedTask.budgetItems
-                    .reduce((acc, item) => acc + item.sum, 0)
-                    .toFixed(2)}
-                </Text>
-              </>
-            )}
+              <div style={{ marginBottom: "12px" }}>
+                <Text strong style={{ color: "#4d5156" }}>Category:</Text>
+                <Text style={{ marginLeft: "8px", color: "#4d5156" }}>{selectedTask.categoryId}</Text>
+              </div>
+              {selectedTask.parentIds.length > 0 && (
+                <div style={{ marginBottom: "12px" }}>
+                  <Text strong style={{ color: "#4d5156" }}>Parent Tasks:</Text>
+                  <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
+                    {allTasks
+                      .filter((t) => selectedTask.parentIds.includes(t.id))
+                      .map((t) => (t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title))
+                      .join(", ")}
+                  </Text>
+                </div>
+              )}
+              {selectedTask.budgetItems && selectedTask.budgetItems.length > 0 && (
+                <>
+                  <Divider orientation="left" style={{ margin: "16px 0", color: "#1a2233" }}>
+                    Expenses
+                  </Divider>
+                  <List
+                    dataSource={selectedTask.budgetItems}
+                    renderItem={(item) => (
+                      <List.Item style={{ padding: "8px 16px", background: "#f9fafb", borderRadius: "4px", marginBottom: "8px" }}>
+                        <Text>{item.name}: <strong>${item.sum.toFixed(2)}</strong></Text>
+                      </List.Item>
+                    )}
+                    style={{ marginBottom: "16px" }}
+                  />
+                  <Text strong style={{ color: "#4d5156" }}>
+                    Total: ${selectedTask.budgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
+                  </Text>
+                </>
+              )}
+            </Card>
           </div>
         )}
       </Modal>
 
-      {/* -------- Budget Modal -------- */}
       <Modal
-        title="Budget Tracker"
+        title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>Budget Tracker</Title>}
         open={budgetOpen}
         centered
         destroyOnClose
@@ -931,51 +900,88 @@ export function Tasks({
         }}
         onOk={saveBudgetItems}
         okText="Save"
-        className="custom-modal"
-        bodyStyle={{ padding: "24px 32px" }}
+        width={600}
+        styles={{
+          body: {
+            padding: "24px",
+            background: "#f9fafb",
+            borderRadius: "0 0 8px 8px",
+          },
+          content: {
+            padding: 0,
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
+        }}
       >
-        <Form layout="inline" style={{ marginBottom: 12 }}>
-          <Form.Item label="Name">
-            <Input
-              value={budgetName}
-              onChange={(e) => setBudgetName(e.target.value)}
-              placeholder="e.g. Hosting"
-            />
-          </Form.Item>
-          <Form.Item label="Sum">
-            <Input
-              type="number"
-              value={budgetSum}
-              onChange={(e) => setBudgetSum(e.target.value)}
-              placeholder="100"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Button type="dashed" onClick={addTempBudgetItem}>
-              Add Item
-            </Button>
-          </Form.Item>
-        </Form>
-        <List
-          bordered
-          dataSource={tempBudgetItems}
-          renderItem={(item) => (
-            <List.Item>
-              {item.name}: ${item.sum.toFixed(2)}
-            </List.Item>
-          )}
-        />
+        <Card
+          bordered={false}
+          style={{
+            background: "#ffffff",
+            borderRadius: "8px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            marginBottom: "16px",
+          }}
+        >
+          <Title level={5} style={{ margin: "0 0 16px 0", color: "#1a2233" }}>
+            Add Budget Item
+          </Title>
+          <Form layout="vertical">
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item label="Item Name" required>
+                  <Input
+                    value={budgetName}
+                    onChange={(e) => setBudgetName(e.target.value)}
+                    placeholder="e.g. Hosting"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item label="Amount" required>
+                  <Input
+                    type="number"
+                    value={budgetSum}
+                    onChange={(e) => setBudgetSum(e.target.value)}
+                    placeholder="100.00"
+                    suffix="$"
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={4}>
+                <Form.Item label=" ">
+                  <Button type="primary" onClick={addTempBudgetItem} style={{ width: "100%" }}>
+                    Add
+                  </Button>
+                </Form.Item>
+              </Col>
+            </Row>
+          </Form>
+        </Card>
         {tempBudgetItems.length > 0 && (
-          <p style={{ marginTop: 10 }}>
-            <strong>Total:</strong>{" "}
-            ${tempBudgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
-          </p>
+          <>
+            <Divider orientation="left" style={{ margin: "16px 0", color: "#1a2233" }}>
+              Budget Items
+            </Divider>
+            <List
+              bordered
+              dataSource={tempBudgetItems}
+              renderItem={(item) => (
+                <List.Item style={{ padding: "12px 16px", background: "#f9fafb", borderRadius: "4px", marginBottom: "8px" }}>
+                  <Text>{item.name}: <strong>${item.sum.toFixed(2)}</strong></Text>
+                </List.Item>
+              )}
+              style={{ marginBottom: "16px" }}
+            />
+            <Text strong style={{ color: "#4d5156" }}>
+              Total: ${tempBudgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
+            </Text>
+          </>
         )}
       </Modal>
 
-      {/* -------- Edit Modal -------- */}
       <Modal
-        title="Edit task"
+        title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>Edit Task</Title>}
         open={editOpen}
         centered
         destroyOnClose
@@ -985,82 +991,120 @@ export function Tasks({
         }}
         onOk={handleSaveEdit}
         okText="Save"
-        className="custom-modal"
-        bodyStyle={{ padding: "16px 24px", maxHeight: "400px", overflowY: "auto" }}
+        width={600}
+        styles={{
+          body: {
+            padding: "24px",
+            background: "#f9fafb",
+            borderRadius: "0 0 8px 8px",
+            maxHeight: "70vh",
+            overflowY: "auto",
+          },
+          content: {
+            padding: 0,
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
+        }}
       >
         {editTask && (
-          <Form layout="vertical">
-            <Form.Item label="Title" required>
-              <Input
-                value={editTask.title}
-                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
-              />
-            </Form.Item>
-            <Form.Item label="Description">
-              <Input.TextArea
-                value={editTask.description}
-                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
-                style={{ height: 120, resize: "none", overflowY: "auto" }}
-              />
-            </Form.Item>
-            <Form.Item label="Priority">
-              <Select
-                value={editTask.priority}
-                onChange={(val) => setEditTask({ ...editTask, priority: val })}
-              >
-                <Select.Option value="Low">Low</Select.Option>
-                <Select.Option value="Medium">Medium</Select.Option>
-                <Select.Option value="High">High</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item label="Deadline (date)">
-              <DatePicker
-                style={{ width: "100%" }}
-                value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
-              />
-            </Form.Item>
-            <Form.Item label="Deadline (time, optional)">
-              <TimePicker
-                style={{ width: "100%" }}
-                value={editTask.deadlineTime ? dayjs(editTask.deadlineTime, "HH:mm") : null}
-                format="HH:mm"
-                onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
-              />
-            </Form.Item>
-            <Form.Item label="Parent Tasks">
-              <Select
-                mode="multiple"
-                value={editTask.parentIds}
-                onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
-              >
-                {getValidParents(editTask.id).map((t) => (
-                  <Select.Option key={t.id} value={t.id}>
-                    {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item label="Category">
-              <Select
-                value={editTask.categoryId}
-                onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
-              >
-                <Select.Option value="inbox">Inbox</Select.Option>
-                {categories.map((cat) => (
-                  <Select.Option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Form>
+          <Card
+            bordered={false}
+            style={{
+              background: "#ffffff",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Form layout="vertical">
+              <Form.Item label="Task Title" required>
+                <Input
+                  value={editTask.title}
+                  onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                  placeholder="Enter task title"
+                />
+              </Form.Item>
+              <Form.Item label="Description">
+                <Input.TextArea
+                  value={editTask.description}
+                  onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                  autoSize={{ minRows: 3, maxRows: 6 }}
+                  placeholder="Enter task description"
+                />
+              </Form.Item>
+              <Divider style={{ margin: "16px 0" }} />
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label="Priority">
+                    <Select
+                      value={editTask.priority}
+                      onChange={(val) => setEditTask({ ...editTask, priority: val })}
+                    >
+                      <Select.Option value="Low">Low</Select.Option>
+                      <Select.Option value="Medium">Medium</Select.Option>
+                      <Select.Option value="High">High</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="Category">
+                    <Select
+                      value={editTask.categoryId}
+                      onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
+                    >
+                      <Select.Option value="inbox">Inbox</Select.Option>
+                      {categories.map((cat) => (
+                        <Select.Option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Divider style={ { margin: "16px 0" }} />
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label="Deadline (Date)">
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      value={editTask.deadline ? dayjs(editTask.deadline) : null}
+                      onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="Deadline (Time, Optional)">
+                    <TimePicker
+                      style={{ width: "100%" }}
+                      value={editTask.deadlineTime ? dayjs(editTask.deadlineTime, "HH:mm") : null}
+                      format="HH:mm"
+                      onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item label="Parent Tasks">
+                <Select
+                  mode="multiple"
+                  value={editTask.parentIds}
+                  onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
+                  placeholder="Select parent tasks"
+                >
+                  {getValidParents(editTask.id).map((t) => (
+                    <Select.Option key={t.id} value={t.id}>
+                      {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Form>
+          </Card>
         )}
       </Modal>
 
-      {/* -------- Add Modal -------- */}
       <Modal
-        title="Add new task"
+        title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>Add New Task</Title>}
         open={addOpen}
         centered
         destroyOnClose
@@ -1070,76 +1114,115 @@ export function Tasks({
         }}
         onOk={handleSaveNew}
         okText="Save"
-        className="custom-modal"
-        bodyStyle={{ padding: "16px 24px", maxHeight: "400px", overflowY: "auto" }}
+        width={600}
+        styles={{
+          body: {
+            padding: "24px",
+            background: "#f9fafb",
+            borderRadius: "0 0 8px 8px",
+            maxHeight: "70vh",
+            overflowY: "auto",
+          },
+          content: {
+            padding: 0,
+            borderRadius: "8px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          },
+        }}
       >
         {editTask && (
-          <Form layout="vertical">
-            <Form.Item label="Title" required>
-              <Input
-                value={editTask.title}
-                onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
-              />
-            </Form.Item>
-            <Form.Item label="Description">
-              <Input.TextArea
-                value={editTask.description}
-                onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
-                style={{ height: 120, resize: "none", overflowY: "auto" }}
-              />
-            </Form.Item>
-            <Form.Item label="Priority">
-              <Select
-                value={editTask.priority}
-                onChange={(val) => setEditTask({ ...editTask, priority: val })}
-              >
-                <Select.Option value="Low">Low</Select.Option>
-                <Select.Option value="Medium">Medium</Select.Option>
-                <Select.Option value="High">High</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item label="Deadline (date)">
-              <DatePicker
-                style={{ width: "100%" }}
-                value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
-              />
-            </Form.Item>
-            <Form.Item label="Deadline (time, optional)">
-              <TimePicker
-                style={{ width: "100%" }}
-                value={editTask.deadlineTime ? dayjs(editTask.deadlineTime, "HH:mm") : null}
-                format="HH:mm"
-                onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
-              />
-            </Form.Item>
-            <Form.Item label="Parent Tasks">
-              <Select
-                mode="multiple"
-                value={editTask.parentIds}
-                onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
-              >
-                {getValidParents(null).map((t) => (
-                  <Select.Option key={t.id} value={t.id}>
-                    {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-            <Form.Item label="Category">
-              <Select
-                value={editTask.categoryId}
-                onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
-              >
-                <Select.Option value="inbox">Inbox</Select.Option>
-                {categories.map((cat) => (
-                  <Select.Option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </Select.Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Form>
+          <Card
+            bordered={false}
+            style={{
+              background: "#ffffff",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+          >
+            <Form layout="vertical">
+              <Form.Item label="Task Title" required>
+                <Input
+                  value={editTask.title}
+                  onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
+                  placeholder="Enter task title"
+                />
+              </Form.Item>
+              <Form.Item label="Description">
+                <Input.TextArea
+                  value={editTask.description}
+                  onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
+                  autoSize={{ minRows: 3, maxRows: 6 }}
+                  placeholder="Enter task description"
+                />
+              </Form.Item>
+              <Divider style={{ margin: "16px 0" }} />
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label="Priority">
+                    <Select
+                      value={editTask.priority}
+                      onChange={(val) => setEditTask({ ...editTask, priority: val })}
+                    >
+                      <Select.Option value="Low">Low</Select.Option>
+                      <Select.Option value="Medium">Medium</Select.Option>
+                      <Select.Option value="High">High</Select.Option>
+                    </Select>
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="Category">
+                    <Select
+                      value={editTask.categoryId}
+                      onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
+                    >
+                      <Select.Option value="inbox">Inbox</Select.Option>
+                      {categories.map((cat) => (
+                        <Select.Option key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </Select.Option>
+                      ))}
+                    </Select>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Divider style={{ margin: "16px 0" }} />
+              <Row gutter={16}>
+                <Col span={12}>
+                  <Form.Item label="Deadline (Date)">
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      value={editTask.deadline ? dayjs(editTask.deadline) : null}
+                      onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col span={12}>
+                  <Form.Item label="Deadline (Time, Optional)">
+                    <TimePicker
+                      style={{ width: "100%" }}
+                      value={editTask.deadlineTime ? dayjs(editTask.deadlineTime, "HH:mm") : null}
+                      format="HH:mm"
+                      onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item label="Parent Tasks">
+                <Select
+                  mode="multiple"
+                  value={editTask.parentIds}
+                  onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
+                  placeholder="Select parent tasks"
+                >
+                  {getValidParents(null).map((t) => (
+                    <Select.Option key={t.id} value={t.id}>
+                      {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </Form>
+          </Card>
         )}
       </Modal>
     </div>

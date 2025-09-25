@@ -92,7 +92,12 @@ public static class AppDbSeeder
         // --- TASKS ---
         // Clear old seeded tasks
         var oldTasks = db.Tasks.Where(t => t.UserId == userGuid && t.Title.StartsWith("Seeded Task"));
-        db.Tasks.RemoveRange(oldTasks);
+
+        if (oldTasks is not null)
+        {
+            db.Tasks.RemoveRange(oldTasks);
+        }
+
         await db.SaveChangesAsync();
 
         // Add fresh demo tasks into Inbox

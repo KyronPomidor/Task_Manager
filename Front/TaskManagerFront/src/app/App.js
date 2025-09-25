@@ -13,61 +13,134 @@ import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration
 import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
 import aiIcon from "./ai.png";
 import axios from "axios";
+import dayjs from "dayjs";
+import CalendarButton from "../Widgets/Calendar/CalendarButton";
+import Calendar from "../Widgets/Calendar/ui/Calendar";
 
 export default function App() {
-  // 🔹 if you don’t use auth at all, you can remove next line and the check below
   const { user, loading } = useAuth();
 
+  // --- Categories
   const [categories, setCategories] = useState([
-    { id: "inbox", name: "Inbox", parentId: null },
-    { id: "work", name: "Work", parentId: null },
-    { id: "personal", name: "Personal", parentId: null },
-    { id: "Project A", name: "Project A", parentId: "work" },
-    { id: "Project B", name: "Project B", parentId: "work" },
-    { id: "fun", name: "Fun", parentId: "personal" },
+    { id: "inbox", name: "Inbox", parentId: null }, // fixed inbox
   ]);
 
+  // --- Other UI state
   const [hoveredCategory, setHoveredCategory] = useState(null);
   const [activeTaskId, setActiveTaskId] = useState(null);
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
 
+  // --- Tasks
   const [tasks, setTasks] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const [searchText, setSearchText] = useState("");
 
-  // Fixed values for backend
+  // Fixed values
   const fixedUserId = "283118eb-f3c5-4447-afa2-f5a93762a5e3";
-  const fixedCategoryId = "3f34e2d1-aaaa-bbbb-cccc-1234567890ab";
+  const fixedInboxId = "00000000-0000-0000-0000-000000000001"; // unique fixed id for inbox in DB
 
-  // --- Load from backend once
+  function normalizeCategories(raw) {
+    const isFlat =
+      Array.isArray(raw) &&
+      raw.every((c) => !Array.isArray(c.categories) || c.categories.length === 0);
+
+    if (isFlat) {
+      return raw.map((c) => ({
+        id: c.id,
+        name: c.title,
+        parentId: c.parentCategoryId || null,
+        order: c.order || 0,
+      }));
+    }
+
+    const out = [];
+    const walk = (list, parentId = null) => {
+      for (const c of list) {
+        const pid = (c.parentCategoryId ?? parentId) || null;
+        out.push({
+          id: c.id,
+          name: c.title,
+          parentId: pid,
+          order: c.order || 0,
+        });
+        if (Array.isArray(c.categories) && c.categories.length) {
+          walk(c.categories, c.id);
+        }
+      }
+    };
+    walk(raw, null);
+    return out;
+  }
+
   useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await axios.get("http://localhost:5053/api/categories");
+        const normalized = normalizeCategories(data);
+
+        setCategories((prev) => {
+          const inbox =
+            prev.find((c) => c.id === "inbox") ||
+            { id: "inbox", name: "Inbox", parentId: null };
+
+          const tempCats = prev.filter((c) => String(c.id).startsWith("temp-"));
+          const byId = new Map();
+          [...normalized, ...tempCats].forEach((c) => byId.set(c.id, c));
+
+          return [inbox, ...byId.values()];
+        });
+      } catch (err) {
+        console.error("Error loading categories:", err);
+      }
+    };
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    if (categories.length <= 1) return;
+
     const fetchTasks = async () => {
       try {
         const response = await axios.get("http://localhost:5053/api/tasks");
         console.log("Fetched tasks from backend:", response.data);
 
-        const mapped = response.data.map((t) => ({
-          id: t.id, // keep backend id
-          title: t.title,
-          description: t.description || "",
+        const validCategoryIds = categories.map((c) => c.id);
 
-          priority:
-            t.priority === 0 || t.priority === null
-              ? "Low"
-              : t.priority >= 2
-                ? "High"
-                : "Medium",
-          deadline: t.deadline ? t.deadline.split("T")[0] : null,
-          deadlineTime:
-            t.deadline && t.deadline.includes("T")
-              ? t.deadline.split("T")[1].slice(0, 5)
-              : null,
-          categoryId: "inbox", // frontend category only
-          completed: t.isCompleted || false,
-          parentIds: [],
-          graphNode: { id: t.title, x: 100, y: 100 },
-          positionOrder: t.positionOrder || 0,
-        }));
+        const mapped = response.data.map((t) => {
+          let categoryId =
+            t.categoryId === fixedInboxId
+              ? "inbox"
+              : validCategoryIds.includes(t.categoryId)
+                ? t.categoryId
+                : "inbox";
+
+          if (t.isCompleted) {
+            categoryId = "done";
+          }
+
+          return {
+            id: t.id,
+            title: t.title,
+            description: t.description || "",
+            priority:
+              t.priority === 0 || t.priority === null
+                ? "Low"
+                : t.priority >= 2
+                  ? "High"
+                  : "Medium",
+            deadline: t.deadline ? t.deadline.split("T")[0] : null,
+            deadlineTime:
+              t.deadline && t.deadline.includes("T")
+                ? t.deadline.split("T")[1].slice(0, 5)
+                : null,
+            categoryId,
+            completed: t.isCompleted || false,
+            parentIds: [],
+            graphNode: { id: t.title, x: 100, y: 100 },
+            positionOrder: t.positionOrder || 0,
+          };
+        });
+
         setTasks(mapped);
       } catch (err) {
         console.error("Error loading tasks:", err);
@@ -75,9 +148,9 @@ export default function App() {
     };
 
     fetchTasks();
-  }, []);
+  }, [categories]);
 
-  // --- Add task locally first, then backend
+  // --- Add task
   const addTask = async (newTask) => {
     const tempId = Date.now().toString();
     const tempTask = {
@@ -96,24 +169,27 @@ export default function App() {
     setTasks((prev) => [...prev, tempTask]);
 
     const backendTask = {
-      taskId: updateTask.id,
       userId: fixedUserId,
-      newTitle: updateTask.title,
-      newDescription: updateTask.description || null,
-      newStatusId: null,
-      newCategoryId: fixedCategoryId,
-      newDeadline: updateTask.deadline
-        ? `${updateTask.deadline}T${updateTask.deadlineTime || "00:00"}:00`
-        : null,
-      newPriority:
-        updateTask.priority === "Low"
+      title: newTask.title,
+      description: newTask.description || null,
+      color: "#FFFFFF",
+      statusId: null,
+      priority:
+        newTask.priority === "Low"
           ? 0
-          : updateTask.priority === "High"
+          : newTask.priority === "High"
             ? 2
             : 1,
-      newColor: updateTask.color || "#FFFFFF",
-      isCompleted: updateTask.completed || false,
-      isFailed: null,
+      categoryId:
+        selectedCategory === "inbox"
+          ? fixedInboxId
+          : selectedCategory !== "done"
+            ? selectedCategory
+            : null,
+      deadline: newTask.deadline
+        ? `${newTask.deadline}T${newTask.deadlineTime || "00:00"}:00`
+        : null,
+      positionOrder: tasks.length + 1,
     };
 
     try {
@@ -141,19 +217,36 @@ export default function App() {
     }
   };
 
+  // --- Update task (unchanged except inbox handled)
   const updateTask = async (updateTask) => {
     setTasks((prev) =>
       prev.map((t) => (t.id === updateTask.id ? { ...t, ...updateTask } : t))
     );
+
+    let backendCategoryId = null;
+    if (
+      updateTask.categoryId &&
+      !["inbox", "done", "today", "graphs", "calendar"].includes(
+        updateTask.categoryId
+      )
+    ) {
+      backendCategoryId = updateTask.categoryId;
+    }
+    if (updateTask.categoryId === "inbox") {
+      backendCategoryId = fixedInboxId;
+    }
 
     const backendTask = {
       taskId: updateTask.id,
       title: updateTask.title || null,
       description: updateTask.description || null,
       statusId: null,
-      categoryId: fixedCategoryId,
+      categoryId: backendCategoryId,
       deadline: updateTask.deadline
-        ? `${updateTask.deadline}T${updateTask.deadlineTime || "00:00"}:00`
+        ? dayjs(
+          `${updateTask.deadline} ${updateTask.deadlineTime || "00:00"}`,
+          "YYYY-MM-DD HH:mm"
+        ).toISOString()
         : null,
       priority:
         updateTask.priority === "Low"
@@ -161,8 +254,8 @@ export default function App() {
           : updateTask.priority === "High"
             ? 2
             : 1,
-      markCompleted: updateTask.completed || false,
-      markFailed: null,
+      markCompleted: Boolean(updateTask.completed),
+      isFailed: null,
     };
 
     try {
@@ -182,8 +275,116 @@ export default function App() {
     }
   };
 
+  // Add category
+  const addCategory = async (title, parentId = null) => {
+    const tempId = "temp-" + Date.now();
 
-  // --- Drag handler
+    // 1. Optimistic update: show immediately with user’s title
+    const optimistic = {
+      id: tempId,
+      name: title,
+      parentId: parentId || null,
+      order: 0,
+    };
+    setCategories(prev => [...prev, optimistic]);
+
+    try {
+      // 2. Send to backend
+      const payload = {
+        userId: fixedUserId,
+        title,
+        description: null,
+        parentCategoryId: parentId || null,
+        color: "#FFFFFF",
+      };
+      const { data } = await axios.post(
+        "http://localhost:5053/api/categories/user",
+        payload,
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      // 3. Replace tempId with backend id, but KEEP title/parentId
+      setCategories(prev =>
+        prev.map(c =>
+          c.id === tempId
+            ? { ...c, id: data.id } // only swap the id
+            : c
+        )
+      );
+    } catch (err) {
+      console.error("Add category failed:", err.response?.data || err.message);
+
+      // 4. Rollback if error
+      setCategories(prev => prev.filter(c => c.id !== tempId));
+
+      Modal.error({
+        title: "Save Failed",
+        content: `Could not save category: ${err.response?.data || err.message}`,
+      });
+    }
+  };
+
+  // Edit category
+  const editCategory = async (id, newTitle, newParentId = null) => {
+    const prevCats = categories;
+    const old = categories.find((c) => c.id === id);
+    if (!old) return;
+
+    const normalizedParentId = newParentId === "" ? null : newParentId;
+
+    const titleChanged = (old.name || "") !== (newTitle || "");
+    const parentChanged = (old.parentId || null) !== (normalizedParentId || null);
+
+    setCategories((prev) =>
+      prev.map((c) =>
+        c.id === id ? { ...c, name: newTitle, parentId: normalizedParentId } : c
+      )
+    );
+
+    try {
+      if (titleChanged) {
+        await axios.put(
+          `http://localhost:5053/api/categories/${id}/rename`,
+          { categoryId: id, newTitle },
+          { headers: { "Content-Type": "application/json" } }
+        );
+      }
+      if (parentChanged) {
+        await axios.patch(
+          `http://localhost:5053/api/categories/${id}`,
+          { parentCategoryId: normalizedParentId },
+          { headers: { "Content-Type": "application/json" } }
+        );
+      }
+    } catch (err) {
+      console.error("Edit category failed:", err.response?.data || err.message);
+      setCategories(prevCats);
+      Modal.error({ title: "Update Failed", content: `Could not update category: ${err.response?.data || err.message}` });
+    }
+  };
+
+  // Delete category
+  const deleteCategory = async (id) => {
+    const prevCats = categories;
+    const prevTasks = tasks;
+    const prevSelected = selectedCategory;
+
+    // Optimistic remove
+    setCategories((prev) => prev.filter((c) => c.id !== id && c.parentId !== id));
+    setTasks((prev) => prev.map((t) => (t.categoryId === id ? { ...t, categoryId: "inbox" } : t)));
+    if (selectedCategory === id) setSelectedCategory("inbox");
+
+    try {
+      await axios.delete(`http://localhost:5053/api/categories/${id}`);
+    } catch (err) {
+      console.error("Delete category failed:", err.response?.data || err.message);
+      setCategories(prevCats);
+      setTasks(prevTasks);
+      setSelectedCategory(prevSelected);
+      Modal.error({ title: "Delete Failed", content: `Could not delete category: ${err.response?.data || err.message}` });
+    }
+  };
+
   const droppableCategoryIds = new Set(categories.map((c) => c.id));
   droppableCategoryIds.add("today");
 
@@ -255,24 +456,27 @@ export default function App() {
   const todayStr = new Date().toISOString().split("T")[0];
   const filteredTasks = tasks.filter((t) => {
     if (selectedCategory === "today") return t.deadline === todayStr;
-    if (selectedCategory === "done") return t.completed;   // 🔹 done = completed
-    if (selectedCategory !== "graphs" && t.categoryId !== selectedCategory)
+    if (selectedCategory === "done") return t.completed;
+    if (
+      selectedCategory !== "graphs" &&
+      selectedCategory !== "calendar" &&
+      t.categoryId !== selectedCategory
+    )
       return false;
     return true;
   });
 
-
-
   return (
     <div className="App">
       <div className="AppBody">
-
         <DndContext
           collisionDetection={closestCenter}
           onDragStart={({ active }) => setActiveTaskId(active.id)}
           onDragOver={({ over }) =>
             setHoveredCategory(
-              over?.id.startsWith("category:") ? over.id.replace("category:", "") : null
+              over?.id.startsWith("category:")
+                ? over.id.replace("category:", "")
+                : null
             )
           }
           onDragEnd={(event) => {
@@ -291,9 +495,24 @@ export default function App() {
             tasks={tasks}
             searchText={searchText}
             setSearchText={setSearchText}
+            addCategory={addCategory}
+            editCategory={editCategory}
+            deleteCategory={deleteCategory}
           />
           <div className="MainPanel">
-            {selectedCategory !== "graphs" ? (
+            {selectedCategory === "graphs" ? (
+              <TaskGraphIntegration
+                tasks={tasks}
+                setTasks={setTasks}
+                categories={categories}
+              />
+            ) : selectedCategory === "calendar" ? (
+              <Calendar
+                tasks={tasks}
+                categories={categories}
+                onCardClick={(task) => setSelectedCategory(task.categoryId)}
+              />
+            ) : (
               <div className="MainScroll">
                 <div
                   style={{
@@ -302,9 +521,10 @@ export default function App() {
                     gap: "16px",
                     marginTop: "1vh",
                     marginRight: "1vw",
-                    marginBottom: "10vh"
+                    marginBottom: "10vh",
                   }}
                 >
+                  <CalendarButton onClick={() => setSelectedCategory("calendar")} />
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <img
                       src={aiIcon}
@@ -317,6 +537,7 @@ export default function App() {
                   </div>
                   <UserProfileMenu user={user} />
                 </div>
+
                 <Welcome
                   user={user}
                   selectedCategory={selectedCategory}
@@ -334,12 +555,6 @@ export default function App() {
                   updateTask={updateTask}
                 />
               </div>
-            ) : (
-              <TaskGraphIntegration
-                tasks={tasks}
-                setTasks={setTasks}
-                categories={categories}
-              />
             )}
           </div>
           <DragOverlay>
