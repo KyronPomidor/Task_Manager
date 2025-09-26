@@ -26,7 +26,8 @@ public class CreateTaskUseCase
             IsCompleted: request.IsCompleted ?? false,
             Deadline: request.Deadline,
             Price: request.Price ?? default,
-            PositionOrder: request.PositionOrder
+            PositionOrder: request.PositionOrder,
+            ParentTaskId: request.ParentTaskId
         ));
 
 

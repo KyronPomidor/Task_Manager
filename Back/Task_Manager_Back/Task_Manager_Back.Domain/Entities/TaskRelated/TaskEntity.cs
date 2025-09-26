@@ -10,6 +10,7 @@ public class TaskEntity
     public Guid UserId { get; private set; }
     public Guid? StatusId { get; private set; }
     public Guid CategoryId { get; private set; }
+    public Guid? ParentTaskId { get; private set; }
 
     public string Title { get; private set; } = string.Empty;
     public string? Description { get; private set; }
@@ -52,6 +53,7 @@ public class TaskEntity
         IsCompleted = @params.IsCompleted;
         PositionOrder = @params.PositionOrder;
         Price = @params.Price;
+        ParentTaskId = @params.ParentTaskId;
     }
 
 
@@ -128,6 +130,10 @@ public class TaskEntity
         IsFailed = true;
     }
 
+    public void SetParentTaskId(Guid? parentTaskId)
+    {
+        ParentTaskId = parentTaskId;
+    }
 
     public void AddAttachment(TaskAttachment attachment)
     {
@@ -195,7 +201,7 @@ public class TaskEntity
     }
 }
 
-public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline, bool IsCompleted, int PositionOrder, int Price);
-public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline,
+public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, Guid? ParentTaskId, DateTime? Deadline, bool IsCompleted, int PositionOrder, int Price);
+public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, Guid? ParentTaskId, DateTime? Deadline,
     bool IsCompleted, bool IsFailed, int PositionOrder, int Price,
     List<TaskAttachment> Attachments, List<TaskReminder> Reminders, List<TaskRelation> TaskRelations, List<ShopItem> ShopItems);

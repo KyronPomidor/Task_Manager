@@ -24,7 +24,7 @@ public class AskAiChatService : IAskAiChatService
 
     public async Task<string> AskAsync(string prompt)
     {
-        var request = new
+        var request = new   
         {
             model = _model, // e.g. "sonar"
             messages = new[]

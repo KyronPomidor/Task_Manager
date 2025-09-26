@@ -47,6 +47,11 @@ public class PatchTaskUseCase
         if (request.MarkCompleted != null)
             task.SetIsFailed(request.MarkCompleted ?? false);
 
+        if (request.ParentTaskId != null)
+        {
+            task.SetParentTaskId(request.ParentTaskId.Value);
+        }
+
         await _taskRepository.UpdateAsync(task);
     }
 }
