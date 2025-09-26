@@ -39,8 +39,6 @@ public class UpdateTaskUseCase
 
         task.SetIsFailed(request.IsCompleted);
 
-        task.SetParentTaskId(request.NewParentTaskId);
-
         await _taskRepository.UpdateAsync(task);
     }
 }

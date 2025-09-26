@@ -116,8 +116,7 @@ public static class AppDbSeeder
                 Deadline: DateTime.UtcNow.AddDays(i),
                 IsCompleted: false,
                 PositionOrder: i,
-                Price: Random.Shared.Next(50, 250),
-                ParentTaskId: null
+                Price: Random.Shared.Next(50, 250)
             ));
 
             await taskRepo.CreateAsync(task);

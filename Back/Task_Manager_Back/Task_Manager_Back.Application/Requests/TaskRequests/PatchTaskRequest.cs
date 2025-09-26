@@ -10,7 +10,6 @@ public record PatchTaskRequest(
     Guid? StatusId = null,
     TaskPriority? Priority = null,
     Guid? CategoryId = null,
-    Guid? ParentTaskId = null,
     DateTime? Deadline = null,
     string? Color = null,
     int? PositionOrder = null,

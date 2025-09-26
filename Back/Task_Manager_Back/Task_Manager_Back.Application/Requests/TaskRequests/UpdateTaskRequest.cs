@@ -9,7 +9,6 @@ public record UpdateTaskRequest(
     string NewDescription,
     Guid NewStatusId,
     Guid NewCategoryId,
-    Guid NewParentTaskId,
     DateTime NewDeadline,
     TaskPriority NewPriority,
     string NewColor,
