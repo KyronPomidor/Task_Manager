@@ -28,7 +28,7 @@ public class AskAiChatHandler : IRequestHandler<AskAiChatRequest, string>
         sb.AppendLine("Here are the current tasks:");
         foreach (var task in tasks)
         {
-            sb.AppendLine($"- {task.Title} | Priority: {task.Priority?.ToString() ?? "none"} | Deadline: {task.Deadline?.ToString("yyyy-MM-dd") ?? "none"}");
+            sb.AppendLine($"- {task.Title} | Description: {task.Description?.ToString()} | Priority: {task.Priority?.ToString() ?? "none"} | Deadline: {task.Deadline?.ToString("yyyy-MM-dd") ?? "none"}");
         }
 
         sb.AppendLine();
