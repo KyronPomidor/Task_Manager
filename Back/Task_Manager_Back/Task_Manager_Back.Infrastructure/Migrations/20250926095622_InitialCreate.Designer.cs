@@ -12,7 +12,7 @@ using Task_Manager_Back.Infrastructure.DbContext;
 namespace Task_Manager_Back.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250925085008_InitialCreate")]
+    [Migration("20250926095622_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />

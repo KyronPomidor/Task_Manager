@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Task_Manager_Back.Api.ApiRequests.TaskCategoryApiRequests;
 using Task_Manager_Back.Application.Commands.TaskCategories;
+using Task_Manager_Back.Application.Queries.TaskCategories;
 
 namespace Task_Manager_Back.Api.Controllers;
 
@@ -40,6 +41,23 @@ public class TaskCategoryController : ControllerBase
         );
         Guid categoryId = await _mediator.Send(command);
         return Ok(categoryId);
+    }
+
+
+    /// <summary>
+    /// Get all task categories for a user.
+    /// </summary>
+    /// <param name="userId">The ID of the user whose categories are to be retrieved.</param>
+    /// <returns>A list of task categories.</returns>
+    /// <response code="200">Returns the list of task categories.</response>
+    /// <response code="400">If the request is invalid.</response>
+    /// <response code="500">If there is an internal server error.</response>
+    [HttpGet("user/{userId}")]
+    public async Task<IActionResult> GetAllByUserId([FromRoute] Guid userId)
+    {
+        var query = new GetTaskCategoriesByUserIdQuery(userId);
+        var categories = await _mediator.Send(query);
+        return Ok(categories);
     }
 
 }

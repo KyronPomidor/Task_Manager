@@ -107,6 +107,7 @@ builder.Services.AddTransient<GetTasksByUserIdUseCase>();
 builder.Services.AddTransient<GetTaskUseCase>();
 builder.Services.AddTransient<DeleteTaskUseCase>();
 builder.Services.AddTransient<TaskAssignToCategoryUseCase>();
+builder.Services.AddTransient<GetTaskCategoriesByUserIdUseCase>();
 
 builder.Services.AddTransient<TaskCategoryCreateUseCase>();
 
