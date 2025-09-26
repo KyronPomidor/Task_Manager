@@ -24,6 +24,7 @@ import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MoreOutlined } from "@ant-design/icons";
 import { motion, AnimatePresence } from "framer-motion";
+import { getDeterministicColor } from "../../../utils/colorUtils";
 
 const { Title, Text } = Typography;
 
@@ -319,6 +320,8 @@ export function Tasks({
     const parentTask = allTasks.find((t) => t.id === parentId);
     if (parentTask && typeof setSelectedCategory === "function") {
       setSelectedCategory(parentTask.categoryId);
+      setSelectedTask(parentTask);
+      setDetailsOpen(true);
     } else {
       console.warn(
         `Cannot navigate to parent task category. Parent task with ID ${parentId} not found or setSelectedCategory is not a function.`
@@ -363,25 +366,6 @@ export function Tasks({
     return true;
   });
 
-  const DEP_COLORS = [
-    "#FFD93D", "#FF6B6B", "#6BCB77", "#4D96FF", "#845EC2",
-    "#FF9671", "#FFC75F", "#0081CF", "#B39CD0", "#3705dcff"
-  ];
-
-  function hashStringToIndex(str, mod) {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0;
-    }
-    return Math.abs(hash) % mod;
-  }
-
-  const getParentColor = (parentId) => {
-    const idx = hashStringToIndex(parentId, DEP_COLORS.length);
-    return DEP_COLORS[idx];
-  };
-
   function getChildren(taskId) {
     return allTasks.filter((t) => t.parentIds.includes(taskId) && !t.completed);
   }
@@ -405,10 +389,10 @@ export function Tasks({
       <SortableContext items={filteredAndSortedTasks.map((t) => t.id)}>
         <Row gutter={[16, 16]}>
           {filteredAndSortedTasks.map((task) => {
-            const bg = task.completed ? "#ececec" : "white";
             const hasChildren = allTasks.some((t) => t.parentIds.includes(task.id) && !t.completed);
-            const parentBorderColor = hasChildren ? getParentColor(task.id) : "#fff";
-            const childIndicatorColors = task.parentIds.map(getParentColor);
+            const parentBorderColor = hasChildren ? getDeterministicColor(task.id) : "#fff";
+            const childIndicatorColors = task.parentIds.map(getDeterministicColor);
+            const bg = task.completed ? "#ececec" : "white";
             const isChild = task.parentIds.length > 0;
             const isParent = hasChildren;
 
@@ -695,12 +679,9 @@ export function Tasks({
                                         width: 320,
                                         background: "#fff",
                                         color: "#222e3a",
-                                        borderLeft:
-                                          child.parentIds.length > 0
-                                            ? `5px solid ${getParentColor(
-                                                child.parentIds[child.parentIds.length - 1]
-                                              )}`
-                                            : "5px solid #fff",
+                                        borderLeft: child.parentIds.length > 0
+                                          ? `5px solid ${getDeterministicColor(child.parentIds[child.parentIds.length - 1])}`
+                                          : "5px solid #fff",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
                                         position: "relative",
                                         margin: "0 auto",
@@ -761,7 +742,7 @@ export function Tasks({
                                                     width: 16,
                                                     height: 16,
                                                     borderRadius: "50%",
-                                                    background: getParentColor(pid),
+                                                    background: getDeterministicColor(pid),
                                                     border: "2px solid #fff",
                                                     boxShadow: "0 0 0 1px #ccc",
                                                     cursor: "pointer",
@@ -1052,7 +1033,7 @@ export function Tasks({
           </>
         )}
         <Text strong style={{ color: "#4d5156", display: "block", marginLeft: "0.7vw" }}>
-          Total: ${( (budgetTask?.price || 0) + tempBudgetItems.reduce((acc, item) => acc + item.sum, 0) ).toFixed(2)}
+          Total: ${((budgetTask?.price || 0) + tempBudgetItems.reduce((acc, item) => acc + item.sum, 0)).toFixed(2)}
         </Text>
       </Modal>
 

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "antd";
 import dayjs from "dayjs";
-import { getParentColor } from "../../../utils/colorUtils";
+import { getDeterministicColor } from "../../../utils/colorUtils";
 import "../styles/Calendar.css";
 
-export default function CalendarPage({ tasks, allTasks, onCardClick }) {
+export default function CalendarPage({ tasks, onCardClick }) {
   const [calendarTasks, setCalendarTasks] = useState({});
-  const [viewDate, setViewDate] = useState(dayjs()); // track displayed month
+  const [viewDate, setViewDate] = useState(dayjs()); 
 
   useEffect(() => {
     const tasksByDate = {};
@@ -76,11 +76,11 @@ export default function CalendarPage({ tasks, allTasks, onCardClick }) {
                 {day.format("D")}
               </div>
               {tasksForDay.map((task) => {
-                const parentColors = task.parentIds.map(getParentColor);
+                const parentColors = task.parentIds.map(getDeterministicColor);
                 const taskBackgroundColor =
                   task.parentIds.length > 0
                     ? parentColors[0]
-                    : getParentColor(task.id);
+                    : getDeterministicColor(task.id);
 
                 return (
                   <div
