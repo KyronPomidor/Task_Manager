@@ -13,5 +13,6 @@ public record CreateTaskRequest(
     DateTime? Deadline,
     bool? IsCompleted,
     int PositionOrder,
-    int? Price
+    int? Price,
+    List<Guid>? DependsOnTasksIds // NEW
 ) : IRequest<Guid>;

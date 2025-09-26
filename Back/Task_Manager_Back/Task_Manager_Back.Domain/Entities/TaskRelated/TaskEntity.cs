@@ -10,7 +10,7 @@ public class TaskEntity
     public Guid UserId { get; private set; }
     public Guid? StatusId { get; private set; }
     public Guid CategoryId { get; private set; }
-
+    public List<Guid> DependsOnTasksIds { get; private set; } = new();
     public string Title { get; private set; } = string.Empty;
     public string? Description { get; private set; }
     public TaskPriority? Priority { get; private set; }
@@ -49,9 +49,11 @@ public class TaskEntity
         Deadline = @params.Deadline.HasValue
             ? ValidationHelper.ValidateNotPast(@params.Deadline.Value, nameof(@params.Deadline))
             : null;
+
         IsCompleted = @params.IsCompleted;
         PositionOrder = @params.PositionOrder;
         Price = @params.Price;
+        DependsOnTasksIds = @params.DependsOnTasksIds ?? new();
     }
 
 
@@ -77,7 +79,8 @@ public class TaskEntity
             Reminders = state.Reminders ?? new(),
             TaskRelations = state.TaskRelations ?? new(),
             ShopItems = state.ShopItems ?? new(),
-            Price = state.Price
+            Price = state.Price,
+            DependsOnTasksIds = state.DependsOnTasksIds ?? new()
         };
     }
 
@@ -128,6 +131,10 @@ public class TaskEntity
         IsFailed = true;
     }
 
+    public void SetDependsOnTasksIds(List<Guid> ids)
+    {
+        DependsOnTasksIds = ids ?? new();
+    }
 
     public void AddAttachment(TaskAttachment attachment)
     {
@@ -195,7 +202,37 @@ public class TaskEntity
     }
 }
 
-public record TaskEntityCreateParams(Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline, bool IsCompleted, int PositionOrder, int Price);
-public record TaskEntityState(Guid Id, Guid UserId, string Title, string? Description, string Color, Guid? StatusId, TaskPriority? Priority, Guid CategoryId, DateTime? Deadline,
-    bool IsCompleted, bool IsFailed, int PositionOrder, int Price,
-    List<TaskAttachment> Attachments, List<TaskReminder> Reminders, List<TaskRelation> TaskRelations, List<ShopItem> ShopItems);
+public record TaskEntityCreateParams(
+    Guid UserId,
+    string Title,
+    string? Description,
+    string Color,
+    Guid? StatusId,
+    TaskPriority? Priority,
+    Guid CategoryId,
+    DateTime? Deadline,
+    bool IsCompleted,
+    int PositionOrder,
+    int Price,
+    List<Guid>? DependsOnTasksIds // NEW
+);
+public record TaskEntityState(
+    Guid Id,
+    Guid UserId,
+    string Title,
+    string? Description,
+    string Color,
+    Guid? StatusId,
+    TaskPriority? Priority,
+    Guid CategoryId,
+    DateTime? Deadline,
+    bool IsCompleted,
+    bool IsFailed,
+    int PositionOrder,
+    int Price,
+    List<TaskAttachment> Attachments,
+    List<TaskReminder> Reminders,
+    List<TaskRelation> TaskRelations,
+    List<ShopItem> ShopItems,
+    List<Guid>? DependsOnTasksIds // NEW
+);
