@@ -38,6 +38,9 @@ public class PatchTaskUseCase
         if (request.Color != null)
             task.ChangeColor(request.Color);
 
+        if (request.PositionOrder.HasValue)
+            task.ChangePositionOrder(request.PositionOrder.Value);
+
         if (request.MarkCompleted != null)
             task.SetIsCompleted(request.MarkCompleted ?? false);
 

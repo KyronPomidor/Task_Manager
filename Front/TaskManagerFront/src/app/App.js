@@ -13,9 +13,9 @@ import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration
 import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
 import aiIcon from "./ai.png";
 import axios from "axios";
-import dayjs from "dayjs";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
+
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -138,6 +138,8 @@ export default function App() {
             parentIds: [],
             graphNode: { id: t.title, x: 100, y: 100 },
             positionOrder: t.positionOrder || 0,
+            price: Number(t.price) || 0,
+            budgetItems: Array.isArray(t.budgetItems) ? t.budgetItems : []
           };
         });
 
@@ -172,6 +174,8 @@ export default function App() {
       parentIds: [],
       graphNode: { id: newTask.title, x: 200, y: 200 },
       positionOrder: 0,
+      price: 0,
+      budgetItems: newTask.budgetItems || []
     };
 
     // shift all tasks forward, insert new one at 0
@@ -202,6 +206,8 @@ export default function App() {
         ? `${newTask.deadline}T${newTask.deadlineTime || "00:00"}:00`
         : null,
       positionOrder: 0,
+      price: newTask.price || 0,
+      budgetItems: newTask.budgetItems || []  // Changed: Send budgetItems
     };
 
     try {
@@ -230,55 +236,62 @@ export default function App() {
   };
 
   // --- Update task
-  const updateTask = async (updateTask) => {
+  const updateTask = async (updatedTask) => {
+    // 1. Optimistic update: update local state immediately
     setTasks((prev) =>
-      prev.map((t) => (t.id === updateTask.id ? { ...t, ...updateTask } : t))
+      prev.map((t) =>
+        t.id === updatedTask.id ? { ...t, ...updatedTask } : t
+      )
     );
 
     let backendCategoryId = null;
     if (
-      updateTask.categoryId &&
-      !["inbox", "done", "today", "graphs", "calendar"].includes(
-        updateTask.categoryId
-      )
+      updatedTask.categoryId &&
+      !["inbox", "done", "today", "graphs", "calendar"].includes(updatedTask.categoryId)
     ) {
-      backendCategoryId = updateTask.categoryId;
+      backendCategoryId = updatedTask.categoryId;
     }
-    if (updateTask.categoryId === "inbox") {
+    if (updatedTask.categoryId === "inbox") {
       backendCategoryId = fixedInboxId;
     }
 
     const backendTask = {
-      taskId: updateTask.id,
-      title: updateTask.title || null,
-      description: updateTask.description || null,
+      taskId: updatedTask.id,
+      title: updatedTask.title || null,
+      description: updatedTask.description || null,
       statusId: null,
       categoryId: backendCategoryId,
-      deadline: updateTask.deadline
-        ? dayjs(
-          `${updateTask.deadline} ${updateTask.deadlineTime || "00:00"}`,
-          "YYYY-MM-DD HH:mm"
-        ).toISOString()
-        : null,
+      deadline: updatedTask.deadline && updatedTask.deadlineTime
+        ? `${updatedTask.deadline}T${updatedTask.deadlineTime}:00`
+        : updatedTask.deadline
+          ? `${updatedTask.deadline}T00:00:00`
+          : null,
+
       priority:
-        updateTask.priority === "Low"
+        updatedTask.priority === "Low"
           ? 0
-          : updateTask.priority === "High"
+          : updatedTask.priority === "High"
             ? 2
             : 1,
-      markCompleted: Boolean(updateTask.completed),
+      markCompleted: Boolean(updatedTask.completed),
       isFailed: null,
-      positionOrder: updateTask.positionOrder ?? 0,
+      positionOrder: updatedTask.positionOrder ?? 0,
+      price: updatedTask.price || 0,
+      budgetItems:
+        updatedTask.budgetItems?.map((item) => ({
+          id: item.id,
+          name: item.name,
+          sum: item.sum,
+        })) || [],
     };
 
     try {
       console.log("Sending update (PATCH) to backend:", backendTask);
-      const response = await axios.patch(
-        `http://localhost:5053/api/tasks/${updateTask.id}`,
+      await axios.patch(
+        `http://localhost:5053/api/tasks/${updatedTask.id}`,
         backendTask,
         { headers: { "Content-Type": "application/json" } }
       );
-      console.log("Backend updated task:", response.data);
     } catch (err) {
       console.error("Backend update failed:", err.response?.data || err.message);
       Modal.error({
@@ -288,9 +301,9 @@ export default function App() {
     }
   };
 
+
   // --- Update task order only
   const updateTaskOrder = async (id, positionOrder) => {
-    console.log("updateTaskOrder called for task ${id} -> order ${positionOrder}");
 
     try {
       const response = await axios.patch(
@@ -301,10 +314,10 @@ export default function App() {
         },
         { headers: { "Content-Type": "application/json" } }
       );
-      console.log("✅ Order updated on backend:", response.data);
+      console.log("Order updated on backend:", response.data);
     } catch (err) {
       console.error(
-        "❌ Order update failed for ${id}:",
+        "Order update failed",
         err.response?.data || err.message
       );
     }
@@ -633,7 +646,6 @@ export default function App() {
         <AIAnalysisModal
           visible={isAIAnalysisOpen}
           onClose={() => setIsAIAnalysisOpen(false)}
-          onSend={(input) => console.log("AI analysis input:", input)}
         />
       </div>
     </div>

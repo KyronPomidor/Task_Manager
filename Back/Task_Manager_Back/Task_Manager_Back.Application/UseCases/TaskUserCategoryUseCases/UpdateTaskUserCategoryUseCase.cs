@@ -23,7 +23,7 @@ public class UpdateTaskUserCategoryUseCase
         category.UpdateDescription(request.Description);
         category.ChangeParent(request.ParentCategoryId);
         category.ChangeColor(request.Color);
-        category.UpdateOrder(request.PositionOrder);
+        category.ChangePositionOrder(request.PositionOrder);
 
         await _repository.UpdateAsync(category);
     }

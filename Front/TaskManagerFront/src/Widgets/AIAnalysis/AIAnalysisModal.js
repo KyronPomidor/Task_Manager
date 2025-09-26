@@ -1,40 +1,67 @@
-import React, { useState } from "react";
-import { Modal, Input, Button, Card, Typography } from "antd";
+import React, { useState, useEffect } from "react";
+import { Modal, Input, Button, Card, Typography, Spin } from "antd";
+import axios from "axios";
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
-export function AIAnalysisModal({ visible, onClose, onSend }) {
+export function AIAnalysisModal({ visible, onClose }) {
   const [inputText, setInputText] = useState("");
   const [outputText, setOutputText] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSend = () => {
-    setOutputText(`Analysis result for: "${inputText}" - Processed at ${new Date().toLocaleString()}`);
-    if (onSend) onSend(inputText);
+  const handleSend = async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.post(
+        "http://localhost:5053/api/ai-chat/ask",
+        { prompt: inputText },
+        { headers: { "Content-Type": "application/json" } }
+      );
+
+      if (data.reply) {
+        setOutputText(data.reply);
+      } else {
+        setOutputText(typeof data === "string" ? data : JSON.stringify(data));
+      }
+    } catch (err) {
+      setOutputText("❌ Error: " + (err.response?.data || err.message));
+    } finally {
+      setLoading(false);
+    }
   };
+
+  // Reset input & output whenever modal closes
+  useEffect(() => {
+    if (!visible) {
+      setInputText("");
+      setOutputText("");
+    }
+  }, [visible]);
 
   return (
     <Modal
-      title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>AI Analysis</Title>}
+      title={
+        <Title level={4} style={{ margin: 0, color: "#1a2233" }}>
+          AI Analysis
+        </Title>
+      }
       open={visible}
       onCancel={onClose}
       centered
-      maskClosable={true}
-      keyboard={true}
+      maskClosable
+      keyboard
       width={572}
       footer={[
-        <Button
-          key="close"
-          onClick={onClose}
-          style={{ marginRight: 8 }}
-        >
+        <Button key="close" onClick={onClose} style={{ marginRight: 8 }}>
           Close
         </Button>,
         <Button
           key="send"
           type="primary"
           onClick={handleSend}
+          disabled={loading}
         >
-          Send
+          {loading ? "Sending..." : "Send"}
         </Button>,
       ]}
       styles={{
@@ -59,14 +86,7 @@ export function AIAnalysisModal({ visible, onClose, onSend }) {
         },
       }}
     >
-      <Card
-        bordered={false}
-        style={{
-          background: "#ffffff",
-          borderRadius: "8px",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        }}
-      >
+      <Card bordered={false} style={{ background: "#ffffff", borderRadius: "8px" }}>
         <div style={{ marginBottom: "16px" }}>
           <Title level={5} style={{ margin: "0 0 8px 0", color: "#1a2233" }}>
             Input Text
@@ -76,13 +96,34 @@ export function AIAnalysisModal({ visible, onClose, onSend }) {
             onChange={(e) => setInputText(e.target.value)}
             placeholder="Enter text for AI analysis..."
             autoSize={{ minRows: 3, maxRows: 6 }}
+            disabled={loading}
           />
         </div>
-        <div style={{ marginBottom: "16px", border: "1px solid #d9d9d9", padding: "8px", borderRadius: "4px" }}>
-          <Text strong style={{ color: "#4d5156" }}>Output:</Text>
-          <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
-            {outputText || "No analysis yet..."}
-          </Text>
+        <div
+          style={{
+            marginBottom: "16px",
+            border: "1px solid #d9d9d9",
+            padding: "8px",
+            borderRadius: "4px",
+            minHeight: "60px",
+            background: "#fafafa",
+          }}
+        >
+          <strong style={{ color: "#4d5156" }}>Output:</strong>
+          {loading ? (
+            <Spin style={{ marginLeft: 8 }} />
+          ) : (
+            <pre
+              style={{
+                marginTop: 8,
+                whiteSpace: "pre-wrap", // preserve newlines and wrap long text
+                wordBreak: "break-word",
+                color: "#4d5156",
+              }}
+            >
+              {outputText || "No analysis yet..."}
+            </pre>
+          )}
         </div>
       </Card>
     </Modal>

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Modal, Input, Button, Card, Typography, Form } from "antd";
+import { Modal, Input, Button, Card, Typography, Form, Checkbox } from "antd";
 
 const { Title, Text } = Typography;
 
@@ -13,6 +13,13 @@ export default function UserProfile({ user }) {
   const [tempEmail, setTempEmail] = useState(initialEmail);
   const [userHover, setUserHover] = useState(false);
   const [userActive, setUserActive] = useState(false);
+  const [areNotificationsEnabled, setAreNotificationsEnabled] = useState(false); // State for notifications
+
+  const handleToggleNotifications = () => {
+    setAreNotificationsEnabled((prev) => !prev);
+    // Placeholder for backend integration, e.g.:
+    // axios.patch(`/api/users/${user.id}/settings`, { emailNotifications: !areNotificationsEnabled });
+  };
 
   const styles = {
     userBtn: (hover, active) => ({
@@ -49,6 +56,8 @@ export default function UserProfile({ user }) {
     setName(tempName);
     setEmail(tempEmail);
     setOpen(false);
+    // Placeholder for backend integration, e.g.:
+    // axios.patch(`/api/users/${user.id}`, { displayName: tempName, email: tempEmail });
   };
 
   return (
@@ -143,6 +152,14 @@ export default function UserProfile({ user }) {
                 onChange={(e) => setTempEmail(e.target.value)}
                 placeholder="Enter your email"
               />
+            </Form.Item>
+            <Form.Item>
+              <Checkbox
+                checked={areNotificationsEnabled}
+                onChange={handleToggleNotifications}
+              >
+                Enable Email Notifications
+              </Checkbox>
             </Form.Item>
           </Form>
         </Card>

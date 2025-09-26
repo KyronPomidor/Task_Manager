@@ -33,6 +33,8 @@ public class UpdateTaskUseCase
 
         task.ChangeColor(request.NewColor);
 
+        task.ChangePositionOrder(request.NewPositionOrder);
+
         task.SetIsCompleted(request.IsCompleted);
 
         task.SetIsFailed(request.IsCompleted);

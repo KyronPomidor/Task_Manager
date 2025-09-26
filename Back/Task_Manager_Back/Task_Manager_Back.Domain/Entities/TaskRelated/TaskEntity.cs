@@ -106,7 +106,7 @@ public class TaskEntity
         else
             Deadline = null;
     }
-    public void UpdatePositionOrder(int positionOrder) => PositionOrder = positionOrder;
+    public void ChangePositionOrder(int positionOrder) => PositionOrder = positionOrder;
     public void SetIsCompleted(bool value)
     {
         IsCompleted = value;

@@ -32,7 +32,7 @@ public class PatchTaskUserCategoryUseCase
             category.ChangeColor(request.Color);
 
         if (request.PositionOrder.HasValue)
-            category.UpdateOrder(request.PositionOrder.Value);
+            category.ChangePositionOrder(request.PositionOrder.Value);
 
         await _repository.UpdateAsync(category);
     }

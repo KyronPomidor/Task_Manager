@@ -101,7 +101,7 @@ function TaskActions({
       onClick: (e) => {
         e.stopPropagation();
         setBudgetTask(task);
-        setTempBudgetItems(task.budgetItems || []);
+        setTempBudgetItems([]);  // Changed: Start with empty for new additions only
         setBudgetOpen(true);
         setMenuOpenId(null);
       },
@@ -279,28 +279,37 @@ export function Tasks({
       Modal.error({ title: "Both name and sum are required" });
       return;
     }
+
     const sumVal = parseFloat(budgetSum);
     if (isNaN(sumVal) || sumVal <= 0) {
       Modal.error({ title: "Enter a valid sum" });
       return;
     }
-    setTempBudgetItems((prev) => [
-      ...prev,
-      { id: Date.now().toString(), name: budgetName, sum: sumVal },
-    ]);
+
+    // Changed: Only update temp list, no immediate task update or patch
+    const updatedItems = [...tempBudgetItems, { id: Date.now().toString(), name: budgetName, sum: sumVal }];
+    setTempBudgetItems(updatedItems);
+
     setBudgetName("");
     setBudgetSum("");
   }
 
   function saveBudgetItems() {
     if (!budgetTask) return;
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === budgetTask.id
-          ? { ...t, budgetItems: [...tempBudgetItems] }
-          : t
-      )
-    );
+
+    const newSum = tempBudgetItems.reduce((acc, item) => acc + item.sum, 0);
+    const total = (budgetTask.price || 0) + newSum;
+    const updatedItems = [...(budgetTask.budgetItems || []), ...tempBudgetItems];
+
+    const updated = {
+      ...budgetTask,
+      budgetItems: updatedItems,
+      price: total,
+    };
+
+    setTasks((prev) => prev.map((t) => (t.id === budgetTask.id ? updated : t)));
+    updateTask(updated);  // Changed: Send full updated task (including budgetItems)
+
     setBudgetOpen(false);
     setBudgetTask(null);
     setTempBudgetItems([]);
@@ -319,10 +328,15 @@ export function Tasks({
 
   function calculateTotalExpenses() {
     if (selectedCategory !== "done") return 0;
-    return filteredTasks
-      .filter((t) => t.completed && t.budgetItems && t.budgetItems.length > 0)
-      .reduce((acc, task) => acc + task.budgetItems.reduce((sum, item) => sum + (item.sum || 0), 0), 0)
-      .toFixed(2);
+
+    const total = (filteredTasks || [])
+      .filter((t) => t.completed) // only finished tasks
+      .reduce((acc, t) => {
+        const priceNum = Number(t.price);
+        return acc + (Number.isFinite(priceNum) ? priceNum : 0);
+      }, 0);
+
+    return total.toFixed(2);
   }
 
   const [filters, setFilters] = useState({
@@ -684,8 +698,8 @@ export function Tasks({
                                         borderLeft:
                                           child.parentIds.length > 0
                                             ? `5px solid ${getParentColor(
-                                              child.parentIds[child.parentIds.length - 1]
-                                            )}`
+                                                child.parentIds[child.parentIds.length - 1]
+                                              )}`
                                             : "5px solid #fff",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
                                         position: "relative",
@@ -887,25 +901,35 @@ export function Tasks({
                   </Text>
                 </div>
               )}
-              {selectedTask.budgetItems && selectedTask.budgetItems.length > 0 && (
-                <>
-                  <Divider orientation="left" style={{ margin: "16px 0", color: "#1a2233" }}>
-                    Expenses
-                  </Divider>
-                  <List
-                    dataSource={selectedTask.budgetItems}
-                    renderItem={(item) => (
-                      <List.Item style={{ padding: "8px 16px", background: "#f9fafb", borderRadius: "4px", marginBottom: "8px" }}>
-                        <Text>{item.name}: <strong>${item.sum.toFixed(2)}</strong></Text>
-                      </List.Item>
-                    )}
-                    style={{ marginBottom: "16px" }}
-                  />
-                  <Text strong style={{ color: "#4d5156" }}>
-                    Total: ${selectedTask.budgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
-                  </Text>
-                </>
+
+              {/* Changed: Show breakdown of all added budget items and totals */}
+              {(selectedTask.budgetItems?.length > 0 || selectedTask.price > 0) && (
+                <div style={{ marginTop: "12px" }}>
+                  <Text strong>Total Expenses: </Text>
+                  <Text>${selectedTask.price.toFixed(2)}</Text>
+                  {selectedTask.budgetItems?.length > 0 && (
+                    <>
+                      <Divider style={{ margin: "12px 0" }} />
+                      <Text strong>Budget Items (All Added):</Text>
+                      <List
+                        bordered
+                        dataSource={selectedTask.budgetItems}
+                        renderItem={(item) => (
+                          <List.Item style={{ padding: "8px 12px" }}>
+                            {item.name}: <strong>${item.sum.toFixed(2)}</strong>
+                          </List.Item>
+                        )}
+                        style={{ marginTop: "8px", marginBottom: "8px" }}
+                      />
+                      <Text strong>
+                        Sum of All Added Items: $
+                        {selectedTask.budgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
+                      </Text>
+                    </>
+                  )}
+                </div>
               )}
+
             </Card>
           </div>
         )}
@@ -1013,7 +1037,7 @@ export function Tasks({
         {tempBudgetItems.length > 0 && (
           <>
             <Divider orientation="left" style={{ margin: "16px 0", color: "#1a2233" }}>
-              Budget Items
+              New Budget Items
             </Divider>
             <List
               bordered
@@ -1025,11 +1049,11 @@ export function Tasks({
               )}
               style={{ marginBottom: "16px" }}
             />
-            <Text strong style={{ color: "#4d5156" }}>
-              Total: ${tempBudgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
-            </Text>
           </>
         )}
+        <Text strong style={{ color: "#4d5156", display: "block", marginLeft: "0.7vw" }}>
+          Total: ${( (budgetTask?.price || 0) + tempBudgetItems.reduce((acc, item) => acc + item.sum, 0) ).toFixed(2)}
+        </Text>
       </Modal>
 
       <Modal
