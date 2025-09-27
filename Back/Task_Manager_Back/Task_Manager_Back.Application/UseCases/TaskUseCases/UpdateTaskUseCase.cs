@@ -30,7 +30,7 @@ public class UpdateTaskUseCase
         task.SetIsCompleted(request.IsCompleted);
         task.SetIsFailed(request.IsCompleted);
         task.SetDependsOnTasksIds(request.NewDependsOnTasksIds); // NEW
-
+        task.SetPrice(request.Price);
 
         await _taskRepository.UpdateAsync(task);
     }

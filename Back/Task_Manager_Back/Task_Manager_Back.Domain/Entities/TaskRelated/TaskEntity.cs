@@ -101,7 +101,7 @@ public class TaskEntity
     public void ChangeStatus(Guid? statusId) => StatusId = statusId;
     public void ChangePriority(TaskPriority priority) => Priority = priority;
     public void ChangeCategory(Guid categoryId) => CategoryId = ValidationHelper.ValidateGuid(categoryId, nameof(categoryId));
-
+    public void SetPrice(int price) => Price = ValidationHelper.ValidateNonNegative<int>(price, nameof(price));
     public void ChangeDeadline(DateTime? deadline)
     {
         if (deadline.HasValue)

@@ -50,6 +50,9 @@ public class PatchTaskUseCase
         if (request.DependsOnTasksIds != null)
             task.SetDependsOnTasksIds(request.DependsOnTasksIds);
 
+        if (request.Price != null)
+            task.SetPrice(request.Price.Value);
+
         await _taskRepository.UpdateAsync(task);
     }
 }
