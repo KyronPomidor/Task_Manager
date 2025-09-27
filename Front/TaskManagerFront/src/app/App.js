@@ -1,6 +1,6 @@
 import "./styles/App.css";
 import { useState, useEffect } from "react";
-import { Button, Modal } from "antd";
+import { Button } from "antd";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
 import { Welcome } from "../Widgets/Welcome";
@@ -15,7 +15,6 @@ import aiIcon from "./ai.png";
 import axios from "axios";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
-
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -90,7 +89,7 @@ export default function App() {
           return [inbox, ...byId.values()];
         });
       } catch (err) {
-        console.error("Error loading categories:", err);
+        console.error("Error loading categories:", err.response?.data || err.message);
       }
     };
     fetchCategories();
@@ -135,33 +134,71 @@ export default function App() {
                 : null,
             categoryId,
             completed: t.isCompleted || false,
-            parentIds: [],
-            graphNode: { id: t.title, x: 100, y: 100 },
-            positionOrder: t.positionOrder || 0,
+            // ARRAYS: Initialize childrenIds array for each task
+            childrenIds: t.childrenIds || [],
+            // Keep parentIds for migration purposes
+            parentIds: t.parentIds || [],
+            graphNode: { id: t.title, x: t.graphNode?.x || 100, y: t.graphNode?.y || 100 },
+            positionOrder: t.positionOrder ?? 0,
             price: Number(t.price) || 0,
-            budgetItems: Array.isArray(t.budgetItems) ? t.budgetItems : []
+            budgetItems: Array.isArray(t.budgetItems) ? t.budgetItems : [],
           };
         });
 
-        // sort by positionOrder and reassign
+        // Sort by positionOrder to maintain backend order
         const sorted = mapped.sort((a, b) => a.positionOrder - b.positionOrder);
-        const withLocalOrder = sorted.map((t, idx) => ({
-          ...t,
-          positionOrder: idx,
-        }));
-
-        setTasks(withLocalOrder);
+        setTasks(sorted);
       } catch (err) {
-        console.error("Error loading tasks:", err);
+        console.error("Error loading tasks:", err.response?.data || err.message);
       }
     };
 
     fetchTasks();
   }, [categories]);
 
+  // ARRAYS: Migration from parentIds to childrenIds (run once after tasks are loaded)
+  useEffect(() => {
+    if (tasks.length === 0) return;
+
+    const needsMigration = tasks.some(t => 
+      (t.parentIds && t.parentIds.length > 0) && 
+      (!t.childrenIds || t.childrenIds.length === 0)
+    );
+
+    if (needsMigration) {
+      console.log("Migrating parentIds to childrenIds...");
+      setTasks((prevTasks) => {
+        const updatedTasks = prevTasks.map((task) => ({ ...task }));
+        
+        // ARRAYS: For each task with parentIds, add this task to its parents' childrenIds
+        prevTasks.forEach((task) => {
+          if (task.parentIds && task.parentIds.length > 0) {
+            task.parentIds.forEach((parentId) => {
+              const parentTask = updatedTasks.find((t) => String(t.id) === String(parentId));
+              if (parentTask) {
+                // ARRAYS: Initialize childrenIds if it doesn't exist
+                if (!parentTask.childrenIds) {
+                  parentTask.childrenIds = [];
+                }
+                // ARRAYS: Add child if not already present
+                if (!parentTask.childrenIds.includes(String(task.id))) {
+                  parentTask.childrenIds.push(String(task.id));
+                }
+              }
+            });
+          }
+        });
+        
+        console.log("Migration completed");
+        return updatedTasks;
+      });
+    }
+  }, [tasks.length]);
+
   // --- Add task (insert at top, shift others)
   const addTask = async (newTask) => {
-    const tempId = Date.now().toString();
+    const tempId = `temp-${Date.now()}`;
+    const maxPositionOrder = Math.max(...tasks.map((t) => t.positionOrder), -1) + 1;
     const tempTask = {
       id: tempId,
       title: newTask.title,
@@ -171,14 +208,16 @@ export default function App() {
       deadlineTime: newTask.deadlineTime || null,
       categoryId: selectedCategory,
       completed: false,
+      // ARRAYS: Initialize childrenIds array for new tasks
+      childrenIds: newTask.childrenIds || [],
       parentIds: [],
       graphNode: { id: newTask.title, x: 200, y: 200 },
       positionOrder: 0,
-      price: 0,
-      budgetItems: newTask.budgetItems || []
+      price: newTask.price || 0,
+      budgetItems: newTask.budgetItems || [],
     };
 
-    // shift all tasks forward, insert new one at 0
+    // Shift existing tasks' positionOrder
     setTasks((prev) => [
       tempTask,
       ...prev.map((t) => ({ ...t, positionOrder: t.positionOrder + 1 })),
@@ -207,7 +246,7 @@ export default function App() {
         : null,
       positionOrder: 0,
       price: newTask.price || 0,
-      budgetItems: newTask.budgetItems || []  // Changed: Send budgetItems
+      budgetItems: newTask.budgetItems || [],
     };
 
     try {
@@ -223,21 +262,23 @@ export default function App() {
       const newId = response.data?.id;
       if (newId) {
         setTasks((prev) =>
-          prev.map((t) => (t.id === tempId ? { ...t, id: newId } : t))
+          prev.map((t) =>
+            t.id === tempId
+              ? { ...t, id: newId, positionOrder: response.data.positionOrder ?? 0 }
+              : t
+          )
         );
       }
     } catch (err) {
       console.error("Backend save failed:", err.response?.data || err.message);
-      Modal.error({
-        title: "Save Failed",
-        content: `Could not save to DB: ${err.response?.data || err.message}`,
-      });
+      // Roll back optimistic update
+      setTasks((prev) => prev.filter((t) => t.id !== tempId));
     }
   };
 
   // --- Update task
   const updateTask = async (updatedTask) => {
-    // 1. Optimistic update: update local state immediately
+    // Optimistic update: update local state immediately
     setTasks((prev) =>
       prev.map((t) =>
         t.id === updatedTask.id ? { ...t, ...updatedTask } : t
@@ -266,7 +307,6 @@ export default function App() {
         : updatedTask.deadline
           ? `${updatedTask.deadline}T00:00:00`
           : null,
-
       priority:
         updatedTask.priority === "Low"
           ? 0
@@ -294,17 +334,18 @@ export default function App() {
       );
     } catch (err) {
       console.error("Backend update failed:", err.response?.data || err.message);
-      Modal.error({
-        title: "Update Failed",
-        content: `Could not sync with DB: ${err.response?.data || err.message}`,
-      });
+      // Optionally roll back optimistic update
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === updatedTask.id ? { ...t, ...updatedTask } : t
+        )
+      );
     }
   };
 
-
   // --- Update task order only
   const updateTaskOrder = async (id, positionOrder) => {
-
+    console.log(`updateTaskOrder called for task ${id} -> order ${positionOrder}`);
     try {
       const response = await axios.patch(
         `http://localhost:5053/api/tasks/${id}`,
@@ -314,15 +355,16 @@ export default function App() {
         },
         { headers: { "Content-Type": "application/json" } }
       );
-      console.log("Order updated on backend:", response.data);
+      console.log("✅ Order updated on backend:", response.data);
     } catch (err) {
       console.error(
-        "Order update failed",
+        `⚠ Order update failed for ${id}:`,
         err.response?.data || err.message
       );
     }
   };
-  // --- Categories add/edit/delete (unchanged)
+
+  // --- Categories add/edit/delete
   const addCategory = async (title, parentId = null) => {
     const tempId = "temp-" + Date.now();
     const optimistic = {
@@ -353,10 +395,6 @@ export default function App() {
     } catch (err) {
       console.error("Add category failed:", err.response?.data || err.message);
       setCategories((prev) => prev.filter((c) => c.id !== tempId));
-      Modal.error({
-        title: "Save Failed",
-        content: `Could not save category: ${err.response?.data || err.message}`,
-      });
     }
   };
 
@@ -395,10 +433,6 @@ export default function App() {
     } catch (err) {
       console.error("Edit category failed:", err.response?.data || err.message);
       setCategories(prevCats);
-      Modal.error({
-        title: "Update Failed",
-        content: `Could not update category: ${err.response?.data || err.message}`,
-      });
     }
   };
 
@@ -424,10 +458,6 @@ export default function App() {
       setCategories(prevCats);
       setTasks(prevTasks);
       setSelectedCategory(prevSelected);
-      Modal.error({
-        title: "Delete Failed",
-        content: `Could not delete category: ${err.response?.data || err.message}`,
-      });
     }
   };
 
@@ -445,9 +475,9 @@ export default function App() {
         const todayStr = new Date().toISOString().split("T")[0];
         const activeTask = tasks.find((t) => t.id === active.id);
         if (activeTask) {
-          const updated = { ...activeTask, deadline: todayStr };
+          const updated = { ...activeTask, deadline: todayStr, positionOrder: 0 };
           setTasks((prev) =>
-            prev.map((t) => (t.id === active.id ? updated : t))
+            prev.map((t) => (t.id === active.id ? updated : { ...t, positionOrder: t.positionOrder + 1 }))
           );
           updateTask(updated);
         }
@@ -457,9 +487,9 @@ export default function App() {
 
       const activeTask = tasks.find((t) => t.id === active.id);
       if (activeTask) {
-        const updated = { ...activeTask, categoryId };
+        const updated = { ...activeTask, categoryId, positionOrder: 0 };
         setTasks((prev) =>
-          prev.map((t) => (t.id === active.id ? updated : t))
+          prev.map((t) => (t.id === active.id ? updated : { ...t, positionOrder: t.positionOrder + 1 }))
         );
         updateTask(updated);
       }
@@ -467,7 +497,7 @@ export default function App() {
       return;
     }
 
-    // --- Handle reordering within same category
+    // Handle reordering within same category
     if (active.id !== over.id) {
       setTasks((prev) => {
         const activeTask = prev.find((t) => t.id === active.id);
@@ -475,7 +505,7 @@ export default function App() {
 
         const categoryTasks = prev.filter(
           (t) => t.categoryId === activeTask.categoryId
-        );
+        ).sort((a, b) => a.positionOrder - b.positionOrder);
         const oldIndex = categoryTasks.findIndex((t) => t.id === active.id);
         const newIndex = categoryTasks.findIndex((t) => t.id === over.id);
         if (oldIndex === -1 || newIndex === -1) return prev;
@@ -488,10 +518,7 @@ export default function App() {
           if (t.categoryId === activeTask.categoryId) {
             const updatedTask = { ...reordered[i], positionOrder: i };
             result.push(updatedTask);
-
-            // 👇 PATCH order immediately
             updateTaskOrder(updatedTask.id, updatedTask.positionOrder);
-
             i++;
           } else {
             result.push(t);
@@ -508,17 +535,19 @@ export default function App() {
   if (!user) return <Authorization />;
 
   const todayStr = new Date().toISOString().split("T")[0];
-  const filteredTasks = tasks.filter((t) => {
-    if (selectedCategory === "today") return t.deadline === todayStr;
-    if (selectedCategory === "done") return t.completed;
-    if (
-      selectedCategory !== "graphs" &&
-      selectedCategory !== "calendar" &&
-      t.categoryId !== selectedCategory
-    )
-      return false;
-    return true;
-  });
+  const filteredTasks = tasks
+    .filter((t) => {
+      if (selectedCategory === "today") return t.deadline === todayStr;
+      if (selectedCategory === "done") return t.completed;
+      if (
+        selectedCategory !== "graphs" &&
+        selectedCategory !== "calendar" &&
+        t.categoryId !== selectedCategory
+      )
+        return false;
+      return true;
+    })
+    .sort((a, b) => a.positionOrder - b.positionOrder);
 
   return (
     <div className="App">

@@ -102,7 +102,7 @@ function TaskActions({
       onClick: (e) => {
         e.stopPropagation();
         setBudgetTask(task);
-        setTempBudgetItems([]);  // Changed: Start with empty for new additions only
+        setTempBudgetItems([]);
         setBudgetOpen(true);
         setMenuOpenId(null);
       },
@@ -188,7 +188,8 @@ export function Tasks({
       if (!task) return prev;
 
       if (!task.completed) {
-        const children = allTasks.filter((t) => t.parentIds.includes(task.id));
+        // ARRAYS: Check if task has children in its childrenIds array
+        const children = allTasks.filter((t) => task.childrenIds.includes(t.id));
         if (children.some((c) => !c.completed)) {
           Modal.warning({
             title: "Cannot complete task",
@@ -233,7 +234,8 @@ export function Tasks({
       deadlineTime: null,
       categoryId: selectedCategory === "today" ? "inbox" : selectedCategory,
       completed: false,
-      parentIds: [],
+      // ARRAYS: Initialize childrenIds array for new tasks
+      childrenIds: [],
       budgetItems: [],
     };
     if (selectedCategory === "today") {
@@ -260,16 +262,21 @@ export function Tasks({
 
   function getValidParents(taskId) {
     if (!taskId) return allTasks.filter((t) => !t.completed);
+    
+    // ARRAYS: Find all tasks that would create a circular dependency
+    // if taskId became their parent (i.e., tasks that have taskId in their dependency chain)
     const descendants = new Set();
     function collectDescendants(id) {
       allTasks.forEach((t) => {
-        if (t.parentIds.includes(id)) {
+        // ARRAYS: Check if current task has id in its childrenIds
+        if (t.childrenIds.includes(id)) {
           descendants.add(t.id);
           collectDescendants(t.id);
         }
       });
     }
     collectDescendants(taskId);
+    
     return allTasks.filter(
       (t) => t.id !== taskId && !descendants.has(t.id) && !t.completed
     );
@@ -287,7 +294,6 @@ export function Tasks({
       return;
     }
 
-    // Changed: Only update temp list, no immediate task update or patch
     const updatedItems = [...tempBudgetItems, { id: Date.now().toString(), name: budgetName, sum: sumVal }];
     setTempBudgetItems(updatedItems);
 
@@ -309,22 +315,22 @@ export function Tasks({
     };
 
     setTasks((prev) => prev.map((t) => (t.id === budgetTask.id ? updated : t)));
-    updateTask(updated);  // Changed: Send full updated task (including budgetItems)
+    updateTask(updated);
 
     setBudgetOpen(false);
     setBudgetTask(null);
     setTempBudgetItems([]);
   }
 
-  function handleIndicatorClick(parentId) {
-    const parentTask = allTasks.find((t) => t.id === parentId);
-    if (parentTask && typeof setSelectedCategory === "function") {
-      setSelectedCategory(parentTask.categoryId);
-      setSelectedTask(parentTask);
+  function handleChildIndicatorClick(childId) {
+    const childTask = allTasks.find((t) => t.id === childId);
+    if (childTask && typeof setSelectedCategory === "function") {
+      setSelectedCategory(childTask.categoryId);
+      setSelectedTask(childTask);
       setDetailsOpen(true);
     } else {
       console.warn(
-        `Cannot navigate to parent task category. Parent task with ID ${parentId} not found or setSelectedCategory is not a function.`
+        `Cannot navigate to child task category. Child task with ID ${childId} not found or setSelectedCategory is not a function.`
       );
     }
   }
@@ -333,7 +339,7 @@ export function Tasks({
     if (selectedCategory !== "done") return 0;
 
     const total = (filteredTasks || [])
-      .filter((t) => t.completed) // only finished tasks
+      .filter((t) => t.completed)
       .reduce((acc, t) => {
         const priceNum = Number(t.price);
         return acc + (Number.isFinite(priceNum) ? priceNum : 0);
@@ -366,8 +372,16 @@ export function Tasks({
     return true;
   });
 
+  // ARRAYS: Get children using childrenIds array
   function getChildren(taskId) {
-    return allTasks.filter((t) => t.parentIds.includes(taskId) && !t.completed);
+    const parentTask = allTasks.find((t) => t.id === taskId);
+    if (!parentTask) return [];
+    return allTasks.filter((t) => parentTask.childrenIds.includes(t.id) && !t.completed);
+  }
+
+  // ARRAYS: Get parent tasks (tasks that have this taskId in their childrenIds)
+  function getParents(taskId) {
+    return allTasks.filter((t) => t.childrenIds.includes(taskId));
   }
 
   return (
@@ -389,11 +403,17 @@ export function Tasks({
       <SortableContext items={filteredAndSortedTasks.map((t) => t.id)}>
         <Row gutter={[16, 16]}>
           {filteredAndSortedTasks.map((task) => {
-            const hasChildren = allTasks.some((t) => t.parentIds.includes(task.id) && !t.completed);
+            // ARRAYS: Check if task has children in its childrenIds array
+            const hasChildren = task.childrenIds && task.childrenIds.length > 0 && 
+              allTasks.some((t) => task.childrenIds.includes(t.id) && !t.completed);
             const parentBorderColor = hasChildren ? getDeterministicColor(task.id) : "#fff";
-            const childIndicatorColors = task.parentIds.map(getDeterministicColor);
+            
+            // ARRAYS: Get parent tasks that have this task in their childrenIds
+            const parentTasks = getParents(task.id);
+            const childIndicatorColors = parentTasks.map((parent) => getDeterministicColor(parent.id));
+            
             const bg = task.completed ? "#ececec" : "white";
-            const isChild = task.parentIds.length > 0;
+            const isChild = parentTasks.length > 0;
             const isParent = hasChildren;
 
             return (
@@ -463,7 +483,7 @@ export function Tasks({
                             </Button>
 
                             <motion.div
-                              animate={{ x: menuOpenId === task.id ? -60 : 0 }}
+                              animate={{ x: menuOpenId === task.id ? -100 : 0 }}
                               transition={{ type: "spring", stiffness: 200, damping: 20 }}
                               style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: 40 }}
                             >
@@ -477,7 +497,7 @@ export function Tasks({
                                 }}
                               >
                                 <span className={`title ${task.completed ? "done" : ""}`}>
-                                  {task.title.length > 20 ? `${task.title.substring(0, 20)}...` : task.title}
+                                  {task.title.length > 40 ? `${task.title.substring(0, 10)}...` : task.title}
                                 </span>
                                 <Tag style={typeof priorityColor(task.priority) === "object" ? priorityColor(task.priority) : {}} color={typeof priorityColor(task.priority) === "string" ? priorityColor(task.priority) : undefined}>
                                   {task.priority}
@@ -490,7 +510,7 @@ export function Tasks({
                                 animate={{ x: menuOpenId === task.id ? -60 : 0 }}
                                 transition={{ type: "spring", stiffness: 100, damping: 20 }}
                                 style={{
-                                  fontSize: "0.85rem",
+                                  fontSize: "0.75rem",
                                   color: "#60a5fa",
                                   marginTop: "2px",
                                   textAlign: "center",
@@ -548,29 +568,26 @@ export function Tasks({
                               zIndex: 10,
                             }}
                           >
-                            {task.parentIds.map((pid, idx) => {
-                              const parentTask = allTasks.find((t) => t.id === pid);
-                              return (
-                                <Tooltip
-                                  key={idx}
-                                  title={parentTask ? parentTask.title : "Unknown Parent"}
-                                >
-                                  <span
-                                    style={{
-                                      display: "inline-block",
-                                      width: 16,
-                                      height: 16,
-                                      borderRadius: "50%",
-                                      background: childIndicatorColors[idx],
-                                      border: "2px solid #fff",
-                                      boxShadow: "0 0 0 1px #ccc",
-                                      cursor: "pointer",
-                                    }}
-                                    onClick={() => handleIndicatorClick(pid)}
-                                  />
-                                </Tooltip>
-                              );
-                            })}
+                            {parentTasks.map((parentTask, idx) => (
+                              <Tooltip
+                                key={idx}
+                                title={parentTask ? parentTask.title : "Unknown Parent"}
+                              >
+                                <span
+                                  style={{
+                                    display: "inline-block",
+                                    width: 16,
+                                    height: 16,
+                                    borderRadius: "50%",
+                                    background: childIndicatorColors[idx],
+                                    border: "2px solid #fff",
+                                    boxShadow: "0 0 0 1px #ccc",
+                                    cursor: "pointer",
+                                  }}
+                                  onClick={() => handleChildIndicatorClick(parentTask.id)}
+                                />
+                              </Tooltip>
+                            ))}
                           </div>
                         )}
 
@@ -671,6 +688,8 @@ export function Tasks({
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 {getChildren(task.id).map((child) => {
+                                  // ARRAYS: Get parent tasks for this child
+                                  const childParents = getParents(child.id);
                                   return (
                                     <Card
                                       key={child.id}
@@ -679,8 +698,8 @@ export function Tasks({
                                         width: 320,
                                         background: "#fff",
                                         color: "#222e3a",
-                                        borderLeft: child.parentIds.length > 0
-                                          ? `5px solid ${getDeterministicColor(child.parentIds[child.parentIds.length - 1])}`
+                                        borderLeft: childParents.length > 0
+                                          ? `5px solid ${getDeterministicColor(childParents[childParents.length - 1].id)}`
                                           : "5px solid #fff",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
                                         position: "relative",
@@ -716,7 +735,7 @@ export function Tasks({
                                       >
                                         {child.description || "No description"}
                                       </div>
-                                      {child.parentIds.length > 0 && (
+                                      {childParents.length > 0 && (
                                         <div
                                           className="dependency-indicators"
                                           style={{
@@ -729,29 +748,26 @@ export function Tasks({
                                             zIndex: 10,
                                           }}
                                         >
-                                          {child.parentIds.map((pid, idx) => {
-                                            const parentTask = allTasks.find((t) => t.id === pid);
-                                            return (
-                                              <Tooltip
-                                                key={idx}
-                                                title={parentTask ? parentTask.title : "Unknown Parent"}
-                                              >
-                                                <span
-                                                  style={{
-                                                    display: "inline-block",
-                                                    width: 16,
-                                                    height: 16,
-                                                    borderRadius: "50%",
-                                                    background: getDeterministicColor(pid),
-                                                    border: "2px solid #fff",
-                                                    boxShadow: "0 0 0 1px #ccc",
-                                                    cursor: "pointer",
-                                                  }}
-                                                  onClick={() => handleIndicatorClick(pid)}
-                                                />
-                                              </Tooltip>
-                                            );
-                                          })}
+                                          {childParents.map((parentTask, idx) => (
+                                            <Tooltip
+                                              key={idx}
+                                              title={parentTask ? parentTask.title : "Unknown Parent"}
+                                            >
+                                              <span
+                                                style={{
+                                                  display: "inline-block",
+                                                  width: 16,
+                                                  height: 16,
+                                                  borderRadius: "50%",
+                                                  background: getDeterministicColor(parentTask.id),
+                                                  border: "2px solid #fff",
+                                                  boxShadow: "0 0 0 1px #ccc",
+                                                  cursor: "pointer",
+                                                }}
+                                                onClick={() => handleChildIndicatorClick(parentTask.id)}
+                                              />
+                                            </Tooltip>
+                                          ))}
                                         </div>
                                       )}
                                     </Card>
@@ -871,19 +887,35 @@ export function Tasks({
                 <Text strong style={{ color: "#4d5156" }}>Category:</Text>
                 <Text style={{ marginLeft: "8px", color: "#4d5156" }}>{selectedTask.categoryId}</Text>
               </div>
-              {selectedTask.parentIds.length > 0 && (
+              
+              {/* ARRAYS: Show parent tasks (tasks that have this task in their childrenIds) */}
+              {(() => {
+                const parentTasks = getParents(selectedTask.id);
+                return parentTasks.length > 0 ? (
+                  <div style={{ marginBottom: "12px" }}>
+                    <Text strong style={{ color: "#4d5156" }}>Parent Tasks:</Text>
+                    <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
+                      {parentTasks
+                        .map((t) => (t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title))
+                        .join(", ")}
+                    </Text>
+                  </div>
+                ) : null;
+              })()}
+
+              {/* ARRAYS: Show child tasks (tasks in this task's childrenIds array) */}
+              {selectedTask.childrenIds && selectedTask.childrenIds.length > 0 && (
                 <div style={{ marginBottom: "12px" }}>
-                  <Text strong style={{ color: "#4d5156" }}>Parent Tasks:</Text>
+                  <Text strong style={{ color: "#4d5156" }}>Child Tasks:</Text>
                   <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
                     {allTasks
-                      .filter((t) => selectedTask.parentIds.includes(t.id))
+                      .filter((t) => selectedTask.childrenIds.includes(t.id))
                       .map((t) => (t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title))
                       .join(", ")}
                   </Text>
                 </div>
               )}
 
-              {/* Changed: Show breakdown of all added budget items and totals */}
               {(selectedTask.budgetItems?.length > 0 || selectedTask.price > 0) && (
                 <div style={{ marginTop: "12px" }}>
                   <Text strong>Total Expenses: </Text>
@@ -1169,12 +1201,17 @@ export function Tasks({
                   </Form.Item>
                 </Col>
               </Row>
-              <Form.Item label="Parent Tasks">
+              
+              {/* ARRAYS: Child Tasks selection - tasks that will be added to this task's childrenIds */}
+              <Form.Item label="Child Tasks">
                 <Select
                   mode="multiple"
-                  value={editTask.parentIds}
-                  onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
-                  placeholder="Select parent tasks"
+                  value={editTask.childrenIds || []}
+                  onChange={(val) => {
+                    // ARRAYS: Update childrenIds array
+                    setEditTask({ ...editTask, childrenIds: val });
+                  }}
+                  placeholder="Select child tasks"
                 >
                   {getValidParents(editTask.id).map((t) => (
                     <Select.Option key={t.id} value={t.id}>
@@ -1320,12 +1357,17 @@ export function Tasks({
                   </Form.Item>
                 </Col>
               </Row>
-              <Form.Item label="Parent Tasks">
+              
+              {/* ARRAYS: Child Tasks selection for new tasks - tasks that will be added to this task's childrenIds */}
+              <Form.Item label="Child Tasks">
                 <Select
                   mode="multiple"
-                  value={editTask.parentIds}
-                  onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
-                  placeholder="Select parent tasks"
+                  value={editTask.childrenIds || []}
+                  onChange={(val) => {
+                    // ARRAYS: Update childrenIds array
+                    setEditTask({ ...editTask, childrenIds: val });
+                  }}
+                  placeholder="Select child tasks"
                 >
                   {getValidParents(null).map((t) => (
                     <Select.Option key={t.id} value={t.id}>
