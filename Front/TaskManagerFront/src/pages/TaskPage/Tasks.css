@@ -153,6 +153,23 @@
   font-family: 'Roboto', sans-serif
 }
 
+/* Remove default padding and background from AntD modal header */
+.ant-modal .ant-modal-header {
+  padding: 0 !important;         /* remove inner padding */
+  border-bottom: none;           /* optional: remove bottom border */
+  background: transparent;       /* or match your blue */
+}
+
+/* Make the title span full width */
+.ant-modal .ant-modal-title {
+  width: 100%;
+  padding: 12px 16px;            /* you control spacing */
+  font-weight: 600;
+  margin: 0;
+  border-radius: 8px 8px 0 0;    /* match modal rounding */
+}
+
+
 .task-card.ant-card-hoverable:hover {
   transform: translateY(-2px);
   transition: transform 0.15s ease;
@@ -160,7 +177,6 @@
 
 .task-card.dragging {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
-  z-index: 9999;
   transform: scale(1.02);
   width: 100%;
   opacity: 0.95;

@@ -277,6 +277,9 @@ export function SideBar({
   setTasks,
   searchText,
   setSearchText,
+  addCategory,
+  editCategory,
+  deleteCategory,
 }) {
   const [hoverId, setHoverId] = useState(null);
   const [collapsedIds, setCollapsedIds] = useState(new Set());
@@ -345,23 +348,21 @@ export function SideBar({
       alert("Category name is required.");
       return;
     }
+
+    const parentValue = parentId === "" ? null : parentId;
+
     if (mode === "edit") {
-      setCategories((prev) =>
-        prev.map((c) =>
-          c.id === editingId ? { ...c, name: trimmed, parentId: parentId || null } : c
-        )
-      );
+      editCategory(editingId, trimmed, parentValue);
     } else {
-      const newCat = { id: Date.now().toString(), name: trimmed, parentId: parentId || null };
-      setCategories((prev) => [...prev, newCat]);
+      addCategory(trimmed, parentValue);
     }
     closeModal();
   }
 
+
+
   function removeCategory(id) {
-    setTasks((prev) => prev.map((t) => (t.categoryId === id ? { ...t, categoryId: "inbox" } : t)));
-    setCategories((prev) => prev.filter((c) => c.id !== id && c.parentId !== id));
-    if (selectedCategory === id) onCategorySelect("inbox");
+    deleteCategory(id);
   }
 
   // Updated parentChoices to exclude "inbox" and descendants

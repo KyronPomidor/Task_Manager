@@ -22,6 +22,7 @@
 /* Only Tasks scrolls */
 .MainScroll {
   flex: 1;
+  z-index: 0;
   overflow-y: auto; /* Enable vertical scroll for tasks */
   min-height: 0;
 }
