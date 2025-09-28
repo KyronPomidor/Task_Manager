@@ -15,5 +15,6 @@ public record PatchTaskRequest(
     int? PositionOrder = null,
     int? Price = null,
     bool? MarkCompleted = null,
-    bool? MarkFailed = null
+    bool? MarkFailed = null,
+    List<Guid>? DependsOnTasksIds = null // NEW
 ) : IRequest;

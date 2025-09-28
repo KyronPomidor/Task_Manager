@@ -114,9 +114,10 @@ public static class AppDbSeeder
                 Priority: priority,
                 CategoryId: inbox.Id, // assign to Inbox
                 Deadline: DateTime.UtcNow.AddDays(i),
-                IsCompleted: false,
+                IsCompleted: i % 2 == 0,
                 PositionOrder: i,
-                Price: Random.Shared.Next(50, 250)
+                Price: Random.Shared.Next(50, 250),
+                DependsOnTasksIds: []
             ));
 
             await taskRepo.CreateAsync(task);

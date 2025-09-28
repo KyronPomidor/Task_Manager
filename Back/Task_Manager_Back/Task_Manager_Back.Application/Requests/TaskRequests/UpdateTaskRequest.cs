@@ -14,5 +14,6 @@ public record UpdateTaskRequest(
     string NewColor,
     bool IsCompleted,
     int NewPositionOrder,
-    int NewPrice
+    int NewPrice,
+    List<Guid> NewDependsOnTasksIds // NEW
 ) : IRequest;

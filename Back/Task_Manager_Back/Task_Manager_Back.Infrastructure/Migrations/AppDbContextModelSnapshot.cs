@@ -334,6 +334,10 @@ namespace Task_Manager_Back.Infrastructure.Migrations
                     b.Property<DateTime?>("Deadline")
                         .HasColumnType("datetime2");
 
+                    b.PrimitiveCollection<string>("DependsOnTasksIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 

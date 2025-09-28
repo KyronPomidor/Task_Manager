@@ -134,9 +134,9 @@ export default function App() {
                 : null,
             categoryId,
             completed: t.isCompleted || false,
-            // ARRAYS: Initialize childrenIds array for each task
-            childrenIds: t.childrenIds || [],
-            // Keep parentIds for migration purposes
+            // ARRAYS: Copy dependsOnTasksIds from backend into local childrenIds array
+            childrenIds: t.dependsOnTasksIds || [],
+            // Keep parentIds for migration purposes (if needed)
             parentIds: t.parentIds || [],
             graphNode: { id: t.title, x: t.graphNode?.x || 100, y: t.graphNode?.y || 100 },
             positionOrder: t.positionOrder ?? 0,
@@ -247,6 +247,8 @@ export default function App() {
       positionOrder: 0,
       price: newTask.price || 0,
       budgetItems: newTask.budgetItems || [],
+      // ARRAYS: Send childrenIds to backend as dependsOnTasksIds
+      dependsOnTasksIds: newTask.childrenIds || [],
     };
 
     try {
@@ -323,6 +325,8 @@ export default function App() {
           name: item.name,
           sum: item.sum,
         })) || [],
+      // ARRAYS: Send childrenIds to backend as dependsOnTasksIds
+      dependsOnTasksIds: updatedTask.childrenIds || [],
     };
 
     try {

@@ -47,6 +47,9 @@ public class PatchTaskUseCase
         if (request.MarkCompleted != null)
             task.SetIsFailed(request.MarkCompleted ?? false);
 
+        if (request.DependsOnTasksIds != null)
+            task.SetDependsOnTasksIds(request.DependsOnTasksIds);
+
         await _taskRepository.UpdateAsync(task);
     }
 }
