@@ -13,6 +13,7 @@ public record UpdateTaskRequest(
     TaskPriority NewPriority,
     string NewColor,
     bool IsCompleted,
+    int Price,
     int NewPositionOrder,
     int NewPrice,
     List<Guid> NewDependsOnTasksIds // NEW

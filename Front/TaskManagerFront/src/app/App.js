@@ -160,45 +160,41 @@ export default function App() {
   useEffect(() => {
     if (tasks.length === 0) return;
 
-    const needsMigration = tasks.some(t => 
-      (t.parentIds && t.parentIds.length > 0) && 
-      (!t.childrenIds || t.childrenIds.length === 0)
+    const needsMigration = tasks.some(
+      (t) =>
+        Array.isArray(t.parentIds) && t.parentIds.length > 0 &&
+        (!Array.isArray(t.childrenIds) || t.childrenIds.length === 0)
     );
+    if (!needsMigration) return;
 
-    if (needsMigration) {
-      console.log("Migrating parentIds to childrenIds...");
-      setTasks((prevTasks) => {
-        const updatedTasks = prevTasks.map((task) => ({ ...task }));
-        
-        // ARRAYS: For each task with parentIds, add this task to its parents' childrenIds
-        prevTasks.forEach((task) => {
-          if (task.parentIds && task.parentIds.length > 0) {
-            task.parentIds.forEach((parentId) => {
-              const parentTask = updatedTasks.find((t) => String(t.id) === String(parentId));
-              if (parentTask) {
-                // ARRAYS: Initialize childrenIds if it doesn't exist
-                if (!parentTask.childrenIds) {
-                  parentTask.childrenIds = [];
-                }
-                // ARRAYS: Add child if not already present
-                if (!parentTask.childrenIds.includes(String(task.id))) {
-                  parentTask.childrenIds.push(String(task.id));
-                }
-              }
-            });
-          }
-        });
-        
-        console.log("Migration completed");
-        return updatedTasks;
+    console.log("Migrating parentIds to childrenIds...");
+    setTasks((prevTasks) => {
+      const updatedTasks = prevTasks.map((task) => ({ ...task }));
+
+      prevTasks.forEach((task) => {
+        if (Array.isArray(task.parentIds) && task.parentIds.length > 0) {
+          task.parentIds.forEach((parentId) => {
+            const parentTask = updatedTasks.find(
+              (t) => String(t.id) === String(parentId)
+            );
+            if (!parentTask) return;
+            if (!Array.isArray(parentTask.childrenIds)) {
+              parentTask.childrenIds = [];
+            }
+            if (!parentTask.childrenIds.includes(String(task.id))) {
+              parentTask.childrenIds.push(String(task.id));
+            }
+          });
+        }
       });
-    }
-  }, [tasks.length]);
+
+      console.log("Migration completed");
+    });
+  }, [tasks]);
 
   // --- Add task (insert at top, shift others)
   const addTask = async (newTask) => {
     const tempId = `temp-${Date.now()}`;
-    const maxPositionOrder = Math.max(...tasks.map((t) => t.positionOrder), -1) + 1;
     const tempTask = {
       id: tempId,
       title: newTask.title,
