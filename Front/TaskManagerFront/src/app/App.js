@@ -74,7 +74,7 @@ export default function App() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const { data } = await axios.get("http://localhost:5053/api/categories");
+        const { data } = await axios.get("http://anytask.mihcraft.com:5053/api/categories");
         const normalized = normalizeCategories(data);
 
         setCategories((prev) => {
@@ -100,7 +100,7 @@ export default function App() {
 
     const fetchTasks = async () => {
       try {
-        const response = await axios.get("http://localhost:5053/api/tasks");
+        const response = await axios.get("http://anytask.mihcraft.com:5053/api/tasks");
         console.log("Fetched tasks from backend:", response.data);
 
         const validCategoryIds = categories.map((c) => c.id);
@@ -250,7 +250,7 @@ export default function App() {
     try {
       console.log("Sending new task to backend:", backendTask);
       const response = await axios.post(
-        "http://localhost:5053/api/tasks",
+        "http://anytask.mihcraft.com:5053/api/tasks",
         backendTask,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -328,7 +328,7 @@ export default function App() {
     try {
       console.log("Sending update (PATCH) to backend:", backendTask);
       await axios.patch(
-        `http://localhost:5053/api/tasks/${updatedTask.id}`,
+        `http://anytask.mihcraft.com:5053/api/tasks/${updatedTask.id}`,
         backendTask,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -348,7 +348,7 @@ export default function App() {
     console.log(`updateTaskOrder called for task ${id} -> order ${positionOrder}`);
     try {
       const response = await axios.patch(
-        `http://localhost:5053/api/tasks/${id}`,
+        `http://anytask.mihcraft.com:5053/api/tasks/${id}`,
         {
           taskId: id,
           positionOrder,
@@ -384,7 +384,7 @@ export default function App() {
         color: "#FFFFFF",
       };
       const { data } = await axios.post(
-        "http://localhost:5053/api/categories/user",
+        "http://anytask.mihcraft.com:5053/api/categories/user",
         payload,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -418,14 +418,14 @@ export default function App() {
     try {
       if (titleChanged) {
         await axios.put(
-          `http://localhost:5053/api/categories/${id}/rename`,
+          `http://anytask.mihcraft.com:5053/api/categories/${id}/rename`,
           { categoryId: id, newTitle },
           { headers: { "Content-Type": "application/json" } }
         );
       }
       if (parentChanged) {
         await axios.patch(
-          `http://localhost:5053/api/categories/${id}`,
+          `http://anytask.mihcraft.com:5053/api/categories/${id}`,
           { parentCategoryId: normalizedParentId },
           { headers: { "Content-Type": "application/json" } }
         );
@@ -452,7 +452,7 @@ export default function App() {
     if (selectedCategory === id) setSelectedCategory("inbox");
 
     try {
-      await axios.delete(`http://localhost:5053/api/categories/${id}`);
+      await axios.delete(`http://anytask.mihcraft.com:5053/api/categories/${id}`);
     } catch (err) {
       console.error("Delete category failed:", err.response?.data || err.message);
       setCategories(prevCats);
