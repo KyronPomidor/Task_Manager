@@ -57,37 +57,37 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
         if (addingRelationFrom && nodeId !== addingRelationFrom) {
           // ARRAYS: Add new parent-child relationship using childrenIds
           console.log(`Adding relationship: ${addingRelationFrom} -> ${nodeId}`);
-          
+
           // Find the parent task
           const parentTask = tasks.find((task) => String(task.id) === String(addingRelationFrom));
-          
+
           if (parentTask) {
             const childrenIds = parentTask.childrenIds || [];
             if (!childrenIds.includes(String(nodeId))) {
               console.log(`Adding ${nodeId} to children of ${parentTask.id}`);
-              
+
               // Create updated task with new child
-              const updatedTask = { 
-                ...parentTask, 
-                childrenIds: [...childrenIds, String(nodeId)]
+              const updatedTask = {
+                ...parentTask,
+                childrenIds: [...childrenIds, String(nodeId)],
               };
-              
+
               // Update local state
               const updatedTasks = tasks.map((task) =>
                 String(task.id) === String(addingRelationFrom) ? updatedTask : task
               );
               setTasks(updatedTasks);
-              
+
               // Sync with backend
               if (updateTask) {
-                console.log('Syncing relationship to backend:', updatedTask);
+                console.log("Syncing relationship to backend:", updatedTask);
                 updateTask(updatedTask);
               }
             } else {
               console.log(`${nodeId} already a child of ${parentTask.id}`);
             }
           }
-          
+
           setAddingRelationFrom(null); // Reset relation mode
         } else {
           setSelectedNode(nodeId);
@@ -99,7 +99,9 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
     doubleClick: ({ nodes }) => {
       if (nodes.length > 0) {
         const nodeId = nodes[0];
-        const correspondingTask = tasks.find((t) => String(t.id) === String(nodeId) || t.title === nodeId);
+        const correspondingTask = tasks.find(
+          (t) => String(t.id) === String(nodeId) || t.title === nodeId
+        );
         if (!correspondingTask && onCreateTask) {
           onCreateTask(nodeId);
         }
@@ -118,8 +120,19 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
     },
   };
 
+  // 🔄 Flip edge direction: from child → parent
+  const flippedGraph = {
+    ...graphData,
+    edges: graphData.edges.map((edge) => ({
+      from: edge.to,
+      to: edge.from,
+    })),
+  };
+
   return (
-    <div style={{ width: "100%", height: "100vh", background: "#fff", position: "relative" }}>
+    <div
+      style={{ width: "100%", height: "100vh", background: "#fff", position: "relative" }}
+    >
       <div
         style={{
           position: "absolute",
@@ -137,7 +150,7 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
         >
           {addingRelationFrom ? "Cancel Linking" : "Link Tasks"}
         </Button>
-        
+
         {selectedNode && (
           <div
             style={{
@@ -147,16 +160,14 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
               fontSize: "14px",
             }}
           >
-            Selected: {tasks.find(t => String(t.id) === String(selectedNode))?.title || selectedNode}
+            Selected:{" "}
+            {tasks.find((t) => String(t.id) === String(selectedNode))?.title ||
+              selectedNode}
           </div>
         )}
       </div>
 
-      <VisGraph
-        graph={graphData}
-        options={options}
-        events={events}
-      />
+      <VisGraph graph={flippedGraph} options={options} events={events} />
 
       {addingRelationFrom && (
         <div
@@ -172,12 +183,13 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
           }}
         >
           <p>
-            Click another node to make it a child of <b>{tasks.find(t => String(t.id) === String(addingRelationFrom))?.title || addingRelationFrom}</b>
+            Click another node to make it a child of{" "}
+            <b>
+              {tasks.find((t) => String(t.id) === String(addingRelationFrom))?.title ||
+                addingRelationFrom}
+            </b>
           </p>
-          <Button
-            onClick={() => setAddingRelationFrom(null)}
-            style={{ marginTop: "5px" }}
-          >
+          <Button onClick={() => setAddingRelationFrom(null)} style={{ marginTop: "5px" }}>
             Cancel
           </Button>
         </div>

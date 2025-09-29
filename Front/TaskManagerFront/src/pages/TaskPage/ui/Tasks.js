@@ -1173,7 +1173,6 @@ export function Tasks({
                       value={editTask.categoryId}
                       onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
                     >
-                      <Select.Option value="inbox">Inbox</Select.Option>
                       {categories.map((cat) => (
                         <Select.Option key={cat.id} value={cat.id}>
                           {cat.name}
@@ -1181,6 +1180,7 @@ export function Tasks({
                       ))}
                     </Select>
                   </Form.Item>
+
                 </Col>
               </Row>
               <Divider style={{ margin: "16px 0" }} />
