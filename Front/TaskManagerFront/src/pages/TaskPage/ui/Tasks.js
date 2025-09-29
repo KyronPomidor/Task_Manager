@@ -554,7 +554,7 @@ export function Tasks({
                               : task.description
                             : "No description"}
                         </div>
-                          
+
                         {isChild && (
                           <div
                             className="dependency-indicators"
@@ -891,7 +891,9 @@ export function Tasks({
               </div>
               <div style={{ marginBottom: "12px" }}>
                 <Text strong style={{ color: "#4d5156" }}>Category:</Text>
-                <Text style={{ marginLeft: "8px", color: "#4d5156" }}>{selectedTask.categoryId}</Text>
+                <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
+                  {categories.find(c => c.id === selectedTask.categoryId)?.name || selectedTask.categoryId}
+                </Text>
               </div>
 
               {/* ARRAYS: Show parent tasks (tasks that have this task in their childrenIds) */}
