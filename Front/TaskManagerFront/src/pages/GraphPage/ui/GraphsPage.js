@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import VisGraph from "react-vis-graph-wrapper";
 import { Button } from "antd";
 
-export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setTasks }) {
+export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setTasks, updateTask }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [addingRelationFrom, setAddingRelationFrom] = useState(null);
 
@@ -57,23 +57,37 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
         if (addingRelationFrom && nodeId !== addingRelationFrom) {
           // ARRAYS: Add new parent-child relationship using childrenIds
           console.log(`Adding relationship: ${addingRelationFrom} -> ${nodeId}`);
-          const updatedTasks = tasks.map((task) => {
-            if (String(task.id) === String(addingRelationFrom)) {
-              // ARRAYS: Add nodeId to the parent task's childrenIds array
-              const childrenIds = task.childrenIds || [];
-              if (!childrenIds.includes(String(nodeId))) {
-                console.log(`Adding ${nodeId} to children of ${task.id}`);
-                return { 
-                  ...task, 
-                  childrenIds: [...childrenIds, String(nodeId)]
-                };
-              } else {
-                console.log(`${nodeId} already a child of ${task.id}`);
+          
+          // Find the parent task
+          const parentTask = tasks.find((task) => String(task.id) === String(addingRelationFrom));
+          
+          if (parentTask) {
+            const childrenIds = parentTask.childrenIds || [];
+            if (!childrenIds.includes(String(nodeId))) {
+              console.log(`Adding ${nodeId} to children of ${parentTask.id}`);
+              
+              // Create updated task with new child
+              const updatedTask = { 
+                ...parentTask, 
+                childrenIds: [...childrenIds, String(nodeId)]
+              };
+              
+              // Update local state
+              const updatedTasks = tasks.map((task) =>
+                String(task.id) === String(addingRelationFrom) ? updatedTask : task
+              );
+              setTasks(updatedTasks);
+              
+              // Sync with backend
+              if (updateTask) {
+                console.log('Syncing relationship to backend:', updatedTask);
+                updateTask(updatedTask);
               }
+            } else {
+              console.log(`${nodeId} already a child of ${parentTask.id}`);
             }
-            return task;
-          });
-          setTasks(updatedTasks);
+          }
+          
           setAddingRelationFrom(null); // Reset relation mode
         } else {
           setSelectedNode(nodeId);

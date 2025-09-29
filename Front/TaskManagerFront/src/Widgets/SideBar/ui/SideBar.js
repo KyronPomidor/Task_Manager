@@ -230,7 +230,7 @@ function Row({
         <span style={STYLES.labelText}>{customContent || label}</span>
       </span>
 
-      {!isSystemCategory && (showActions || isActive) && (
+      {!isSystemCategory && (showActions) && (
         <Actions onEdit={onEdit} onDelete={onDelete} colors={colors} />
       )}
 
@@ -358,8 +358,6 @@ export function SideBar({
     }
     closeModal();
   }
-
-
 
   function removeCategory(id) {
     deleteCategory(id);
