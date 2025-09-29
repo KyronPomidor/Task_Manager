@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "../Tasks.css";
 import { TaskFilters } from "../../../Widgets/TaskFilters";
 import mainArrow from "./main_arrow.png";
+import dependency from "./dependencies.png";
 import {
   Row,
   Col,
@@ -553,7 +554,7 @@ export function Tasks({
                               : task.description
                             : "No description"}
                         </div>
-
+                          
                         {isChild && (
                           <div
                             className="dependency-indicators"
@@ -567,6 +568,7 @@ export function Tasks({
                               zIndex: 10,
                             }}
                           >
+                            <img src={dependency} style={{ width: 16, height: 16 }}></img>
                             {parentTasks.map((parentTask, idx) => (
                               <Tooltip
                                 key={idx}
