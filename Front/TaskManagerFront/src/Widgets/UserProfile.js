@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Modal, Input, Button, Card, Typography, Form, Checkbox } from "antd";
+import { Modal, Input, Button, Card, Typography, Form, Checkbox, message } from "antd";
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase/firebase";
 
 const { Title, Text } = Typography;
 
@@ -13,12 +15,27 @@ export default function UserProfile({ user }) {
   const [tempEmail, setTempEmail] = useState(initialEmail);
   const [userHover, setUserHover] = useState(false);
   const [userActive, setUserActive] = useState(false);
-  const [areNotificationsEnabled, setAreNotificationsEnabled] = useState(false); // State for notifications
+  const [areNotificationsEnabled, setAreNotificationsEnabled] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const handleToggleNotifications = () => {
     setAreNotificationsEnabled((prev) => !prev);
     // Placeholder for backend integration, e.g.:
     // axios.patch(`/api/users/${user.id}/settings`, { emailNotifications: !areNotificationsEnabled });
+  };
+
+  const handleLogout = async () => {
+    try {
+      setLoggingOut(true);
+      await signOut(auth);
+      message.success("Logged out successfully");
+      setOpen(false);
+      // User will be redirected automatically by your auth state listener
+    } catch (error) {
+      console.error("Logout error:", error);
+      message.error("Failed to logout. Please try again.");
+      setLoggingOut(false);
+    }
   };
 
   const styles = {
@@ -56,6 +73,7 @@ export default function UserProfile({ user }) {
     setName(tempName);
     setEmail(tempEmail);
     setOpen(false);
+    message.success("Profile updated successfully");
     // Placeholder for backend integration, e.g.:
     // axios.patch(`/api/users/${user.id}`, { displayName: tempName, email: tempEmail });
   };
@@ -92,12 +110,15 @@ export default function UserProfile({ user }) {
         keyboard={true}
         footer={[
           <Button
-            key="cancel"
-            onClick={() => setOpen(false)}
-            style={{ marginRight: 8 }}
+            key="logout"
+            danger
+            onClick={handleLogout}
+            loading={loggingOut}
+            style={{ marginRight: "auto" }}
           >
-            Cancel
+            Logout
           </Button>,
+          
           <Button
             key="save"
             type="primary"
@@ -126,6 +147,8 @@ export default function UserProfile({ user }) {
           footer: {
             padding: "16px",
             borderRadius: "0 0 8px 8px",
+            display: "flex",
+            justifyContent: "space-between",
           },
         }}
       >
