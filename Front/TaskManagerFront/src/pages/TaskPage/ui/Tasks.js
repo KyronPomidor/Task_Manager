@@ -62,7 +62,6 @@ function SortableTask({ task, children, onCardClick }) {
 
 function TaskActions({
   task,
-  toggleComplete,
   startEdit,
   setBudgetTask,
   setTempBudgetItems,
@@ -262,7 +261,7 @@ export function Tasks({
 
   function getValidParents(taskId) {
     if (!taskId) return allTasks.filter((t) => !t.completed);
-    
+
     // ARRAYS: Find all tasks that would create a circular dependency
     // if taskId became their parent (i.e., tasks that have taskId in their dependency chain)
     const descendants = new Set();
@@ -276,7 +275,7 @@ export function Tasks({
       });
     }
     collectDescendants(taskId);
-    
+
     return allTasks.filter(
       (t) => t.id !== taskId && !descendants.has(t.id) && !t.completed
     );
@@ -404,14 +403,14 @@ export function Tasks({
         <Row gutter={[16, 16]}>
           {filteredAndSortedTasks.map((task) => {
             // ARRAYS: Check if task has children in its childrenIds array
-            const hasChildren = task.childrenIds && task.childrenIds.length > 0 && 
+            const hasChildren = task.childrenIds && task.childrenIds.length > 0 &&
               allTasks.some((t) => task.childrenIds.includes(t.id) && !t.completed);
             const parentBorderColor = hasChildren ? getDeterministicColor(task.id) : "#fff";
-            
+
             // ARRAYS: Get parent tasks that have this task in their childrenIds
             const parentTasks = getParents(task.id);
             const childIndicatorColors = parentTasks.map((parent) => getDeterministicColor(parent.id));
-            
+
             const bg = task.completed ? "#ececec" : "white";
             const isChild = parentTasks.length > 0;
             const isParent = hasChildren;
@@ -704,6 +703,11 @@ export function Tasks({
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
                                         position: "relative",
                                         margin: "0 auto",
+                                        cursor: "pointer"
+                                      }}
+                                      onClick={(e) => { // ADD THIS CLICK HANDLER
+                                        e.stopPropagation();
+                                        handleCardClick(child);
                                       }}
                                       title={
                                         <div style={{ textAlign: "center", color: "#222e3a" }}>
@@ -887,7 +891,7 @@ export function Tasks({
                 <Text strong style={{ color: "#4d5156" }}>Category:</Text>
                 <Text style={{ marginLeft: "8px", color: "#4d5156" }}>{selectedTask.categoryId}</Text>
               </div>
-              
+
               {/* ARRAYS: Show parent tasks (tasks that have this task in their childrenIds) */}
               {(() => {
                 const parentTasks = getParents(selectedTask.id);
@@ -1169,7 +1173,6 @@ export function Tasks({
                       value={editTask.categoryId}
                       onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
                     >
-                      <Select.Option value="inbox">Inbox</Select.Option>
                       {categories.map((cat) => (
                         <Select.Option key={cat.id} value={cat.id}>
                           {cat.name}
@@ -1177,6 +1180,7 @@ export function Tasks({
                       ))}
                     </Select>
                   </Form.Item>
+
                 </Col>
               </Row>
               <Divider style={{ margin: "16px 0" }} />
@@ -1201,7 +1205,7 @@ export function Tasks({
                   </Form.Item>
                 </Col>
               </Row>
-              
+
               {/* ARRAYS: Child Tasks selection - tasks that will be added to this task's childrenIds */}
               <Form.Item label="Child Tasks">
                 <Select
@@ -1357,7 +1361,7 @@ export function Tasks({
                   </Form.Item>
                 </Col>
               </Row>
-              
+
               {/* ARRAYS: Child Tasks selection for new tasks - tasks that will be added to this task's childrenIds */}
               <Form.Item label="Child Tasks">
                 <Select

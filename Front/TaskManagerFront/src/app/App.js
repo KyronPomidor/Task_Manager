@@ -586,6 +586,7 @@ export default function App() {
                 tasks={tasks}
                 setTasks={setTasks}
                 categories={categories}
+                updateTask={updateTask}
               />
             ) : selectedCategory === "calendar" ? (
               <Calendar

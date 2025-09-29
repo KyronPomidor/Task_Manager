@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { GraphsPage } from "./GraphsPage";
 import { getDeterministicColor } from "../../../utils/colorUtils";
 
-export function TaskGraphIntegration({ tasks, setTasks, categories }) {
+export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask }) {
   // Dedup helper
   const uniqueById = (arr) => {
     const seen = new Set();
@@ -46,7 +46,7 @@ export function TaskGraphIntegration({ tasks, setTasks, categories }) {
       fixed: task.graphNode?.fixed || false,
     }));
 
-    // ✅ FIX: Build edges from childrenIds instead of parentIds
+    // Build edges from childrenIds instead of parentIds
     let edges = validTasks.flatMap((task) =>
       (task.childrenIds || []).map((childId) => {
         // Check if child task exists and is not completed
@@ -112,6 +112,7 @@ export function TaskGraphIntegration({ tasks, setTasks, categories }) {
         onCreateTask={handleCreateTaskFromNode}
         tasks={tasks}
         setTasks={setTasks}
+        updateTask={updateTask}
       />
     </div>
   );
