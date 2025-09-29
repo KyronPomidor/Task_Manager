@@ -13,7 +13,7 @@ export function AIAnalysisModal({ visible, onClose }) {
     setLoading(true);
     try {
       const { data } = await axios.post(
-        "http://localhost:5053/api/ai-chat/ask",
+        "http://anytask.mihcraft.com:5053/api/ai-chat/ask",
         { prompt: inputText },
         { headers: { "Content-Type": "application/json" } }
       );
