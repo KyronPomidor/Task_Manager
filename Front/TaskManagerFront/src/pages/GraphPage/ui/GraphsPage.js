@@ -25,10 +25,11 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
         springLength: 150,
         springConstant: 0.06,
         damping: 1,
-        avoidOverlap: 0.5,
+        avoidOverlap: 0,
       },
       solver: "barnesHut",
-      maxVelocity: 0,
+      maxVelocity: 50,
+      minVelocity: 0.01,
       timestep: 0.4,
     },
     nodes: {
@@ -95,14 +96,15 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
         setSelectedNode(null);
       }
     },
-    doubleClick: ({ nodes }) => {
+    doubleClick: ({ nodes, pointer }) => {
       if (nodes.length > 0) {
         const nodeId = nodes[0];
         const correspondingTask = tasks.find(
           (t) => String(t.id) === String(nodeId) || t.title === nodeId
         );
         if (!correspondingTask && onCreateTask) {
-          onCreateTask(nodeId);
+          // Pass click position to create task near where user clicked
+          onCreateTask(nodeId, pointer?.canvas);
         }
       }
     },
