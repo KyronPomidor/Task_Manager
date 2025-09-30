@@ -418,6 +418,4 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
-
-appsettings.Local.json
 build/
