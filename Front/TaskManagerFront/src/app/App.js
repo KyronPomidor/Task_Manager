@@ -16,6 +16,17 @@ import axios from "axios";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
 
+
+// Disable all runtime error logs
+window.onerror = function () {
+  return true; // prevents default logging
+};
+window.onunhandledrejection = function () {
+  return true;
+};
+
+
+
 export default function App() {
   const { user, loading } = useAuth();
 
