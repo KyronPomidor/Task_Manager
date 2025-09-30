@@ -66,7 +66,7 @@ builder.Services.AddOpenApi();
 var app = builder.Build();
 
 // --- Call seeding logic here ---
-await AppDbSeeder.SeedAsync(app.Services);
+// await AppDbSeeder.SeedAsync(app.Services);
 // ---------------------
 // Configure the HTTP request pipeline
 // ---------------------
