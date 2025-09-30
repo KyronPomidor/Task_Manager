@@ -5,6 +5,30 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import App from './app/App';
 import reportWebVitals from './reportWebVitals';
 
+// Disable React error overlay (red screen)
+if (typeof window !== "undefined") {
+  window.addEventListener("error", e => {
+    e.preventDefault();
+  });
+  window.addEventListener("unhandledrejection", e => {
+    e.preventDefault();
+  });
+}
+
+// For Create React App / react-scripts
+if (typeof window !== "undefined" && window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__) {
+  window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__.dismissRuntimeErrors();
+}
+
+// Completely nuke the overlay
+if (typeof window !== "undefined") {
+  window.__REACT_ERROR_OVERLAY_GLOBAL_HOOK__ = {
+    showRuntimeError: () => {},
+    dismissRuntimeErrors: () => {},
+  };
+}
+
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

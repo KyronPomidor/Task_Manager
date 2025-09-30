@@ -420,3 +420,4 @@ FodyWeavers.xsd
 *.msp
 
 appsettings.Local.json
+build/
