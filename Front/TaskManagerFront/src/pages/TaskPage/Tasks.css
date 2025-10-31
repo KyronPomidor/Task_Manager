@@ -1,9 +1,279 @@
-/* Truncate long task/category names with ellipsis */
-.truncate {
-  white-space: nowrap;
+.task-card {
+  background-color: var(--card-bg, white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  width: 100%;
+  position: relative;
+}
+
+.task-card-done {
+  background-color: #bebebe;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.task-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.task-desc {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.task-meta {
+  display: flex;
+  gap: 8px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  gap: 4px;
+}
+
+.form-field input,
+.form-field textarea,
+.form-field select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.tasks-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: 'Roboto', sans-serif
+}
+
+.composer {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.board {
+  display: flex;
+  gap: 16px;
+  flex: 1;
+  height: 100%;
+}
+
+.stage-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.column-header {
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  border-bottom: 1px solid #d9d9d9;
+  background: #f0f0f0;
+  color: #333;
+}
+
+.tasks-list {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d9d9d9;
+  border-radius: 0 0 8px 8px;
+  min-height: 200px;
+}
+
+.task-item {
+  margin-bottom: 12px;
+}
+
+.task-item:last-child {
+  margin-bottom: 0;
+}
+
+.task-card .title {
+  font-weight: 500;
+  font-size: 0.75;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 180px; /* Adjust as needed for your layout */
-  display: inline-block;
-  vertical-align: bottom;
+  max-width: 100%;
+  font-family: 'Roboto', sans-serif
+}
+
+.task-card .title.done {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.task-card .ml-8 {
+  position: relative;
+  margin: 8px;
+}
+
+.task-card .deadline {
+  top: 89%;
+}
+
+.deadline-wrapper {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 12px;
+  padding-top: 6px;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.deadline {
+  font-size: 13px;
+  font-family: 'Roboto', sans-serif
+}
+
+.task-card .desc {
+  color: #555;
+  font-size: 16px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Roboto', sans-serif
+}
+
+/* Remove default padding and background from AntD modal header */
+.ant-modal .ant-modal-header {
+  padding: 0 !important;         /* remove inner padding */
+  border-bottom: none;           /* optional: remove bottom border */
+  background: transparent;       /* or match your blue */
+}
+
+/* Make the title span full width */
+.ant-modal .ant-modal-title {
+  width: 100%;
+  padding: 12px 16px;            /* you control spacing */
+  font-weight: 600;
+  margin: 0;
+  border-radius: 8px 8px 0 0;    /* match modal rounding */
+}
+
+
+.task-card.ant-card-hoverable:hover {
+  transform: translateY(-2px);
+  transition: transform 0.15s ease;
+}
+
+.task-card.dragging {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+  transform: scale(1.02);
+  width: 100%;
+  opacity: 0.95;
+}
+
+.children-tasks {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #f5faff;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.children-tasks h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #60a5fa;
+}
+
+.children-tasks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.children-tasks li {
+  font-size: 13px;
+  color: #2d3748;
+  padding: 4px 0;
+  border-left: 2px solid #60a5fa;
+  padding-left: 12px;
+  margin-bottom: 4px;
+  background-color: #e6f0fa;
+  border-radius: 3px;
+}
+
+.parent-tasks {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+  background-color: #e6fffa;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.parent-tasks h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #2c7a7b;
+}
+
+.parent-tasks ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.parent-tasks li {
+  font-size: 13px;
+  color: #2d3748;
+  padding: 4px 0;
+  border-left: 2px solid #38b2ac;
+  padding-left: 12px;
+  margin-bottom: 4px;
+  background-color: #d0f7ec;
+  border-radius: 3px;
+}
+
+.task-details {
+  text-align: center;
+  padding: 16px;
+}
+
+.task-details h2 {
+  font-size: 20px;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-family: 'Roboto', sans-serif
+}
+
+.task-details p {
+  font-size: 14px;
+  margin-bottom: 12px;
+  color: #333;
+  font-family: 'Roboto', sans-serif
+}
+
+.task-details p strong {
+  color: #1a202c;
+}
+
+.dependency-indicators {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px;
 }
