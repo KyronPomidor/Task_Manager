@@ -40,7 +40,8 @@ export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask }
     let nodes = validTasks.map((task) => ({
       id: String(task.id), // Always string
       label: task.title || `Task ${task.id}`,
-      color: getDeterministicColor(String(task.id)),
+      // Use color from task data (from DB), fallback to deterministic color
+      color: task.color || getDeterministicColor(String(task.id)),
       x: task.graphNode?.x,
       y: task.graphNode?.y,
       fixed: task.graphNode?.fixed || false,
@@ -89,10 +90,12 @@ export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask }
 
   // Handle task creation from graph
   const handleCreateTaskFromNode = (nodeId) => {
+    const taskTitle = `New Task ${Date.now()}`;
     const newTask = {
       id: `task-${Date.now()}`,
-      title: `New Task ${Date.now()}`,
+      title: taskTitle,
       description: `Task created from node ${nodeId}`,
+      color: getDeterministicColor(taskTitle), // Generate color for new task
       priority: "Medium",
       categoryId: "inbox",
       completed: false,

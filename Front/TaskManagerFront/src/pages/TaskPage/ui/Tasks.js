@@ -406,11 +406,11 @@ export function Tasks({
             // ARRAYS: Check if task has children in its childrenIds array
             const hasChildren = task.childrenIds && task.childrenIds.length > 0 &&
               allTasks.some((t) => task.childrenIds.includes(t.id) && !t.completed);
-            const parentBorderColor = hasChildren ? getDeterministicColor(task.id) : "#fff";
+            const parentBorderColor = hasChildren ? (task.color || getDeterministicColor(task.id)) : "#fff";
 
             // ARRAYS: Get parent tasks that have this task in their childrenIds
             const parentTasks = getParents(task.id);
-            const childIndicatorColors = parentTasks.map((parent) => getDeterministicColor(parent.id));
+            const childIndicatorColors = parentTasks.map((parent) => parent.color || getDeterministicColor(parent.id));
 
             const bg = task.completed ? "#ececec" : "white";
             const isChild = parentTasks.length > 0;
@@ -700,7 +700,7 @@ export function Tasks({
                                         background: "#fff",
                                         color: "#222e3a",
                                         borderLeft: childParents.length > 0
-                                          ? `5px solid ${getDeterministicColor(childParents[childParents.length - 1].id)}`
+                                          ? `5px solid ${childParents[childParents.length - 1].color || getDeterministicColor(childParents[childParents.length - 1].id)}`
                                           : "5px solid #fff",
                                         boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
                                         position: "relative",
@@ -765,7 +765,7 @@ export function Tasks({
                                                   width: 16,
                                                   height: 16,
                                                   borderRadius: "50%",
-                                                  background: getDeterministicColor(parentTask.id),
+                                                  background: parentTask.color || getDeterministicColor(parentTask.id),
                                                   border: "2px solid #fff",
                                                   boxShadow: "0 0 0 1px #ccc",
                                                   cursor: "pointer",
