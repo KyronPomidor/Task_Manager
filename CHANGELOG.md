@@ -1,20 +1,20 @@
 # Changelog
 
 ## 31-10-2025
-- `Tasks.js` divided into separate files (`SortableTask.js`, `taskActions.js`, `taskCard.js`, etc.), by Kirill, Andrei.U
-- Colors fixed in `colorUtils.js`, Kirill
-- Optimized backend communication, Kirill
-- Updated user interface, Kirill, Andrei.U 
+- **Code modularization**: `Tasks.js` was divided into multiple focused components (`SortableTask.js`, `taskActions.js`, `taskCard.js`, etc.) to improve maintainability. Contributors: Kirill, Andrei.U
+- **Color management enhancements**: Adjusted and standardized color handling in`colorUtils.js`. Contributors: Kirill
+- **Backend optimization**: Streamlined communication between frontend and backend layers. Contributors: Kirill
+- **UI improvements**: Refined layout, visual hierarchy, and overall user experience for better accessibility. Contributors: Kirill, Andrei.U 
 
 ## 30-10-2025
-- Extracted API call functions for reusability in `taskService.js`, by Kirill
+- **API abstraction**: Extracted and centralized all API-related logic into `taskService.js`, making the functions reusable. Contributors: Kirill
 
 ## 29-10-2025
-- Changes in file organization (`Tasks.js`, `TaskGraphIntegration.js`) by Kirill, Andrey.U
+- **Project structure update**: Reorganized key files (`Tasks.js`, `TaskGraphIntegration.js`) to improve code clarity. Contributors: Kirill, Andrey.U
 
 ## 28-10-2025
-- Finished refactoring (`useDragDrop.js`, `useTasks.js`), by Kirill, Andrei.U
-- Restructured frontend file organization (`App.js`), by Kirill
+- **Custom hook refactoring**: Completed major refactoring for `useDragDrop.js` and `useTasks.js` enhance logic reusability and code readability. Contributors: Kirill, Andrei.U
+- **Frontend restructuring**: Updated the general file organization, including adjustments in `App.js`. Contributors: Kirill
 
 ## 27-10-2025
-- Refactored a large code block into a separate file (`useCategories.js`), by Kirill
+- **Category management refactor**: Extracted category-related logic into a dedicated hook (`useCategories.js`), simplifying state handling and improving modularity. Contributors: Kirill
