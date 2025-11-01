@@ -3,7 +3,7 @@
 ## 31-10-2025
 - **Code modularization**: `Tasks.js` was divided into multiple focused components (`SortableTask.js`, `taskActions.js`, `taskCard.js`, etc.) to improve maintainability. Contributors: Kirill, Andrei.U
 - **Color management enhancements**: Adjusted and standardized color handling in`colorUtils.js`. Contributors: Kirill
-- **Backend optimization**: Streamlined communication between frontend and backend layers. Contributors: Kirill
+- **Backend optimization - frontend**: Streamlined communication between frontend and backend layers. Contributors: Kirill
 - **UI improvements**: Refined layout, visual hierarchy, and overall user experience for better accessibility. Contributors: Kirill, Andrei.U 
 
 ## 30-10-2025
