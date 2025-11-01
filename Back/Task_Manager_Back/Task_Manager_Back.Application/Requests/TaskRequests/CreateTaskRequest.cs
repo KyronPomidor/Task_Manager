@@ -10,7 +10,6 @@ public record CreateTaskRequest(
     Guid? StatusId,
     Guid CategoryId,
     TaskPriority? Priority,
-
     DateTime? Deadline,
     bool? IsCompleted,
     int PositionOrder,
