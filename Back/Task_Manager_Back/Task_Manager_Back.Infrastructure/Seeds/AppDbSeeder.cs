@@ -11,6 +11,7 @@ namespace Task_Manager_Back.Infrastructure.Seeds;
 
 public static class AppDbSeeder
 {
+
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
@@ -62,32 +63,36 @@ public static class AppDbSeeder
         var userGuid = Guid.Parse(user.Id);
 
         // --- CATEGORIES ---
-        // Inbox (always exists)
         var inbox = await categoryRepo.GetOrCreateInboxByUserId(userGuid);
 
-        // Work category
-        var work = new TaskUserCategory(new TaskUserCategoryCreateParams(
-            userGuid, "Work", "Work related tasks", null, "#FFD700"));
-        await categoryRepo.CreateAsync(work);
+        // Helper function to ensure category exists
+        async Task<TaskUserCategory> EnsureCategoryAsync(string title, string? description, Guid? parentId, string color)
+        {
+            var existing = await db.Categories
+                .FirstOrDefaultAsync(c => c.UserId == userGuid && c.Title == title);
+
+            if (existing != null)
+                return (TaskUserCategory) existing;
+
+            var category = new TaskUserCategory(new TaskUserCategoryCreateParams(
+                userGuid, title, description, parentId, color));
+
+            await categoryRepo.CreateAsync(category);
+            return category;
+        }
+
+        // Work
+        var work = await EnsureCategoryAsync("Work", "Work related tasks", null, "#FFD700");
 
         // Work subcategories
-        var firstTaskCategory = new TaskUserCategory(new TaskUserCategoryCreateParams(
-            userGuid, "First task", "Subcategory of Work", work.Id, "#87CEEB"));
-        await categoryRepo.CreateAsync(firstTaskCategory);
+        var firstTaskCategory = await EnsureCategoryAsync("First task", "Subcategory of Work", work.Id, "#87CEEB");
+        var secondTaskCategory = await EnsureCategoryAsync("Second task", "Subcategory of Work", work.Id, "#90EE90");
 
-        var secondTaskCategory = new TaskUserCategory(new TaskUserCategoryCreateParams(
-            userGuid, "Second task", "Subcategory of Work", work.Id, "#90EE90"));
-        await categoryRepo.CreateAsync(secondTaskCategory);
-
-        // Personal category
-        var personal = new TaskUserCategory(new TaskUserCategoryCreateParams(
-            userGuid, "Personal", "Personal life tasks", null, "#FF69B4"));
-        await categoryRepo.CreateAsync(personal);
+        // Personal
+        var personal = await EnsureCategoryAsync("Personal", "Personal life tasks", null, "#FF69B4");
 
         // Personal subcategory
-        var fun = new TaskUserCategory(new TaskUserCategoryCreateParams(
-            userGuid, "Fun", "Personal fun activities", personal.Id, "#BA55D3"));
-        await categoryRepo.CreateAsync(fun);
+        var fun = await EnsureCategoryAsync("Fun", "Personal fun activities", personal.Id, "#BA55D3");
 
         // --- TASKS ---
         // Clear old seeded tasks

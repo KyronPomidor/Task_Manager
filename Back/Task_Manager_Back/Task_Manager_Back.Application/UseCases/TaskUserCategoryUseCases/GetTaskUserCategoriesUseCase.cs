@@ -1,4 +1,5 @@
 ﻿using Task_Manager_Back.Application.IRepositories;
+using Task_Manager_Back.Application.Requests.TaskUserCategoryRequests;
 using Task_Manager_Back.Domain.Entities.TaskCategories;
 
 namespace Task_Manager_Back.Application.UseCases.TaskUserCategoryUseCases;
@@ -10,9 +11,9 @@ public class GetTaskUserCategoriesUseCase
     {
         _repository = repository;
     }
-    public async Task<IReadOnlyList<TaskUserCategory>> ExecuteAsync(CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<TaskUserCategory>> ExecuteAsync(GetTaskUserCategoriesRequest request, CancellationToken cancellationToken)
     {
-        var categories = await _repository.GetAllAsync();
+        var categories = await _repository.GetAllByUserIdAsync(request.UserId);
         var userCategories = categories
             .OfType<TaskUserCategory>()
             .ToList()
