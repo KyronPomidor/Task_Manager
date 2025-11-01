@@ -1,160 +1,26 @@
 import React, { useState } from "react";
 import "../Tasks.css";
 import { TaskFilters } from "../../../Widgets/TaskFilters";
-import mainArrow from "./main_arrow.png";
-import {
-  Row,
-  Col,
-  Card,
-  Tag,
-  Modal,
-  Form,
-  Input,
-  Select,
-  DatePicker,
-  TimePicker,
-  Button,
-  List,
-  Tooltip,
-  Divider,
-  Typography,
-} from "antd";
+import { Row, Col, Button, Modal } from "antd";
 import dayjs from "dayjs";
-import { SortableContext, useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { MoreOutlined } from "@ant-design/icons";
-import { motion, AnimatePresence } from "framer-motion";
-import { getDeterministicColor } from "../../../utils/colorUtils";
+import { SortableContext } from "@dnd-kit/sortable";
 
-const { Title, Text } = Typography;
+// Components
+import { SortableTask } from "../../components/SortableTask";
+import { TaskCard } from "../../components/taskCard";
+import { TaskDetailsModal } from "../../modals/taskDetailsModal";
+import { BudgetModal } from "../../modals/BudgetModal";
+import { TaskEditModal } from "../../modals/taskEditModal";
 
-function priorityColor(p) {
-  if (p === "Medium") return { backgroundColor: "#e6f4ff", borderColor: "#2563eb" };
-  return p === "Low" ? "default" : "red";
-}
-
-function SortableTask({ task, children, onCardClick }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: task.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    zIndex: isDragging ? 9999 : 1,
-    width: "100%",
-    height: "100%",
-    opacity: isDragging ? 0 : 1,
-    pointerEvents: isDragging ? "none" : "auto",
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      className={isDragging ? "dragging" : ""}
-      onClick={() => onCardClick(task)}
-    >
-      {typeof children === "function" ? children(listeners) : children}
-    </div>
-  );
-}
-
-function TaskActions({
-  task,
-  toggleComplete,
-  startEdit,
-  setBudgetTask,
-  setTempBudgetItems,
-  setBudgetOpen,
-  menuOpenId,
-  setMenuOpenId,
-}) {
-  const open = menuOpenId === task.id;
-
-  const buttonVariants = {
-    hidden: { opacity: 0, x: 0, scale: 0.7 },
-    visible: (i) => ({
-      opacity: 1,
-      x: -(i + 1) * 51,
-      scale: 1,
-      transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25,
-        delay: i * 0.05,
-      },
-    }),
-    exit: { opacity: 0, x: 0, scale: 0.7, transition: { duration: 0.15 } },
-  };
-
-  const actions = [
-    {
-      label: "Edit",
-      onClick: (e) => {
-        e.stopPropagation();
-        startEdit(task);
-        setMenuOpenId(null);
-      },
-    },
-    {
-      label: "$",
-      onClick: (e) => {
-        e.stopPropagation();
-        setBudgetTask(task);
-        setTempBudgetItems([]);  // Changed: Start with empty for new additions only
-        setBudgetOpen(true);
-        setMenuOpenId(null);
-      },
-    },
-  ];
-
-  const toggleMenu = (e) => {
-    e.stopPropagation();
-    setMenuOpenId(open ? null : task.id);
-  };
-
-  return (
-    <div
-      style={{ position: "relative", display: "flex", alignItems: "center", minWidth: 32 }}
-      onClick={(e) => e.stopPropagation()}
-      onPointerDown={(e) => e.stopPropagation()}
-    >
-      <Button
-        icon={<MoreOutlined />}
-        size="small"
-        shape="circle"
-        onClick={toggleMenu}
-        style={{ zIndex: 2 }}
-      />
-      <AnimatePresence>
-        {open &&
-          actions.map((action, i) => (
-            <motion.div
-              key={action.label}
-              custom={i}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              variants={buttonVariants}
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                zIndex: 1,
-              }}
-              onClick={(e) => e.stopPropagation()}
-              onPointerDown={(e) => e.stopPropagation()}
-            >
-              <Button size="small" onClick={action.onClick}>
-                {action.label}
-              </Button>
-            </motion.div>
-          ))}
-      </AnimatePresence>
-    </div>
-  );
-}
+// Utilities
+import {
+  getValidParents,
+  getParents,
+  getChildren,
+  filterTasks,
+  calculateTotalExpenses,
+} from "../../utils/taskHelpers";
+import { useTaskOperations } from "../../hooks/useTaskOperations";
 
 export function Tasks({
   filteredTasks,
@@ -167,63 +33,47 @@ export function Tasks({
   addTask,
   updateTask,
 }) {
+  // Modal states
   const [editOpen, setEditOpen] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [addOpen, setAddOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+
+  // Budget modal states
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [budgetTask, setBudgetTask] = useState(null);
   const [budgetName, setBudgetName] = useState("");
   const [budgetSum, setBudgetSum] = useState("");
   const [tempBudgetItems, setTempBudgetItems] = useState([]);
+
+  // UI states
   const [menuOpenId, setMenuOpenId] = useState(null);
   const [expandedParentId, setExpandedParentId] = useState(null);
+  const [filters, setFilters] = useState({
+    priority: "All",
+    status: "All",
+    deadline: "",
+    deadlineTime: "",
+  });
 
-  function toggleComplete(id) {
-    let updated;
+  // Custom hook for task operations
+  const { toggleComplete, addBudgetItem, saveBudgetItems, handleChildIndicatorClick } =
+    useTaskOperations(allTasks, setTasks, updateTask);
 
-    setTasks((prev) => {
-      const task = prev.find((t) => t.id === id);
-      if (!task) return prev;
-
-      if (!task.completed) {
-        const children = allTasks.filter((t) => t.parentIds.includes(task.id));
-        if (children.some((c) => !c.completed)) {
-          Modal.warning({
-            title: "Cannot complete task",
-            content: "This parent task still has unfinished child tasks.",
-          });
-          return prev;
-        }
-      }
-
-      updated = {
-        ...task,
-        completed: !task.completed,
-        categoryId: !task.completed ? "done" : "inbox",
-      };
-
-      return prev.map((t) => (t.id === id ? updated : t));
-    });
-
-    if (updated) {
-      updateTask(updated);
-    }
-  }
-
-  function startEdit(task) {
+  // Task editing handlers
+  const startEdit = (task) => {
     setEditTask({ ...task });
     setEditOpen(true);
-  }
+  };
 
-  function handleSaveEdit() {
+  const handleSaveEdit = () => {
     updateTask(editTask);
     setEditOpen(false);
     setEditTask(null);
-  }
+  };
 
-  function handleAddNew() {
+  const handleAddNew = () => {
     const newTask = {
       id: `${Date.now()}`,
       title: "New Task",
@@ -233,7 +83,7 @@ export function Tasks({
       deadlineTime: null,
       categoryId: selectedCategory === "today" ? "inbox" : selectedCategory,
       completed: false,
-      parentIds: [],
+      childrenIds: [],
       budgetItems: [],
     };
     if (selectedCategory === "today") {
@@ -241,9 +91,9 @@ export function Tasks({
     }
     setEditTask(newTask);
     setAddOpen(true);
-  }
+  };
 
-  function handleSaveNew() {
+  const handleSaveNew = () => {
     if (!editTask.title) {
       Modal.error({ title: "Title is required" });
       return;
@@ -251,128 +101,67 @@ export function Tasks({
     addTask(editTask);
     setAddOpen(false);
     setEditTask(null);
-  }
+  };
 
-  function handleCardClick(task) {
+  const handleCardClick = (task) => {
     setSelectedTask(task);
     setDetailsOpen(true);
-  }
+  };
 
-  function getValidParents(taskId) {
-    if (!taskId) return allTasks.filter((t) => !t.completed);
-    const descendants = new Set();
-    function collectDescendants(id) {
-      allTasks.forEach((t) => {
-        if (t.parentIds.includes(id)) {
-          descendants.add(t.id);
-          collectDescendants(t.id);
-        }
-      });
-    }
-    collectDescendants(taskId);
-    return allTasks.filter(
-      (t) => t.id !== taskId && !descendants.has(t.id) && !t.completed
+  // Budget handlers
+  const handleAddBudgetItem = () => {
+    const success = addBudgetItem(
+      budgetName,
+      budgetSum,
+      tempBudgetItems,
+      setTempBudgetItems
     );
-  }
-
-  function addTempBudgetItem() {
-    if (!budgetName.trim() || !budgetSum) {
-      Modal.error({ title: "Both name and sum are required" });
-      return;
+    if (success) {
+      setBudgetName("");
+      setBudgetSum("");
     }
+  };
 
-    const sumVal = parseFloat(budgetSum);
-    if (isNaN(sumVal) || sumVal <= 0) {
-      Modal.error({ title: "Enter a valid sum" });
-      return;
-    }
+  const handleSaveBudget = () => {
+    saveBudgetItems(
+      budgetTask,
+      tempBudgetItems,
+      setTasks,
+      updateTask,
+      setBudgetOpen,
+      setBudgetTask,
+      setTempBudgetItems
+    );
+  };
 
-    // Changed: Only update temp list, no immediate task update or patch
-    const updatedItems = [...tempBudgetItems, { id: Date.now().toString(), name: budgetName, sum: sumVal }];
-    setTempBudgetItems(updatedItems);
+  const handleChildClick = (childId) => {
+    handleChildIndicatorClick(
+      childId,
+      allTasks,
+      setSelectedCategory,
+      setSelectedTask,
+      setDetailsOpen
+    );
+  };
 
-    setBudgetName("");
-    setBudgetSum("");
-  }
+  // Filter and sort tasks
+  const filteredAndSortedTasks = filterTasks(
+    filteredTasks || [],
+    selectedCategory,
+    searchText,
+    filters
+  );
 
-  function saveBudgetItems() {
-    if (!budgetTask) return;
-
-    const newSum = tempBudgetItems.reduce((acc, item) => acc + item.sum, 0);
-    const total = (budgetTask.price || 0) + newSum;
-    const updatedItems = [...(budgetTask.budgetItems || []), ...tempBudgetItems];
-
-    const updated = {
-      ...budgetTask,
-      budgetItems: updatedItems,
-      price: total,
-    };
-
-    setTasks((prev) => prev.map((t) => (t.id === budgetTask.id ? updated : t)));
-    updateTask(updated);  // Changed: Send full updated task (including budgetItems)
-
-    setBudgetOpen(false);
-    setBudgetTask(null);
-    setTempBudgetItems([]);
-  }
-
-  function handleIndicatorClick(parentId) {
-    const parentTask = allTasks.find((t) => t.id === parentId);
-    if (parentTask && typeof setSelectedCategory === "function") {
-      setSelectedCategory(parentTask.categoryId);
-      setSelectedTask(parentTask);
-      setDetailsOpen(true);
-    } else {
-      console.warn(
-        `Cannot navigate to parent task category. Parent task with ID ${parentId} not found or setSelectedCategory is not a function.`
-      );
-    }
-  }
-
-  function calculateTotalExpenses() {
-    if (selectedCategory !== "done") return 0;
-
-    const total = (filteredTasks || [])
-      .filter((t) => t.completed) // only finished tasks
-      .reduce((acc, t) => {
-        const priceNum = Number(t.price);
-        return acc + (Number.isFinite(priceNum) ? priceNum : 0);
-      }, 0);
-
-    return total.toFixed(2);
-  }
-
-  const [filters, setFilters] = useState({
-    priority: "All",
-    status: "All",
-    deadline: "",
-    deadlineTime: "",
-  });
-
-  const filteredAndSortedTasks = (filteredTasks || []).filter((task) => {
-    if (selectedCategory === "today") {
-      if (task.deadline !== dayjs().format("YYYY-MM-DD")) return false;
-    } else if (task.categoryId !== selectedCategory) {
-      return false;
-    }
-    if (searchText && !task.title.toLowerCase().includes(searchText.toLowerCase())) return false;
-    if (filters.priority !== "All" && task.priority !== filters.priority) return false;
-    if (filters.status === "Done" && !task.completed) return false;
-    if (filters.status === "Undone" && task.completed) return false;
-    if (filters.deadline && task.deadline !== filters.deadline) return false;
-    if (filters.deadlineTime) {
-      if (!task.deadlineTime || task.deadlineTime !== filters.deadlineTime) return false;
-    }
-    return true;
-  });
-
-  function getChildren(taskId) {
-    return allTasks.filter((t) => t.parentIds.includes(taskId) && !t.completed);
-  }
+  // Helper functions wrapped for component use
+  const wrappedGetParents = (taskId) => getParents(taskId, allTasks);
+  const wrappedGetChildren = (taskId) => getChildren(taskId, allTasks);
 
   return (
     <div className="tasks-container">
-      <div className="composer" style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+      <div
+        className="composer"
+        style={{ display: "flex", alignItems: "center", gap: "16px" }}
+      >
         {selectedCategory !== "done" && (
           <Button type="primary" onClick={handleAddNew}>
             Add
@@ -380,964 +169,110 @@ export function Tasks({
         )}
         <TaskFilters filters={filters} setFilters={setFilters} />
         {selectedCategory === "done" && (
-          <span style={{ fontSize: "0.9rem", color: "#4d5156", fontWeight: 600 }}>
-            Total Expenses: ${calculateTotalExpenses()}
+          <span
+            style={{ fontSize: "0.9rem", color: "#4d5156", fontWeight: 600 }}
+          >
+            Total Expenses: ${calculateTotalExpenses(filteredAndSortedTasks)}
           </span>
         )}
       </div>
 
       <SortableContext items={filteredAndSortedTasks.map((t) => t.id)}>
         <Row gutter={[16, 16]}>
-          {filteredAndSortedTasks.map((task) => {
-            const hasChildren = allTasks.some((t) => t.parentIds.includes(task.id) && !t.completed);
-            const parentBorderColor = hasChildren ? getDeterministicColor(task.id) : "#fff";
-            const childIndicatorColors = task.parentIds.map(getDeterministicColor);
-            const bg = task.completed ? "#ececec" : "white";
-            const isChild = task.parentIds.length > 0;
-            const isParent = hasChildren;
-
-            return (
-              <Col key={task.id} span={8}>
-                <SortableTask task={task} onCardClick={handleCardClick}>
-                  {(dragListeners) => (
-                    <motion.div style={{ position: "relative" }}>
-                      <Card
-                        className={`task-card ${task.completed ? "task-card-done" : ""}`}
-                        style={{
-                          background: bg,
-                          borderLeft: `10px solid ${parentBorderColor}`,
-                          minHeight: 180,
-                          display: "flex",
-                          flexDirection: "column",
-                          justifyContent: "space-between",
-                          zIndex: expandedParentId === task.id ? 1002 : 1,
-                          boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                        }}
-                        title={
-                          <motion.div
-                            className="card-title"
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              width: "100%",
-                              alignItems: "center",
-                              overflow: "hidden",
-                            }}
-                          >
-                            <Button
-                              type="text"
-                              style={{
-                                position: "absolute",
-                                top: 17,
-                                left: 8,
-                                padding: 0,
-                                background: task.completed ? "#6BCB77" : "#fff",
-                                border: "2px solid #ccc",
-                                borderRadius: "50%",
-                                width: 24,
-                                height: 24,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                cursor: "pointer",
-                                zIndex: 10,
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleComplete(task.id);
-                              }}
-                              onMouseEnter={(e) => {
-                                if (!task.completed) {
-                                  e.currentTarget.style.backgroundColor = "#d4d4d4ff";
-                                  e.currentTarget.querySelector("span")?.style.setProperty("display", "flex", "important");
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (!task.completed) {
-                                  e.currentTarget.style.backgroundColor = "#fff";
-                                  e.currentTarget.querySelector("span")?.style.setProperty("display", "none", "important");
-                                }
-                              }}
-                            >
-                              <span style={{ color: "#000000ff", display: task.completed ? "flex" : "none" }}>✓</span>
-                            </Button>
-
-                            <motion.div
-                              animate={{ x: menuOpenId === task.id ? -60 : 0 }}
-                              transition={{ type: "spring", stiffness: 200, damping: 20 }}
-                              style={{ display: "flex", alignItems: "center", gap: "8px", marginLeft: 40 }}
-                            >
-                              <span
-                                {...dragListeners}
-                                style={{
-                                  cursor: "grab",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "8px",
-                                }}
-                              >
-                                <span className={`title ${task.completed ? "done" : ""}`}>
-                                  {task.title.length > 20 ? `${task.title.substring(0, 20)}...` : task.title}
-                                </span>
-                                <Tag style={typeof priorityColor(task.priority) === "object" ? priorityColor(task.priority) : {}} color={typeof priorityColor(task.priority) === "string" ? priorityColor(task.priority) : undefined}>
-                                  {task.priority}
-                                </Tag>
-                              </span>
-                            </motion.div>
-
-                            {task.deadline && (
-                              <motion.div
-                                animate={{ x: menuOpenId === task.id ? -60 : 0 }}
-                                transition={{ type: "spring", stiffness: 100, damping: 20 }}
-                                style={{
-                                  fontSize: "0.85rem",
-                                  color: "#60a5fa",
-                                  marginTop: "2px",
-                                  textAlign: "center",
-                                  width: "100%",
-                                  position: "relative",
-                                }}
-                              >
-                                {task.deadline}
-                              </motion.div>
-                            )}
-                          </motion.div>
-                        }
-                        hoverable
-                        extra={
-                          <TaskActions
-                            task={task}
-                            toggleComplete={toggleComplete}
-                            startEdit={startEdit}
-                            setBudgetTask={setBudgetTask}
-                            setTempBudgetItems={setTempBudgetItems}
-                            setBudgetOpen={setBudgetOpen}
-                            menuOpenId={menuOpenId}
-                            setMenuOpenId={setMenuOpenId}
-                          />
-                        }
-                      >
-                        <div
-                          className="desc"
-                          style={{
-                            display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            textAlign: "center",
-                            minHeight: "50px",
-                            width: "97%",
-                          }}
-                        >
-                          {task.description
-                            ? task.description.length > 100
-                              ? `${task.description.substring(0, 100)}...`
-                              : task.description
-                            : "No description"}
-                        </div>
-
-                        {isChild && (
-                          <div
-                            className="dependency-indicators"
-                            style={{
-                              position: "absolute",
-                              bottom: 8,
-                              left: 8,
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 8,
-                              zIndex: 10,
-                            }}
-                          >
-                            {task.parentIds.map((pid, idx) => {
-                              const parentTask = allTasks.find((t) => t.id === pid);
-                              return (
-                                <Tooltip
-                                  key={idx}
-                                  title={parentTask ? parentTask.title : "Unknown Parent"}
-                                >
-                                  <span
-                                    style={{
-                                      display: "inline-block",
-                                      width: 16,
-                                      height: 16,
-                                      borderRadius: "50%",
-                                      background: childIndicatorColors[idx],
-                                      border: "2px solid #fff",
-                                      boxShadow: "0 0 0 1px #ccc",
-                                      cursor: "pointer",
-                                    }}
-                                    onClick={() => handleIndicatorClick(pid)}
-                                  />
-                                </Tooltip>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {isParent && (
-                          <div
-                            style={{
-                              position: "absolute",
-                              bottom: 12,
-                              right: 16,
-                              zIndex: 1003,
-                            }}
-                          >
-                            <Button
-                              type="text"
-                              style={{
-                                padding: 0,
-                                background: "#fff",
-                                border: "1px solid #e0e0e0",
-                                borderRadius: "50%",
-                                boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-                                minWidth: 24,
-                                minHeight: 24,
-                                width: 24,
-                                height: 24,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                cursor: "pointer",
-                              }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setExpandedParentId(expandedParentId === task.id ? null : task.id);
-                              }}
-                            >
-                              <img
-                                src={mainArrow}
-                                alt="Show children"
-                                style={{
-                                  width: 16,
-                                  height: 16,
-                                  filter: expandedParentId === task.id ? "brightness(1.2)" : "brightness(0.8)",
-                                  transition: "filter 0.2s",
-                                  pointerEvents: "none",
-                                }}
-                              />
-                            </Button>
-                          </div>
-                        )}
-                      </Card>
-
-                      <AnimatePresence>
-                        {expandedParentId === task.id && (
-                          <>
-                            <motion.div
-                              initial={{ opacity: 0 }}
-                              animate={{ opacity: 0.6 }}
-                              exit={{ opacity: 0 }}
-                              style={{
-                                position: "fixed",
-                                top: 0,
-                                left: 0,
-                                width: "100vw",
-                                height: "100vh",
-                                background: "#1a2233",
-                                zIndex: 1000,
-                                pointerEvents: "auto",
-                              }}
-                              onClick={() => setExpandedParentId(null)}
-                            />
-                            <motion.div
-                              initial={{ opacity: 0, y: -20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -20 }}
-                              style={{
-                                position: "absolute",
-                                left: 0,
-                                top: "100%",
-                                width: "100%",
-                                background: "rgba(255,255,255,0.0)",
-                                zIndex: 1002,
-                                padding: "24px 0",
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
-                                borderRadius: "0 0 12px 12px",
-                              }}
-                            >
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  alignItems: "center",
-                                  gap: 24,
-                                  width: "100%",
-                                  maxWidth: 340,
-                                }}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {getChildren(task.id).map((child) => {
-                                  return (
-                                    <Card
-                                      key={child.id}
-                                      className={`task-card ${child.completed ? "task-card-done" : ""}`}
-                                      style={{
-                                        width: 320,
-                                        background: "#fff",
-                                        color: "#222e3a",
-                                        borderLeft: child.parentIds.length > 0
-                                          ? `5px solid ${getDeterministicColor(child.parentIds[child.parentIds.length - 1])}`
-                                          : "5px solid #fff",
-                                        boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
-                                        position: "relative",
-                                        margin: "0 auto",
-                                      }}
-                                      title={
-                                        <div style={{ textAlign: "center", color: "#222e3a" }}>
-                                          <span className={`title ${child.completed ? "done" : ""}`}>
-                                            {child.title.length > 20 ? `${child.title.substring(0, 20)}...` : child.title}
-                                          </span>
-                                          <Tag style={typeof priorityColor(child.priority) === "object" ? priorityColor(child.priority) : {}} color={typeof priorityColor(child.priority) === "string" ? priorityColor(child.priority) : undefined}>
-                                            {child.priority}
-                                          </Tag>
-                                          {child.deadline && (
-                                            <div style={{ fontSize: "0.85rem", color: "#60a5fa", marginTop: 2 }}>
-                                              {child.deadline}
-                                              {child.deadlineTime ? ` ${child.deadlineTime}` : ""}
-                                            </div>
-                                          )}
-                                        </div>
-                                      }
-                                    >
-                                      <div
-                                        className="desc"
-                                        style={{
-                                          display: "flex",
-                                          justifyContent: "center",
-                                          alignItems: "center",
-                                          textAlign: "center",
-                                          minHeight: "50px",
-                                          width: "100%",
-                                        }}
-                                      >
-                                        {child.description || "No description"}
-                                      </div>
-                                      {child.parentIds.length > 0 && (
-                                        <div
-                                          className="dependency-indicators"
-                                          style={{
-                                            position: "absolute",
-                                            bottom: 8,
-                                            left: 8,
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 8,
-                                            zIndex: 10,
-                                          }}
-                                        >
-                                          {child.parentIds.map((pid, idx) => {
-                                            const parentTask = allTasks.find((t) => t.id === pid);
-                                            return (
-                                              <Tooltip
-                                                key={idx}
-                                                title={parentTask ? parentTask.title : "Unknown Parent"}
-                                              >
-                                                <span
-                                                  style={{
-                                                    display: "inline-block",
-                                                    width: 16,
-                                                    height: 16,
-                                                    borderRadius: "50%",
-                                                    background: getDeterministicColor(pid),
-                                                    border: "2px solid #fff",
-                                                    boxShadow: "0 0 0 1px #ccc",
-                                                    cursor: "pointer",
-                                                  }}
-                                                  onClick={() => handleIndicatorClick(pid)}
-                                                />
-                                              </Tooltip>
-                                            );
-                                          })}
-                                        </div>
-                                      )}
-                                    </Card>
-                                  );
-                                })}
-                              </div>
-                            </motion.div>
-                          </>
-                        )}
-                      </AnimatePresence>
-                    </motion.div>
-                  )}
-                </SortableTask>
-              </Col>
-            );
-          })}
+          {filteredAndSortedTasks.map((task) => (
+            <Col key={task.id} span={8}>
+              <SortableTask task={task} onCardClick={handleCardClick}>
+                {(dragListeners) => (
+                  <TaskCard
+                    task={task}
+                    allTasks={allTasks}
+                    dragListeners={dragListeners}
+                    menuOpenId={menuOpenId}
+                    setMenuOpenId={setMenuOpenId}
+                    expandedParentId={expandedParentId}
+                    setExpandedParentId={setExpandedParentId}
+                    toggleComplete={toggleComplete}
+                    startEdit={startEdit}
+                    setBudgetTask={setBudgetTask}
+                    setTempBudgetItems={setTempBudgetItems}
+                    setBudgetOpen={setBudgetOpen}
+                    handleCardClick={handleCardClick}
+                    handleChildIndicatorClick={handleChildClick}
+                    getParents={wrappedGetParents}
+                    getChildren={wrappedGetChildren}
+                  />
+                )}
+              </SortableTask>
+            </Col>
+          ))}
         </Row>
       </SortableContext>
 
-      <Modal
-        title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>Task Details</Title>}
-        open={detailsOpen}
-        centered
-        destroyOnClose
-        maskClosable={true}
-        keyboard={true}
-        onCancel={() => {
+      {/* Task Details Modal */}
+      <TaskDetailsModal
+        visible={detailsOpen}
+        task={selectedTask}
+        categories={categories}
+        allTasks={allTasks}
+        getParents={wrappedGetParents}
+        onClose={() => {
           setDetailsOpen(false);
           setSelectedTask(null);
         }}
-        footer={[
-          <Button
-            key="edit"
-            type="primary"
-            onClick={() => {
-              setDetailsOpen(false);
-              startEdit(selectedTask);
-            }}
-            style={{ marginRight: 8 }}
-          >
-            Edit
-          </Button>,
-          <Button
-            key="close"
-            onClick={() => {
-              setDetailsOpen(false);
-              setSelectedTask(null);
-            }}
-          >
-            Close
-          </Button>,
-        ]}
-        width={600}
-        styles={{
-          header: {
-            background: "#e6f4ff",
-            padding: "16px 24px",
-            borderRadius: "8px 8px 0 0",
-          },
-          body: {
-            padding: "24px",
-            background: "#f9fafb",
-            borderRadius: "0 0 8px 8px",
-          },
-          content: {
-            padding: 0,
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          },
-          footer: {
-            padding: "16px",
-            borderRadius: "0 0 8px 8px",
-          },
+        onEdit={() => {
+          setDetailsOpen(false);
+          startEdit(selectedTask);
         }}
-      >
-        {selectedTask && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <Card
-              bordered={false}
-              style={{
-                background: "#ffffff",
-                borderRadius: "8px",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-              }}
-            >
-              <Title level={5} style={{ margin: "0 0 16px 0", color: "#1a2233" }}>
-                {selectedTask.title}
-              </Title>
-              <Divider style={{ margin: "12px 0" }} />
-              {selectedTask.deadline && (
-                <div style={{ marginBottom: "12px" }}>
-                  <Text strong style={{ color: "#4d5156" }}>Deadline:</Text>
-                  <Text style={{ marginLeft: "8px", color: "#60a5fa" }}>
-                    {selectedTask.deadline}{selectedTask.deadlineTime ? ` ${selectedTask.deadlineTime}` : ""}
-                  </Text>
-                </div>
-              )}
-              <div style={{ marginBottom: "12px" }}>
-                <Text strong style={{ color: "#4d5156" }}>Description:</Text>
-                <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
-                  {selectedTask.description || "No description"}
-                </Text>
-              </div>
-              <div style={{ marginBottom: "12px" }}>
-                <Text strong style={{ color: "#4d5156" }}>Priority:</Text>
-                <Tag
-                  style={{
-                    marginLeft: "8px",
-                    ...(typeof priorityColor(selectedTask.priority) === "object" ? priorityColor(selectedTask.priority) : {}),
-                  }}
-                  color={typeof priorityColor(selectedTask.priority) === "string" ? priorityColor(selectedTask.priority) : undefined}
-                >
-                  {selectedTask.priority}
-                </Tag>
-              </div>
-              <div style={{ marginBottom: "12px" }}>
-                <Text strong style={{ color: "#4d5156" }}>Category:</Text>
-                <Text style={{ marginLeft: "8px", color: "#4d5156" }}>{selectedTask.categoryId}</Text>
-              </div>
-              {selectedTask.parentIds.length > 0 && (
-                <div style={{ marginBottom: "12px" }}>
-                  <Text strong style={{ color: "#4d5156" }}>Parent Tasks:</Text>
-                  <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
-                    {allTasks
-                      .filter((t) => selectedTask.parentIds.includes(t.id))
-                      .map((t) => (t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title))
-                      .join(", ")}
-                  </Text>
-                </div>
-              )}
+      />
 
-              {/* Changed: Show breakdown of all added budget items and totals */}
-              {(selectedTask.budgetItems?.length > 0 || selectedTask.price > 0) && (
-                <div style={{ marginTop: "12px" }}>
-                  <Text strong>Total Expenses: </Text>
-                  <Text>${selectedTask.price.toFixed(2)}</Text>
-                  {selectedTask.budgetItems?.length > 0 && (
-                    <>
-                      <Divider style={{ margin: "12px 0" }} />
-                      <Text strong>Budget Items (All Added):</Text>
-                      <List
-                        bordered
-                        dataSource={selectedTask.budgetItems}
-                        renderItem={(item) => (
-                          <List.Item style={{ padding: "8px 12px" }}>
-                            {item.name}: <strong>${item.sum.toFixed(2)}</strong>
-                          </List.Item>
-                        )}
-                        style={{ marginTop: "8px", marginBottom: "8px" }}
-                      />
-                      <Text strong>
-                        Sum of All Added Items: $
-                        {selectedTask.budgetItems.reduce((acc, item) => acc + item.sum, 0).toFixed(2)}
-                      </Text>
-                    </>
-                  )}
-                </div>
-              )}
-
-            </Card>
-          </div>
-        )}
-      </Modal>
-
-      <Modal
-        title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>Budget Tracker</Title>}
-        open={budgetOpen}
-        centered
-        destroyOnClose
-        maskClosable={true}
-        keyboard={true}
-        onCancel={() => {
+      {/* Budget Modal */}
+      <BudgetModal
+        visible={budgetOpen}
+        task={budgetTask}
+        budgetName={budgetName}
+        setBudgetName={setBudgetName}
+        budgetSum={budgetSum}
+        setBudgetSum={setBudgetSum}
+        tempBudgetItems={tempBudgetItems}
+        setTempBudgetItems={setTempBudgetItems}
+        onAdd={handleAddBudgetItem}
+        onSave={handleSaveBudget}
+        onClose={() => {
           setBudgetOpen(false);
           setBudgetTask(null);
           setTempBudgetItems([]);
         }}
-        footer={[
-          <Button
-            key="cancel"
-            onClick={() => {
-              setBudgetOpen(false);
-              setBudgetTask(null);
-              setTempBudgetItems([]);
-            }}
-            style={{ marginRight: 8 }}
-          >
-            Cancel
-          </Button>,
-          <Button
-            key="save"
-            type="primary"
-            onClick={saveBudgetItems}
-          >
-            Save
-          </Button>,
-        ]}
-        width={600}
-        styles={{
-          header: {
-            background: "#e6f4ff",
-            padding: "16px 24px",
-            borderRadius: "8px 8px 0 0",
-          },
-          body: {
-            padding: "24px",
-            background: "#f9fafb",
-            borderRadius: "0 0 8px 8px",
-          },
-          content: {
-            padding: 0,
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          },
-          footer: {
-            padding: "16px",
-            borderRadius: "0 0 8px 8px",
-          },
-        }}
-      >
-        <Card
-          bordered={false}
-          style={{
-            background: "#ffffff",
-            borderRadius: "8px",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            marginBottom: "16px",
-          }}
-        >
-          <Title level={5} style={{ margin: "0 0 16px 0", color: "#1a2233" }}>
-            Add Budget Item
-          </Title>
-          <Form layout="vertical">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label="Item Name" required>
-                  <Input
-                    value={budgetName}
-                    onChange={(e) => setBudgetName(e.target.value)}
-                    placeholder="e.g. Hosting"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={8}>
-                <Form.Item label="Amount" required>
-                  <Input
-                    type="number"
-                    value={budgetSum}
-                    onChange={(e) => setBudgetSum(e.target.value)}
-                    placeholder="100.00"
-                    suffix="$"
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={4}>
-                <Form.Item label=" ">
-                  <Button type="primary" onClick={addTempBudgetItem} style={{ width: "100%" }}>
-                    Add
-                  </Button>
-                </Form.Item>
-              </Col>
-            </Row>
-          </Form>
-        </Card>
-        {tempBudgetItems.length > 0 && (
-          <>
-            <Divider orientation="left" style={{ margin: "16px 0", color: "#1a2233" }}>
-              New Budget Items
-            </Divider>
-            <List
-              bordered
-              dataSource={tempBudgetItems}
-              renderItem={(item) => (
-                <List.Item style={{ padding: "12px 16px", background: "#f9fafb", borderRadius: "4px", marginBottom: "8px" }}>
-                  <Text>{item.name}: <strong>${item.sum.toFixed(2)}</strong></Text>
-                </List.Item>
-              )}
-              style={{ marginBottom: "16px" }}
-            />
-          </>
-        )}
-        <Text strong style={{ color: "#4d5156", display: "block", marginLeft: "0.7vw" }}>
-          Total: ${((budgetTask?.price || 0) + tempBudgetItems.reduce((acc, item) => acc + item.sum, 0)).toFixed(2)}
-        </Text>
-      </Modal>
+      />
 
-      <Modal
-        title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>Edit Task</Title>}
-        open={editOpen}
-        centered
-        destroyOnClose
-        maskClosable={true}
-        keyboard={true}
-        onCancel={() => {
+      {/* Edit Task Modal */}
+      <TaskEditModal
+        visible={editOpen}
+        task={editTask}
+        categories={categories}
+        validParents={editTask ? getValidParents(editTask.id, allTasks) : []}
+        onChange={setEditTask}
+        onSave={handleSaveEdit}
+        onClose={() => {
           setEditOpen(false);
           setEditTask(null);
         }}
-        footer={[
-          <Button
-            key="cancel"
-            onClick={() => {
-              setEditOpen(false);
-              setEditTask(null);
-            }}
-            style={{ marginRight: 8 }}
-          >
-            Cancel
-          </Button>,
-          <Button
-            key="save"
-            type="primary"
-            onClick={handleSaveEdit}
-          >
-            Save
-          </Button>,
-        ]}
-        width={600}
-        styles={{
-          header: {
-            background: "#e6f4ff",
-            padding: "16px 24px",
-            borderRadius: "8px 8px 0 0",
-          },
-          body: {
-            padding: "24px",
-            background: "#f9fafb",
-            borderRadius: "0 0 8px 8px",
-            maxHeight: "70vh",
-            overflowY: "auto",
-          },
-          content: {
-            padding: 0,
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          },
-          footer: {
-            padding: "16px",
-            borderRadius: "0 0 8px 8px",
-          },
-        }}
-      >
-        {editTask && (
-          <Card
-            bordered={false}
-            style={{
-              background: "#ffffff",
-              borderRadius: "8px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            }}
-          >
-            <Form layout="vertical">
-              <Form.Item label="Task Title" required>
-                <Input
-                  value={editTask.title}
-                  onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
-                  placeholder="Enter task title"
-                />
-              </Form.Item>
-              <Form.Item label="Description">
-                <Input.TextArea
-                  value={editTask.description}
-                  onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
-                  autoSize={{ minRows: 3, maxRows: 6 }}
-                  placeholder="Enter task description"
-                />
-              </Form.Item>
-              <Divider style={{ margin: "16px 0" }} />
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item label="Priority">
-                    <Select
-                      value={editTask.priority}
-                      onChange={(val) => setEditTask({ ...editTask, priority: val })}
-                    >
-                      <Select.Option value="Low">Low</Select.Option>
-                      <Select.Option value="Medium">Medium</Select.Option>
-                      <Select.Option value="High">High</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Category">
-                    <Select
-                      value={editTask.categoryId}
-                      onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
-                    >
-                      <Select.Option value="inbox">Inbox</Select.Option>
-                      {categories.map((cat) => (
-                        <Select.Option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Divider style={{ margin: "16px 0" }} />
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item label="Deadline (Date)">
-                    <DatePicker
-                      style={{ width: "100%" }}
-                      value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                      onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Deadline (Time, Optional)">
-                    <TimePicker
-                      style={{ width: "100%" }}
-                      value={editTask.deadlineTime ? dayjs(editTask.deadlineTime, "HH:mm") : null}
-                      format="HH:mm"
-                      onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Form.Item label="Parent Tasks">
-                <Select
-                  mode="multiple"
-                  value={editTask.parentIds}
-                  onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
-                  placeholder="Select parent tasks"
-                >
-                  {getValidParents(editTask.id).map((t) => (
-                    <Select.Option key={t.id} value={t.id}>
-                      {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Form>
-          </Card>
-        )}
-      </Modal>
+        title="Edit Task"
+      />
 
-      <Modal
-        title={<Title level={4} style={{ margin: 0, color: "#1a2233" }}>Add New Task</Title>}
-        open={addOpen}
-        centered
-        destroyOnClose
-        maskClosable={true}
-        keyboard={true}
-        onCancel={() => {
+      {/* Add Task Modal */}
+      <TaskEditModal
+        visible={addOpen}
+        task={editTask}
+        categories={categories}
+        validParents={getValidParents(null, allTasks)}
+        onChange={setEditTask}
+        onSave={handleSaveNew}
+        onClose={() => {
           setAddOpen(false);
           setEditTask(null);
         }}
-        footer={[
-          <Button
-            key="cancel"
-            onClick={() => {
-              setAddOpen(false);
-              setEditTask(null);
-            }}
-            style={{ marginRight: 8 }}
-          >
-            Cancel
-          </Button>,
-          <Button
-            key="save"
-            type="primary"
-            onClick={handleSaveNew}
-          >
-            Save
-          </Button>,
-        ]}
-        width={600}
-        styles={{
-          header: {
-            background: "#e6f4ff",
-            padding: "16px 24px",
-            borderRadius: "8px 8px 0 0",
-          },
-          body: {
-            padding: "24px",
-            background: "#f9fafb",
-            borderRadius: "0 0 8px 8px",
-            maxHeight: "70vh",
-            overflowY: "auto",
-          },
-          content: {
-            padding: 0,
-            borderRadius: "8px",
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
-          },
-          footer: {
-            padding: "16px",
-            borderRadius: "0 0 8px 8px",
-          },
-        }}
-      >
-        {editTask && (
-          <Card
-            bordered={false}
-            style={{
-              background: "#ffffff",
-              borderRadius: "8px",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            }}
-          >
-            <Form layout="vertical">
-              <Form.Item label="Task Title" required>
-                <Input
-                  value={editTask.title}
-                  onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
-                  placeholder="Enter task title"
-                />
-              </Form.Item>
-              <Form.Item label="Description">
-                <Input.TextArea
-                  value={editTask.description}
-                  onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
-                  autoSize={{ minRows: 3, maxRows: 6 }}
-                  placeholder="Enter task description"
-                />
-              </Form.Item>
-              <Divider style={{ margin: "16px 0" }} />
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item label="Priority">
-                    <Select
-                      value={editTask.priority}
-                      onChange={(val) => setEditTask({ ...editTask, priority: val })}
-                    >
-                      <Select.Option value="Low">Low</Select.Option>
-                      <Select.Option value="Medium">Medium</Select.Option>
-                      <Select.Option value="High">High</Select.Option>
-                    </Select>
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Category">
-                    <Select
-                      value={editTask.categoryId}
-                      onChange={(val) => setEditTask({ ...editTask, categoryId: val })}
-                    >
-                      <Select.Option value="inbox">Inbox</Select.Option>
-                      {categories.map((cat) => (
-                        <Select.Option key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </Select.Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Divider style={{ margin: "16px 0" }} />
-              <Row gutter={16}>
-                <Col span={12}>
-                  <Form.Item label="Deadline (Date)">
-                    <DatePicker
-                      style={{ width: "100%" }}
-                      value={editTask.deadline ? dayjs(editTask.deadline) : null}
-                      onChange={(_, dateStr) => setEditTask({ ...editTask, deadline: dateStr || null })}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item label="Deadline (Time, Optional)">
-                    <TimePicker
-                      style={{ width: "100%" }}
-                      value={editTask.deadlineTime ? dayjs(editTask.deadlineTime, "HH:mm") : null}
-                      format="HH:mm"
-                      onChange={(_, timeStr) => setEditTask({ ...editTask, deadlineTime: timeStr || null })}
-                    />
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Form.Item label="Parent Tasks">
-                <Select
-                  mode="multiple"
-                  value={editTask.parentIds}
-                  onChange={(val) => setEditTask({ ...editTask, parentIds: val })}
-                  placeholder="Select parent tasks"
-                >
-                  {getValidParents(null).map((t) => (
-                    <Select.Option key={t.id} value={t.id}>
-                      {t.title.length > 20 ? `${t.title.substring(0, 20)}...` : t.title}
-                    </Select.Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </Form>
-          </Card>
-        )}
-      </Modal>
+        title="Add New Task"
+      />
     </div>
   );
 }

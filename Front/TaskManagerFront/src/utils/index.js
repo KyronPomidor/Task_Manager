@@ -1,0 +1,1 @@
+export { normalizeCategories } from "./normalizeCategories";

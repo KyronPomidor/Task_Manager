@@ -47,26 +47,7 @@ export function TaskFilters({ filters, setFilters }) {
                 </select>
             ),
         },
-        {
-            label: "Status",
-            control: (
-                <select
-                    value={filters.status}
-                    onChange={(e) =>
-                        setFilters((prev) => ({ ...prev, status: e.target.value }))
-                    }
-                    style={{
-                        padding: "6px 10px",
-                        borderRadius: "6px",
-                        border: "1px solid #ccc",
-                    }}
-                >
-                    <option value="All">All</option>
-                    <option value="Done">Done</option>
-                    <option value="Undone">Undone</option>
-                </select>
-            ),
-        },
+        
         {
             label: "Deadline",
             control: (
