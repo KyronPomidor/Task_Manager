@@ -46,9 +46,11 @@ public class TaskCategoryRepository : ITaskCategoryRepository
         await DeleteAsync(category);
     }
 
-    public async Task<List<TaskCategory>> GetAllAsync()
+    public async Task<List<TaskCategory>> GetAllByUserIdAsync(Guid userId)
     {
-        return await _dbContext.Categories.ToListAsync();
+        return await _dbContext.Categories
+            .Where(c => c.UserId == userId)
+            .ToListAsync();
     }
 
     public async Task<TaskCategory> GetByIdAsync(Guid entityId)

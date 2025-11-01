@@ -21,7 +21,7 @@ public class AskAiChatHandler : IRequestHandler<AskAiChatRequest, string>
     public async Task<string> Handle(AskAiChatRequest request, CancellationToken cancellationToken)
     {
         // Fetch all tasks
-        var tasks = await _taskRepository.GetAllAsync();
+        var tasks = await _taskRepository.GetAllByUserIdAsync(request.UserId);
 
         // Build task list for prompt
         var sb = new StringBuilder();

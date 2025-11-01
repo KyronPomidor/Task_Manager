@@ -42,11 +42,7 @@ public class TaskRepository : ITaskRepository
     public async Task<TaskEntity> GetByIdAsync(Guid entityId)
     {
         var task = await _dbContext.Tasks
-            .Include("Attachments")   // <-- string version for private field
-            .Include("Reminders")
-            .Include("TaskRelations")
-            .Include("ShopItems")
-            .Include("Labels")
+            .IncludeAll()
             .FirstOrDefaultAsync(t => t.Id == entityId);
 
 
@@ -54,15 +50,11 @@ public class TaskRepository : ITaskRepository
         return task ?? throw new KeyNotFoundException($"Task with Id '{entityId}' not found.");
     }
 
-
-    public async Task<List<TaskEntity>> GetAllAsync()
+    public async Task<List<TaskEntity>> GetAllByUserIdAsync(Guid userId)
     {
         var tasks = await _dbContext.Tasks
-            .Include("Attachments")   // <-- string version for private field
-            .Include("Reminders")
-            .Include("TaskRelations")
-            .Include("ShopItems")
-            .Include("Labels")
+            .IncludeAll()
+            .Where(t => t.UserId == userId)
             .ToListAsync();
         return tasks;
     }
@@ -122,4 +114,16 @@ public class TaskRepository : ITaskRepository
         await UpdateAsync(task);
     }
 
+}
+public static class TaskQueryExtensions
+{
+    public static IQueryable<TaskEntity> IncludeAll(this IQueryable<TaskEntity> tasks)
+    {
+        return tasks
+            .Include("Attachments")
+            .Include("Reminders")
+            .Include("TaskRelations")
+            .Include("ShopItems")
+            .Include("Labels");
+    }
 }
