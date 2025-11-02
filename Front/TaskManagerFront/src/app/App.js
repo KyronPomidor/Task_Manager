@@ -9,6 +9,8 @@ import Authorization from "../pages/authorization";
 import useAuth from "../hooks/useAuth";
 import UserProfileMenu from "../Widgets/UserProfile";
 import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration";
+import { SnakeGame } from "../pages/GraphPage/ui/SnakeGame";
+
 import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
 import aiIcon from "./ai.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
@@ -126,6 +128,13 @@ export default function App() {
                 tasks={tasks}
                 categories={categories}
                 onCardClick={(task) => setSelectedCategory(task.categoryId)}
+              />
+            ) : selectedCategory === "game" ? (
+              <SnakeGame
+                tasks={tasks}
+                setTasks={setTasks}
+                categories={categories}
+                updateTask={updateTask}
               />
             ) : (
               <div className="MainScroll">

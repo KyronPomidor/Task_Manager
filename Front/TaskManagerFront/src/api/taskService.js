@@ -9,7 +9,7 @@ const FIXED_INBOX_ID = "00000000-0000-0000-0000-000000000001";
 
 export const fetchTasks = async () => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/tasks`);
+        const response = await axios.get(`${API_BASE_URL}/tasks/${FIXED_USER_ID}`);
         console.log("Fetched tasks from backend:", response.data);
         return response.data;
     } catch (error) {
@@ -51,7 +51,7 @@ export const createTask = async (taskData) => {
 
     try {
         console.log("Sending new task to backend:", backendTask);
-        const response = await axios.post(`${API_BASE_URL}/tasks`, backendTask, {
+        const response = await axios.post(`${API_BASE_URL}/tasks/`, backendTask, {
             headers: { "Content-Type": "application/json" },
         });
         console.log("Backend created task:", response.data);
@@ -148,7 +148,7 @@ export const updateTaskOrder = async (id, positionOrder) => {
 
 export const fetchCategories = async () => {
     try {
-        const { data } = await axios.get(`${API_BASE_URL}/categories`);
+        const { data } = await axios.get(`${API_BASE_URL}/categories/${FIXED_USER_ID}`);
         return data;
     } catch (error) {
         console.error("Error loading categories:", error.response?.data || error.message);
