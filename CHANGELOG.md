@@ -1,5 +1,8 @@
 # Changelog
 
+## 01-11-2025
+- **User-specific data retrieval support**: Updated controllers to handle requests by user ID, replacing `GetAll` methods with `GetAllByUserId`. Introduced `GetTasksByUserIdRequest` and updated related use cases and request classes. Added `TaskQueryExtensions` for query optimization and `EnsureCategoryAsync` in `AppDbSeeder` to prevent duplicate categories. Integrated a basic raw email sending feature relying on a local SMTP server (`mailpit.exe`). Contributors: Andrei.E
+
 ## 31-10-2025
 - **Code modularization**: `Tasks.js` was divided into multiple focused components (`SortableTask.js`, `taskActions.js`, `taskCard.js`, etc.) to improve maintainability. Contributors: Kirill, Andrei.U
 - **Color management enhancements**: Adjusted and standardized color handling in`colorUtils.js`. Contributors: Kirill
