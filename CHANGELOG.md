@@ -1,5 +1,8 @@
 # Changelog
 
+## 02-11-2025
+- **Snake Game enhancements**: Implemented a fully functional Snake Game component. Resolved direction change issue where rapid key presses (e.g., right to down to left in quick succession) caused improper movement or self-collision, by introducing a direction queue system to process inputs sequentially per frame. Contributors: Mihail. P
+
 ## 01-11-2025
 - **User-specific data retrieval support**: Updated controllers to handle requests by user ID, replacing `GetAll` methods with `GetAllByUserId`. Introduced `GetTasksByUserIdRequest` and updated related use cases and request classes. Added `TaskQueryExtensions` for query optimization and `EnsureCategoryAsync` in `AppDbSeeder` to prevent duplicate categories. Integrated a basic raw email sending feature relying on a local SMTP server (`mailpit.exe`). Contributors: Andrei.E
 
