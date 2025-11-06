@@ -5,12 +5,13 @@
 
 ## 01-11-2025
 - **User-specific data retrieval support**: Updated controllers to handle requests by user ID, replacing `GetAll` methods with `GetAllByUserId`. Introduced `GetTasksByUserIdRequest` and updated related use cases and request classes. Added `TaskQueryExtensions` for query optimization and `EnsureCategoryAsync` in `AppDbSeeder` to prevent duplicate categories. Integrated a basic raw email sending feature relying on a local SMTP server (`mailpit.exe`). Contributors: Andrei.E
+- **Budget Tracking**: Implementation of the budget tracking system, refactoring the main concept and the idea. Beginning on working on the new feature of integrated map: attaching a special address to a certain task and a separate tab with the map. Contributors: Rustem
 
 ## 31-10-2025
 - **Code modularization**: `Tasks.js` was divided into multiple focused components (`SortableTask.js`, `taskActions.js`, `taskCard.js`, etc.) to improve maintainability. Contributors: Kirill, Andrei.U
 - **Color management enhancements**: Adjusted and standardized color handling in`colorUtils.js`. Contributors: Kirill
 - **Backend optimization - frontend**: Streamlined communication between frontend and backend layers. Contributors: Kirill
-- **UI improvements**: Refined layout, visual hierarchy, and overall user experience for better accessibility. Contributors: Kirill, Andrei.U 
+- **UI improvements**: Refined layout, visual hierarchy, and overall user experience for better accessibility. Contributors: Kirill, Andrei.U
 
 ## 30-10-2025
 - **API abstraction**: Extracted and centralized all API-related logic into `taskService.js`, making the functions reusable. Contributors: Kirill
