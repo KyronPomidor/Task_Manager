@@ -8,20 +8,20 @@
 - **Budget Tracking**: Implementation of the budget tracking system, refactoring the main concept and the idea. Beginning on working on the new feature of integrated map: attaching a special address to a certain task and a separate tab with the map. Contributors: Rustem
 
 ## 31-10-2025
-- **Code modularization**: `Tasks.js` was divided into multiple focused components (`SortableTask.js`, `taskActions.js`, `taskCard.js`, etc.) to improve maintainability. Contributors: Kirill, Andrei.U
-- **Color management enhancements**: Adjusted and standardized color handling in`colorUtils.js`. Contributors: Kirill
-- **Backend optimization - frontend**: Streamlined communication between frontend and backend layers. Contributors: Kirill
-- **UI improvements**: Refined layout, visual hierarchy, and overall user experience for better accessibility. Contributors: Kirill, Andrei.U
+- **Code modularization**: `Tasks.js` was divided into multiple focused components (`SortableTask.js`, `taskActions.js`, `taskCard.js`, etc.) to improve maintainability. Contributors: Kirill, Andrei.U ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/af534178e32ab7df1cd0b8faeb2720fca5d40eb8))
+- **Color management enhancements**: Adjusted and standardized color handling in`colorUtils.js`. Contributors: Kirill ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/9eaa84b060ddfc3c791a93eca4b1ffbcfbee0355))
+- **Backend optimization - frontend**: Streamlined communication between frontend and backend layers. Contributors: Kirill ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
+- **UI improvements**: Refined layout, visual hierarchy, and overall user experience for better accessibility. Contributors: Kirill, Andrei.U ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
 
 ## 30-10-2025
-- **API abstraction**: Extracted and centralized all API-related logic into `taskService.js`, making the functions reusable. Contributors: Kirill
+- **API abstraction**: Extracted and centralized all API-related logic into `taskService.js`, making the functions reusable. Contributors: Kirill [Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc)
 
 ## 29-10-2025
-- **Project structure update**: Reorganized key files (`Tasks.js`, `TaskGraphIntegration.js`) to improve code clarity. Contributors: Kirill, Andrey.U
+- **Project structure update**: Reorganized key files (`Tasks.js`, `TaskGraphIntegration.js`) to improve code clarity. Contributors: Kirill, Andrey.U [Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc)
 
 ## 28-10-2025
-- **Custom hook refactoring**: Completed major refactoring for `useDragDrop.js` and `useTasks.js` enhance logic reusability and code readability. Contributors: Kirill, Andrei.U
-- **Frontend restructuring**: Updated the general file organization, including adjustments in `App.js`. Contributors: Kirill
+- **Custom hook refactoring**: Completed major refactoring for `useDragDrop.js` and `useTasks.js` enhance logic reusability and code readability. Contributors: Kirill, Andrei.U ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
+- **Frontend restructuring**: Updated the general file organization, including adjustments in `App.js`. Contributors: Kirill ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
 
 ## 27-10-2025
-- **Category management refactor**: Extracted category-related logic into a dedicated hook (`useCategories.js`), simplifying state handling and improving modularity. Contributors: Kirill
+- **Category management refactor**: Extracted category-related logic into a dedicated hook (`useCategories.js`), simplifying state handling and improving modularity. Contributors: Kirill ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
