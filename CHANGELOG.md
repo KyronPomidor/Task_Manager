@@ -14,10 +14,10 @@
 - **UI improvements**: Refined layout, visual hierarchy, and overall user experience for better accessibility. Contributors: Kirill, Andrei.U ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
 
 ## 30-10-2025
-- **API abstraction**: Extracted and centralized all API-related logic into `taskService.js`, making the functions reusable. Contributors: Kirill [Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc)
+- **API abstraction**: Extracted and centralized all API-related logic into `taskService.js`, making the functions reusable. Contributors: Kirill ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
 
 ## 29-10-2025
-- **Project structure update**: Reorganized key files (`Tasks.js`, `TaskGraphIntegration.js`) to improve code clarity. Contributors: Kirill, Andrey.U [Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc)
+- **Project structure update**: Reorganized key files (`Tasks.js`, `TaskGraphIntegration.js`) to improve code clarity. Contributors: Kirill, Andrey.U ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
 
 ## 28-10-2025
 - **Custom hook refactoring**: Completed major refactoring for `useDragDrop.js` and `useTasks.js` enhance logic reusability and code readability. Contributors: Kirill, Andrei.U ([Commit link](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
