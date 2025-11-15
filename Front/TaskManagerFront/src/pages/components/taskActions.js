@@ -13,7 +13,6 @@ export function TaskActions({
     setMenuOpenId,
 }) {
     const open = menuOpenId === task.id;
-
     const buttonVariants = {
         hidden: { opacity: 0, x: 0, scale: 0.7 },
         visible: (i) => ({

@@ -20,6 +20,7 @@ import { useTasks } from "../hooks/useTasks";
 import { useDragDrop } from "../hooks/useDragDrop";
 import { filterTasksByCategory } from "../utils/taskUtils";
 
+
 export default function App() {
   const { user, loading } = useAuth();
 
@@ -35,6 +36,8 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const [searchText, setSearchText] = useState("");
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
 
   const { tasks, setTasks, addTask, updateTask, updateTaskOrder } = useTasks(
     categories,
@@ -73,7 +76,7 @@ export default function App() {
   };
 
   // Loading and auth states
-  if (loading) return <div className="App">Loading...</div>;
+  if (loading) return <div className={`App ${isDarkMode ? "dark-mode" : ""}`}>Loading...</div>;
   if (!user) return <Authorization />;
 
   // Prepare droppable category IDs
@@ -88,8 +91,9 @@ export default function App() {
     todayStr
   );
 
+
   return (
-    <div className="App">
+    <div className={`App ${isDarkMode ? "dark-mode" : ""}`}>
       <div className="AppBody">
         <DndContext
           collisionDetection={closestCenter}
@@ -159,6 +163,12 @@ export default function App() {
                       onClick={() => setIsAIAnalysisOpen(true)}
                     >
                       AI Analysis
+                    </Button>
+                    <Button
+                      type={isDarkMode ? "default" : "primary"}
+                      onClick={() => setIsDarkMode(!isDarkMode)}
+                    >
+                      {isDarkMode ? "Light Mode" : "Dark Mode"}
                     </Button>
                   </div>
                   <UserProfileMenu user={user} />
