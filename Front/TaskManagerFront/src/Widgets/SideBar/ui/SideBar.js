@@ -73,10 +73,10 @@ const STYLES = {
     zIndex: 1000,
   },
   field: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 },
-  input: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", fontFamily: "'Roboto', sans-serif" },
-  select: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", background: "#fff", fontFamily: "'Roboto', sans-serif" },
+  input: { padding: 10, borderRadius: 8, border: "1px solid", font: "inherit", fontFamily: "'Roboto', sans-serif" },
+  select: { padding: 10, borderRadius: 8, border: "1px solid", font: "inherit", background: "#fff", fontFamily: "'Roboto', sans-serif" },
   actions: { display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 },
-  btnCancel: { padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", background: "#fafafa", cursor: "pointer" },
+  btnCancel: { padding: "8px 12px", borderRadius: 8, border: "1px solid", background: "#fafafa", cursor: "pointer" },
   btnSave: { padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600 },
   iconWrapper: {
     width: 20,
@@ -99,7 +99,7 @@ const STYLES = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    maxWidth: "calc(100% - 60px)", // Account for icons, task count, and actions
+    maxWidth: "calc(100% - 60px)",
     fontFamily: "'Roboto', sans-serif"
   },
 };
@@ -190,7 +190,7 @@ function Row({
 
   return (
     <div
-      style={getRowStyle({ isActive, level, isShaded, isHovered: !isActive && showActions, colors })}
+      style={getRowStyle({ isActive, level, isShaded, isHovered: !isActive && showActions, colors})}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -230,7 +230,7 @@ function Row({
         <span style={STYLES.labelText}>{customContent || label}</span>
       </span>
 
-      {!isSystemCategory && (showActions) && (
+      {!isSystemCategory && showActions && (
         <Actions onEdit={onEdit} onDelete={onDelete} colors={colors} />
       )}
 
@@ -286,7 +286,6 @@ export function SideBar({
   const [collapsedIds, setCollapsedIds] = useState(new Set());
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState("add");
   const [editingId, setEditingId] = useState(null);
@@ -397,14 +396,9 @@ export function SideBar({
       alert("Category name is required.");
       return;
     }
-
     const parentValue = parentId === "" ? null : parentId;
-
-    if (mode === "edit") {
-      editCategory(editingId, trimmed, parentValue);
-    } else {
-      addCategory(trimmed, parentValue);
-    }
+    if (mode === "edit") editCategory(editingId, trimmed, parentValue);
+    else addCategory(trimmed, parentValue);
     closeModal();
   }
 
@@ -412,7 +406,6 @@ export function SideBar({
     deleteCategory(id);
   }
 
-  // Updated parentChoices to exclude "inbox" and descendants
   const parentChoices = useMemo(() => {
     const descendants = new Set();
     if (mode === "edit" && editingId) {
@@ -448,10 +441,8 @@ export function SideBar({
         <div key={cat.id}>
           <DroppableRow
             categoryId={cat.id}
-            isEnabled={droppableCategoryIds.has(cat.id)}
-            onExpand={() => {
-              if (collapsed) toggleCollapse(cat.id);
-            }}
+            isEnabled={true}
+            onExpand={() => { if (collapsed) toggleCollapse(cat.id); }}
           >
             <Row
               id={cat.id}
@@ -514,7 +505,7 @@ export function SideBar({
             label="Inbox"
             icon={inboxIcon}
             level={0}
-            isActive={hoveredCategory === "inbox" || selectedCategory === "inbox"}
+            isActive={hoverId === "inbox" || selectedCategory === "inbox"}
             showActions={hoverId === "inbox"}
             onMouseEnter={() => setHoverId("inbox")}
             onMouseLeave={() => setHoverId(null)}
@@ -530,7 +521,7 @@ export function SideBar({
             label="Today"
             icon={todayIcon}
             level={0}
-            isActive={hoveredCategory === "today" || selectedCategory === "today"}
+            isActive={hoverId === "today" || selectedCategory === "today"}
             showActions={hoverId === "today"}
             onMouseEnter={() => setHoverId("today")}
             onMouseLeave={() => setHoverId(null)}
@@ -546,7 +537,7 @@ export function SideBar({
             label="Graphs"
             icon={graphsIcon}
             level={0}
-            isActive={hoveredCategory === "graphs" || selectedCategory === "graphs"}
+            isActive={hoverId === "graphs" || selectedCategory === "graphs"}
             showActions={hoverId === "graphs"}
             onMouseEnter={() => setHoverId("graphs")}
             onMouseLeave={() => setHoverId(null)}
@@ -560,7 +551,7 @@ export function SideBar({
           label="Done"
           icon={checkIcon}
           level={0}
-          isActive={hoveredCategory === "done" || selectedCategory === "done"}
+          isActive={hoverId === "done" || selectedCategory === "done"}
           showActions={hoverId === "done"}
           onMouseEnter={() => setHoverId("done")}
           onMouseLeave={() => setHoverId(null)}
