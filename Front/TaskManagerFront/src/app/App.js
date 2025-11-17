@@ -115,6 +115,7 @@ export default function App() {
             addCategory={addCategory}
             editCategory={editCategory}
             deleteCategory={handleDeleteCategory}
+            isDarkMode={isDarkMode}
           />
 
           <div className="MainPanel">

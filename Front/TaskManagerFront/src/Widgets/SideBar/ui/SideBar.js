@@ -73,10 +73,10 @@ const STYLES = {
     zIndex: 1000,
   },
   field: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 },
-  input: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", fontFamily: "'Roboto', sans-serif" },
-  select: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", background: "#fff", fontFamily: "'Roboto', sans-serif" },
+  input: { padding: 10, borderRadius: 8, border: "1px solid", font: "inherit", fontFamily: "'Roboto', sans-serif" },
+  select: { padding: 10, borderRadius: 8, border: "1px solid", font: "inherit", background: "#fff", fontFamily: "'Roboto', sans-serif" },
   actions: { display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 },
-  btnCancel: { padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", background: "#fafafa", cursor: "pointer" },
+  btnCancel: { padding: "8px 12px", borderRadius: 8, border: "1px solid", background: "#fafafa", cursor: "pointer" },
   btnSave: { padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600 },
   iconWrapper: {
     width: 20,
@@ -99,7 +99,7 @@ const STYLES = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    maxWidth: "calc(100% - 60px)", // Account for icons, task count, and actions
+    maxWidth: "calc(100% - 60px)",
     fontFamily: "'Roboto', sans-serif"
   },
 };
@@ -117,7 +117,7 @@ function getRowStyle({ isActive, level, isShaded, isHovered, colors }) {
     margin: "0 8px",
     cursor: "pointer",
     background: "transparent",
-    color: "#111827",
+    color: colors.text,
     fontWeight: 500,
     borderBottom: `1px solid ${colors.rowBorder}`,
     userSelect: "none",
@@ -126,7 +126,7 @@ function getRowStyle({ isActive, level, isShaded, isHovered, colors }) {
   };
   if (isActive) {
     s.background = colors.blue;
-    s.color = "#111827";
+    s.color = colors.blueText;
     s.fontWeight = 600;
   } else if (isShaded) {
     s.background = colors.groupBg;
@@ -190,7 +190,7 @@ function Row({
 
   return (
     <div
-      style={getRowStyle({ isActive, level, isShaded, isHovered: !isActive && showActions, colors })}
+      style={getRowStyle({ isActive, level, isShaded, isHovered: !isActive && showActions, colors})}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -230,7 +230,7 @@ function Row({
         <span style={STYLES.labelText}>{customContent || label}</span>
       </span>
 
-      {!isSystemCategory && (showActions) && (
+      {!isSystemCategory && showActions && (
         <Actions onEdit={onEdit} onDelete={onDelete} colors={colors} />
       )}
 
@@ -280,12 +280,12 @@ export function SideBar({
   addCategory,
   editCategory,
   deleteCategory,
+  isDarkMode,
 }) {
   const [hoverId, setHoverId] = useState(null);
   const [collapsedIds, setCollapsedIds] = useState(new Set());
   const [searchOpen, setSearchOpen] = useState(false);
 
-  // modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState("add");
   const [editingId, setEditingId] = useState(null);
@@ -301,6 +301,40 @@ export function SideBar({
     });
     return map;
   }, [categories]);
+
+  const colors = isDarkMode
+    ? {
+        sidebarBg: "#1f2123",
+        border: "#3a3c3e",
+        text: "#e5e5e5",
+        blue: "#3f63d2",
+        blueText: "#ffffff",
+        groupBg: "#2b2d2f",
+        rowHover: "#2f3236",
+        rowBorder: "#3a3c3e",
+        actionBg: "#1f2123",
+        actionHover: "#3a3c3e",
+        dialogBg: "#2b2d2f",
+        dialogBorder: "#3a3c3e",
+        inputBg: "#1d1f21",
+        inputBorder: "#555",
+      }
+    : {
+        sidebarBg: "#ffffff",
+        border: "#ddd",
+        text: "#111827",
+        blue: "#e0e7ff",
+        blueText: "#111827",
+        groupBg: "#f5f5f7",
+        rowHover: "#f3f4f6",
+        rowBorder: "#eee",
+        actionBg: "#fff",
+        actionHover: "#f1f1f1",
+        dialogBg: "#fff",
+        dialogBorder: "#ccc",
+        inputBg: "#fff",
+        inputBorder: "#ccc",
+      };
 
   function getTaskCount(categoryId) {
     if (categoryId === "today") {
@@ -348,14 +382,9 @@ export function SideBar({
       alert("Category name is required.");
       return;
     }
-
     const parentValue = parentId === "" ? null : parentId;
-
-    if (mode === "edit") {
-      editCategory(editingId, trimmed, parentValue);
-    } else {
-      addCategory(trimmed, parentValue);
-    }
+    if (mode === "edit") editCategory(editingId, trimmed, parentValue);
+    else addCategory(trimmed, parentValue);
     closeModal();
   }
 
@@ -363,7 +392,6 @@ export function SideBar({
     deleteCategory(id);
   }
 
-  // Updated parentChoices to exclude "inbox" and descendants
   const parentChoices = useMemo(() => {
     const descendants = new Set();
     if (mode === "edit" && editingId) {
@@ -378,9 +406,9 @@ export function SideBar({
     }
     return categories.filter(
       (c) =>
-        c.id !== "inbox" && // Exclude inbox
-        (mode !== "edit" || c.id !== editingId) && // Exclude self when editing
-        !descendants.has(c.id) // Exclude descendants to prevent loops
+        c.id !== "inbox" &&
+        (mode !== "edit" || c.id !== editingId) &&
+        !descendants.has(c.id)
     );
   }, [categories, mode, editingId, childrenByParent]);
 
@@ -399,10 +427,8 @@ export function SideBar({
         <div key={cat.id}>
           <DroppableRow
             categoryId={cat.id}
-            isEnabled={droppableCategoryIds.has(cat.id)}
-            onExpand={() => {
-              if (collapsed) toggleCollapse(cat.id);
-            }}
+            isEnabled={true}
+            onExpand={() => { if (collapsed) toggleCollapse(cat.id); }}
           >
             <Row
               id={cat.id}
@@ -420,7 +446,7 @@ export function SideBar({
               onMouseEnter={() => setHoverId(cat.id)}
               onMouseLeave={() => setHoverId(null)}
               count={getTaskCount(cat.id)}
-              colors={COLORS}
+              colors={colors}
             />
           </DroppableRow>
           {!collapsed && renderTree(cat.id, level + 1)}
@@ -429,23 +455,9 @@ export function SideBar({
     });
   }
 
-  // Define colors before return
-  const COLORS = {
-    blue: "#60a5fa",
-    blueText: "#ffffff",
-    rowHover: "#d1d5db",
-    rowBorder: "#e5e7eb",
-    bg: "#e8ecef",
-    sidebarBorder: "#e5e7eb",
-    actionBg: "#f3f4f6",
-    actionHover: "#e5e7eb",
-    gray: "#ececec",
-    groupBg: "#f6f7f9",
-  };
-
   return (
-    <div style={{ ...STYLES.sidebar, background: COLORS.bg, borderRightColor: COLORS.sidebarBorder }}>
-      <div style={{ ...STYLES.logoWrap, borderBottomColor: COLORS.sidebarBorder }}>
+    <div style={{ ...STYLES.sidebar, background: colors.sidebarBg, borderRightColor: colors.border }}>
+      <div style={{ ...STYLES.logoWrap, borderBottomColor: colors.border }}>
         <img src={logo} alt="logo" width={128} height={85} />
       </div>
 
@@ -454,77 +466,69 @@ export function SideBar({
           id="search"
           icon={searchIcon}
           level={0}
-          isActive={hoveredCategory === "search" || selectedCategory === "search"}
+          isActive={hoverId === "search" || selectedCategory === "search"}
           showActions={hoverId === "search"}
           onMouseEnter={() => setHoverId("search")}
           onMouseLeave={() => setHoverId(null)}
-          onClick={() => {
-            if (!searchOpen) setSearchOpen(true);
-          }}
-          customContent={
-            searchOpen ? (
-              <input
-                autoFocus
-                type="text"
-                placeholder="Search tasks..."
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                style={STYLES.inputInline}
-                onBlur={() => {
-                  if (!searchText) setSearchOpen(false);
-                }}
-              />
-            ) : (
-              "Search"
-            )
-          }
-          colors={COLORS}
+          onClick={() => { if (!searchOpen) setSearchOpen(true); }}
+          customContent={searchOpen ? (
+            <input
+              autoFocus
+              type="text"
+              placeholder="Search tasks..."
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              style={{ ...STYLES.inputInline, background: colors.inputBg, color: colors.text }}
+              onBlur={() => { if (!searchText) setSearchOpen(false); }}
+            />
+          ) : ("Search")}
+          colors={colors}
         />
 
-        <DroppableRow categoryId="inbox" isEnabled={droppableCategoryIds.has("inbox")}>
+        <DroppableRow categoryId="inbox" isEnabled={true}>
           <Row
             id="inbox"
             label="Inbox"
             icon={inboxIcon}
             level={0}
-            isActive={hoveredCategory === "inbox" || selectedCategory === "inbox"}
+            isActive={hoverId === "inbox" || selectedCategory === "inbox"}
             showActions={hoverId === "inbox"}
             onMouseEnter={() => setHoverId("inbox")}
             onMouseLeave={() => setHoverId(null)}
             onClick={() => onCategorySelect("inbox")}
             count={getTaskCount("inbox")}
-            colors={COLORS}
+            colors={colors}
           />
         </DroppableRow>
 
-        <DroppableRow categoryId="today" isEnabled={droppableCategoryIds.has("today")}>
+        <DroppableRow categoryId="today" isEnabled={true}>
           <Row
             id="today"
             label="Today"
             icon={todayIcon}
             level={0}
-            isActive={hoveredCategory === "today" || selectedCategory === "today"}
+            isActive={hoverId === "today" || selectedCategory === "today"}
             showActions={hoverId === "today"}
             onMouseEnter={() => setHoverId("today")}
             onMouseLeave={() => setHoverId(null)}
             onClick={() => onCategorySelect("today")}
             count={getTaskCount("today")}
-            colors={COLORS}
+            colors={colors}
           />
         </DroppableRow>
 
-        <DroppableRow categoryId="graphs" isEnabled={droppableCategoryIds.has("graphs")}>
+        <DroppableRow categoryId="graphs" isEnabled={true}>
           <Row
             id="graphs"
             label="Graphs"
             icon={graphsIcon}
             level={0}
-            isActive={hoveredCategory === "graphs" || selectedCategory === "graphs"}
+            isActive={hoverId === "graphs" || selectedCategory === "graphs"}
             showActions={hoverId === "graphs"}
             onMouseEnter={() => setHoverId("graphs")}
             onMouseLeave={() => setHoverId(null)}
             onClick={() => onCategorySelect("graphs")}
-            colors={COLORS}
+            colors={colors}
           />
         </DroppableRow>
 
@@ -533,23 +537,22 @@ export function SideBar({
           label="Done"
           icon={checkIcon}
           level={0}
-          isActive={hoveredCategory === "done" || selectedCategory === "done"}
+          isActive={hoverId === "done" || selectedCategory === "done"}
           showActions={hoverId === "done"}
           onMouseEnter={() => setHoverId("done")}
           onMouseLeave={() => setHoverId(null)}
           onClick={() => onCategorySelect("done")}
           count={getTaskCount("done")}
-          colors={COLORS}
+          colors={colors}
         />
 
         <div style={STYLES.categoryHeader}>My Categories</div>
-
         {renderTree(null, 0)}
 
         <button
           onClick={openAdd}
-          style={{ ...STYLES.addBtn, background: "transparent", color: "#111827" }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = COLORS.rowHover)}
+          style={{ ...STYLES.addBtn, background: "transparent", color: colors.text }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = colors.rowHover)}
           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
           + Add Category
@@ -559,42 +562,33 @@ export function SideBar({
       {isModalOpen && (
         <>
           <div onClick={closeModal} style={{ ...STYLES.backdrop, background: "rgba(0,0,0,0.45)" }} />
-          <div role="dialog" aria-modal="true" style={{ ...STYLES.dialog, background: "#fff" }}>
-            <h3>{mode === "edit" ? "Edit Category" : "Add Category"}</h3>
+          <div role="dialog" aria-modal="true" style={{ ...STYLES.dialog, background: colors.dialogBg, borderColor: colors.dialogBorder }}>
+            <h3 style={{ color: colors.text }}>{mode === "edit" ? "Edit Category" : "Add Category"}</h3>
             <label style={STYLES.field}>
-              <span>Category name *</span>
+              <span style={{ color: colors.text }}>Category name *</span>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                style={STYLES.input}
+                style={{ ...STYLES.input, background: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }}
               />
             </label>
             <label style={STYLES.field}>
-              <span>Parent category</span>
+              <span style={{ color: colors.text }}>Parent category</span>
               <select
                 value={parentId}
                 onChange={(e) => setParentId(e.target.value)}
-                style={STYLES.select}
+                style={{ ...STYLES.select, background: colors.inputBg, borderColor: colors.inputBorder, color: colors.text }}
               >
                 <option value="">None</option>
                 {parentChoices.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
+                  <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
             </label>
             <div style={STYLES.actions}>
-              <button onClick={closeModal} style={STYLES.btnCancel}>
-                Cancel
-              </button>
-              <button
-                onClick={saveCategory}
-                style={{ ...STYLES.btnSave, background: COLORS.blue, color: COLORS.blueText }}
-              >
-                Save
-              </button>
+              <button onClick={closeModal} style={{ ...STYLES.btnCancel, borderColor: colors.border, background: colors.actionBg, color: colors.text }}>Cancel</button>
+              <button onClick={saveCategory} style={{ ...STYLES.btnSave, background: colors.blue, color: colors.blueText }}>Save</button>
             </div>
           </div>
         </>
