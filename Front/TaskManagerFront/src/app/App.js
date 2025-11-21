@@ -1,5 +1,5 @@
 import "./styles/App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "antd";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
@@ -38,7 +38,16 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const [searchText, setSearchText] = useState("");
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+  const saved = localStorage.getItem("darkMode");
+  return saved === "true"; 
+
+});
+
+  useEffect(() => {
+  localStorage.setItem("darkMode", isDarkMode);
+}, [isDarkMode]);
+
 
 
   const { tasks, setTasks, addTask, updateTask, updateTaskOrder } = useTasks(
