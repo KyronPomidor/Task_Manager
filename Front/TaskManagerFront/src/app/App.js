@@ -1,5 +1,5 @@
 import "./styles/App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "antd";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
@@ -13,12 +13,15 @@ import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
 import aiIcon from "./ai.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
+import { Switch } from "antd";
+
 
 // Custom hooks
 import { useCategories } from "../hooks/useCategories";
 import { useTasks } from "../hooks/useTasks";
 import { useDragDrop } from "../hooks/useDragDrop";
 import { filterTasksByCategory } from "../utils/taskUtils";
+
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -35,11 +38,39 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const [searchText, setSearchText] = useState("");
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+  const saved = localStorage.getItem("darkMode");
+  return saved === "true"; 
+
+});
+
+  useEffect(() => {
+  localStorage.setItem("darkMode", isDarkMode);
+}, [isDarkMode]);
+
+
 
   const { tasks, setTasks, addTask, updateTask, updateTaskOrder } = useTasks(
     categories,
     selectedCategory
   );
+
+  const COLORS = (isDarkMode) => isDarkMode
+  ? {
+      bg: "#1f2123",
+      text: "#e5e5e5",
+      border: "#3a3c3e",
+      card: "#2b2d2f",
+      inputBg: "#1d1f21",
+    }
+  : {
+      bg: "#ffffff",
+      text: "#111827",
+      border: "#ddd",
+      card: "#f9f9f9",
+      inputBg: "#fff",
+    };
+
 
   const {
     activeTaskId,
@@ -73,7 +104,7 @@ export default function App() {
   };
 
   // Loading and auth states
-  if (loading) return <div className="App">Loading...</div>;
+  if (loading) return <div className={`App ${isDarkMode ? "dark-mode" : ""}`}>Loading...</div>;
   if (!user) return <Authorization />;
 
   // Prepare droppable category IDs
@@ -88,8 +119,18 @@ export default function App() {
     todayStr
   );
 
+  const colors = COLORS(isDarkMode);
+
   return (
-    <div className="App">
+    <div
+      style={{
+        background: colors.bg,
+        color: colors.text,
+        height: "100vh",
+        display: "flex",
+        transition: "background 0.25s ease, color 0.25s ease",
+      }}
+    >
       <div className="AppBody">
         <DndContext
           collisionDetection={closestCenter}
@@ -111,6 +152,7 @@ export default function App() {
             addCategory={addCategory}
             editCategory={editCategory}
             deleteCategory={handleDeleteCategory}
+            isDarkMode={isDarkMode}
           />
 
           <div className="MainPanel">
@@ -148,6 +190,7 @@ export default function App() {
                       alignItems: "center",
                       gap: "8px",
                     }}
+
                   >
                     <img
                       src={aiIcon}
@@ -160,8 +203,18 @@ export default function App() {
                     >
                       AI Analysis
                     </Button>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Switch
+                        checked={isDarkMode}
+                        onChange={setIsDarkMode}
+                      />
+                      <span>{isDarkMode ? "Dark Mode" : "Light Mode"}</span>
+                    </div>
+
                   </div>
-                  <UserProfileMenu user={user} />
+                  <UserProfileMenu user={user}
+                                  isDarkMode={isDarkMode}
+                  />
                 </div>
 
                 <Welcome
