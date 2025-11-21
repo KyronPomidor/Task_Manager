@@ -1,0 +1,50 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+.App {
+  text-align: center;
+  background-color: #edeef4;
+}
+
+/* Dark Mode */
+.App.dark-mode {
+  background-color: #1d1f21;
+  color: #e5e5e5;
+}
+
+.App.dark-mode .MainPanel {
+  background-color: #2b2d2f;
+}
+
+.App.dark-mode .MainScroll {
+  background-color: #2b2d2f;
+}
+
+.AppBody {
+  display: flex;
+  height: 100vh; /* Ensure full viewport height */
+  overflow: hidden; /* Prevent parent from scrolling */
+}
+
+/* Right side column */
+.MainPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden; /* Prevent MainPanel from scrolling */
+}
+
+/* Only Tasks scrolls */
+.MainScroll {
+  flex: 1;
+  z-index: 0;
+  overflow-y: auto; /* Enable vertical scroll for tasks */
+  min-height: 0;
+}
+
+.task-card .ant-tag {
+  font-size: 0.65rem; /* Smaller font size for priority tags */
+}
+
+.dark-mode * {
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
