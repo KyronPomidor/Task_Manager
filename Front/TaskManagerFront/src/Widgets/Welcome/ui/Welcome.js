@@ -28,6 +28,7 @@ export function Welcome({ user, selectedCategory, categories }) {
   const categoryName = selectedCategory === "inbox"
     ? "Today"
     : categories.find((cat) => cat.id === selectedCategory)?.name || selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
+    
 
   return (
     <motion.div

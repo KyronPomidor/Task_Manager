@@ -13,6 +13,8 @@ import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
 import aiIcon from "./ai.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
+import { Switch } from "antd";
+
 
 // Custom hooks
 import { useCategories } from "../hooks/useCategories";
@@ -43,6 +45,23 @@ export default function App() {
     categories,
     selectedCategory
   );
+
+  const COLORS = (isDarkMode) => isDarkMode
+  ? {
+      bg: "#1f2123",
+      text: "#e5e5e5",
+      border: "#3a3c3e",
+      card: "#2b2d2f",
+      inputBg: "#1d1f21",
+    }
+  : {
+      bg: "#ffffff",
+      text: "#111827",
+      border: "#ddd",
+      card: "#f9f9f9",
+      inputBg: "#fff",
+    };
+
 
   const {
     activeTaskId,
@@ -91,9 +110,18 @@ export default function App() {
     todayStr
   );
 
+  const colors = COLORS(isDarkMode);
 
   return (
-    <div className={`App ${isDarkMode ? "dark-mode" : ""}`}>
+    <div
+      style={{
+        background: colors.bg,
+        color: colors.text,
+        height: "100vh",
+        display: "flex",
+        transition: "background 0.25s ease, color 0.25s ease",
+      }}
+    >
       <div className="AppBody">
         <DndContext
           collisionDetection={closestCenter}
@@ -153,6 +181,7 @@ export default function App() {
                       alignItems: "center",
                       gap: "8px",
                     }}
+
                   >
                     <img
                       src={aiIcon}
@@ -165,14 +194,18 @@ export default function App() {
                     >
                       AI Analysis
                     </Button>
-                    <Button
-                      type={isDarkMode ? "default" : "primary"}
-                      onClick={() => setIsDarkMode(!isDarkMode)}
-                    >
-                      {isDarkMode ? "Light Mode" : "Dark Mode"}
-                    </Button>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <Switch
+                        checked={isDarkMode}
+                        onChange={setIsDarkMode}
+                      />
+                      <span>{isDarkMode ? "Dark Mode" : "Light Mode"}</span>
+                    </div>
+
                   </div>
-                  <UserProfileMenu user={user} />
+                  <UserProfileMenu user={user}
+                                  isDarkMode={isDarkMode}
+                  />
                 </div>
 
                 <Welcome
