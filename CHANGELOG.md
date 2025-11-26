@@ -30,6 +30,6 @@
 - **Created the mobile view for the main page**: The page chenges with relation to the screen size applyed. Contributor: [Kirill](https://github.com/KyronPomidor), ([Pull Request](https://github.com/KyronPomidor/Task_Manager/pull/54))
 
 ## 26-11-2025
-- **The fixed responsiveness to different screes resolutions**: Improved responsiveness across multiple screen resolutions, including phones.
+- **New fixed responsiveness to different screes resolutions**: Improved responsiveness across multiple screen resolutions, including phones.
 - **Opportunity to fold unfold the sidebar on phones**: The menu button for better visibility of UI on small size screens.
 - **Changes for faster UI response**: The UX is better due to changed button positions and minor adjustments of the task cards visualization on the page. Contributor: [Kirill](https://github.com/KyronPomidor), ([Pull Request](https://github.com/KyronPomidor/Task_Manager/pull/54))
