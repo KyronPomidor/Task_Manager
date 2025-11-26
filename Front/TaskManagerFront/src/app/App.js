@@ -15,6 +15,7 @@ import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
 import { Switch } from "antd";
 
+import menu from "./menu.png";
 
 // Custom hooks
 import { useCategories } from "../hooks/useCategories";
@@ -80,6 +81,22 @@ export default function App() {
     handleDragEnd,
   } = useDragDrop(tasks, setTasks, updateTask, updateTaskOrder);
 
+  // ----- MOBILE DETECTION -----
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth < 768);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // Handle category deletion with task reassignment
   const handleDeleteCategory = async (id) => {
     const prevTasks = tasks;
@@ -127,9 +144,9 @@ export default function App() {
         background: colors.bg,
         color: colors.text,
         height: "100vh",
-        display: "flex",
         transition: "background 0.25s ease, color 0.25s ease",
       }}
+      className="App"
     >
       <div className="AppBody">
         <DndContext
@@ -138,22 +155,25 @@ export default function App() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <SideBar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
-            setCategories={setCategories}
-            droppableCategoryIds={droppableCategoryIds}
-            hoveredCategory={hoveredCategory}
-            setTasks={setTasks}
-            tasks={tasks}
-            searchText={searchText}
-            setSearchText={setSearchText}
-            addCategory={addCategory}
-            editCategory={editCategory}
-            deleteCategory={handleDeleteCategory}
-            isDarkMode={isDarkMode}
-          />
+          {/* DESKTOP SIDEBAR – visible only when NOT mobile */}
+          {!isMobile && (
+            <SideBar
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onCategorySelect={setSelectedCategory}
+              setCategories={setCategories}
+              droppableCategoryIds={droppableCategoryIds}
+              hoveredCategory={hoveredCategory}
+              setTasks={setTasks}
+              tasks={tasks}
+              searchText={searchText}
+              setSearchText={setSearchText}
+              addCategory={addCategory}
+              editCategory={editCategory}
+              deleteCategory={handleDeleteCategory}
+              isDarkMode={isDarkMode}
+            />
+          )}
 
           <div className="MainPanel">
             {selectedCategory === "graphs" ? (
@@ -171,10 +191,12 @@ export default function App() {
               />
             ) : (
               <div className="MainScroll">
+                {/* TOP BAR – keep as is, just add menu button on mobile */}
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "flex-end",
+                    justifyContent: isMobile ? "space-between" : "flex-end",
+                    alignItems: "center",
                     gap: "16px",
                     marginTop: "1vh",
                     marginRight: "1vw",
@@ -268,6 +290,36 @@ export default function App() {
                 );
               })()}
           </DragOverlay>
+
+          {/* MOBILE SIDEBAR OVERLAY */}
+          {isMobile && isSidebarOpen && (
+            <div className="MobileSidebarOverlay">
+              <div
+                className="MobileSidebarBackdrop"
+                onClick={() => setIsSidebarOpen(false)}
+              />
+              <div className="MobileSidebarPanel">
+                <SideBar
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onCategorySelect={(id) => {
+                    setSelectedCategory(id);
+                    setIsSidebarOpen(false);
+                  }}
+                  setCategories={setCategories}
+                  droppableCategoryIds={droppableCategoryIds}
+                  hoveredCategory={hoveredCategory}
+                  setTasks={setTasks}
+                  tasks={tasks}
+                  searchText={searchText}
+                  setSearchText={setSearchText}
+                  addCategory={addCategory}
+                  editCategory={editCategory}
+                  deleteCategory={handleDeleteCategory}
+                />
+              </div>
+            </div>
+          )}
         </DndContext>
 
         <AIAnalysisModal
