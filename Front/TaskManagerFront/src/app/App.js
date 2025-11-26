@@ -1,5 +1,5 @@
 import "./styles/App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "antd";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
@@ -13,6 +13,7 @@ import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
 import aiIcon from "./ai.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
+import menu from "./menu.png";
 
 // Custom hooks
 import { useCategories } from "../hooks/useCategories";
@@ -48,6 +49,22 @@ export default function App() {
     handleDragOver,
     handleDragEnd,
   } = useDragDrop(tasks, setTasks, updateTask, updateTaskOrder);
+
+  // ----- MOBILE DETECTION -----
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth < 768);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Handle category deletion with task reassignment
   const handleDeleteCategory = async (id) => {
@@ -97,21 +114,24 @@ export default function App() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <SideBar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
-            setCategories={setCategories}
-            droppableCategoryIds={droppableCategoryIds}
-            hoveredCategory={hoveredCategory}
-            setTasks={setTasks}
-            tasks={tasks}
-            searchText={searchText}
-            setSearchText={setSearchText}
-            addCategory={addCategory}
-            editCategory={editCategory}
-            deleteCategory={handleDeleteCategory}
-          />
+          {/* DESKTOP SIDEBAR – visible only when NOT mobile */}
+          {!isMobile && (
+            <SideBar
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onCategorySelect={setSelectedCategory}
+              setCategories={setCategories}
+              droppableCategoryIds={droppableCategoryIds}
+              hoveredCategory={hoveredCategory}
+              setTasks={setTasks}
+              tasks={tasks}
+              searchText={searchText}
+              setSearchText={setSearchText}
+              addCategory={addCategory}
+              editCategory={editCategory}
+              deleteCategory={handleDeleteCategory}
+            />
+          )}
 
           <div className="MainPanel">
             {selectedCategory === "graphs" ? (
@@ -129,39 +149,74 @@ export default function App() {
               />
             ) : (
               <div className="MainScroll">
+                {/* TOP BAR – keep as is, just add menu button on mobile */}
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "flex-end",
+                    justifyContent: isMobile ? "space-between" : "flex-end",
+                    alignItems: "center",
                     gap: "16px",
                     marginTop: "1vh",
                     marginRight: "1vw",
                     marginBottom: "10vh",
                   }}
                 >
-                  <CalendarButton
-                    onClick={() => setSelectedCategory("calendar")}
-                  />
+                  {isMobile && (
+                    <Button
+                      type="text"
+                      onClick={() => setIsSidebarOpen(true)}
+                      style={{
+                        padding: 0,
+                        width: 36,
+                        height: 36,
+                        borderRadius: 6,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <img
+                        src={menu}
+                        alt="Menu"
+                        style={{ width: 24, height: 24 }}
+                      />
+                    </Button>
+                  )}
+
+
                   <div
                     style={{
                       display: "flex",
+                      justifyContent: "flex-end",
                       alignItems: "center",
-                      gap: "8px",
+                      gap: "16px",
+                      flex: 1,
                     }}
                   >
-                    <img
-                      src={aiIcon}
-                      alt="AI"
-                      style={{ width: "24px", height: "24px" }}
+                    <CalendarButton
+                      onClick={() => setSelectedCategory("calendar")}
                     />
-                    <Button
-                      type="primary"
-                      onClick={() => setIsAIAnalysisOpen(true)}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                      }}
                     >
-                      AI Analysis
-                    </Button>
+                      <img
+                        src={aiIcon}
+                        alt="AI"
+                        style={{ width: "24px", height: "24px" }}
+                      />
+                      <Button
+                        type="primary"
+                        onClick={() => setIsAIAnalysisOpen(true)}
+                      >
+                        AI Analysis
+                      </Button>
+                    </div>
+                    <UserProfileMenu user={user} />
                   </div>
-                  <UserProfileMenu user={user} />
                 </div>
 
                 <Welcome
@@ -215,6 +270,36 @@ export default function App() {
                 );
               })()}
           </DragOverlay>
+
+          {/* MOBILE SIDEBAR OVERLAY */}
+          {isMobile && isSidebarOpen && (
+            <div className="MobileSidebarOverlay">
+              <div
+                className="MobileSidebarBackdrop"
+                onClick={() => setIsSidebarOpen(false)}
+              />
+              <div className="MobileSidebarPanel">
+                <SideBar
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onCategorySelect={(id) => {
+                    setSelectedCategory(id);
+                    setIsSidebarOpen(false);
+                  }}
+                  setCategories={setCategories}
+                  droppableCategoryIds={droppableCategoryIds}
+                  hoveredCategory={hoveredCategory}
+                  setTasks={setTasks}
+                  tasks={tasks}
+                  searchText={searchText}
+                  setSearchText={setSearchText}
+                  addCategory={addCategory}
+                  editCategory={editCategory}
+                  deleteCategory={handleDeleteCategory}
+                />
+              </div>
+            </div>
+          )}
         </DndContext>
 
         <AIAnalysisModal
