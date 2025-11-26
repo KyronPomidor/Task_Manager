@@ -30,3 +30,32 @@
 .task-card .ant-tag {
   font-size: 0.65rem; /* Smaller font size for priority tags */
 }
+
+/* =========== MOBILE SIDEBAR OVERLAY =========== */
+.MobileSidebarOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none; /* children re-enable it */
+}
+
+.MobileSidebarBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+}
+
+.MobileSidebarPanel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 80%;
+  max-width: 320px;
+  background: #e8ecef;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}

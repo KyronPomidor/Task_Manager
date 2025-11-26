@@ -58,8 +58,12 @@ export function Tasks({
   });
 
   // Custom hook for task operations
-  const { toggleComplete, addBudgetItem, saveBudgetItems, handleChildIndicatorClick } =
-    useTaskOperations(allTasks, setTasks, updateTask);
+  const {
+    toggleComplete,
+    addBudgetItem,
+    saveBudgetItems,
+    handleChildIndicatorClick,
+  } = useTaskOperations(allTasks, setTasks, updateTask);
 
   // Task editing handlers
   const startEdit = (task) => {
@@ -180,7 +184,7 @@ export function Tasks({
       <SortableContext items={filteredAndSortedTasks.map((t) => t.id)}>
         <Row gutter={[16, 16]}>
           {filteredAndSortedTasks.map((task) => (
-            <Col key={task.id} span={8}>
+            <Col key={task.id} xs={24} sm={12} md={8}>
               <SortableTask task={task} onCardClick={handleCardClick}>
                 {(dragListeners) => (
                   <TaskCard

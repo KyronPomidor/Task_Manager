@@ -292,6 +292,20 @@ export function SideBar({
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
 
+  // ======== MOBILE / DESKTOP DETECTION (layout only) ========
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkViewport = () => {
+      if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth <= 768);
+      }
+    };
+    checkViewport();
+    window.addEventListener("resize", checkViewport);
+    return () => window.removeEventListener("resize", checkViewport);
+  }, []);
+
   const childrenByParent = useMemo(() => {
     const map = new Map();
     categories.forEach((cat) => {
@@ -443,8 +457,18 @@ export function SideBar({
     groupBg: "#f6f7f9",
   };
 
+  const sidebarStyle = {
+    ...STYLES.sidebar,
+    background: COLORS.bg,
+    borderRightColor: COLORS.sidebarBorder,
+    width: isMobile ? "100%" : STYLES.sidebar.width,
+    minWidth: isMobile ? "100%" : STYLES.sidebar.minWidth,
+    height: isMobile ? "auto" : STYLES.sidebar.height,
+    borderRight: isMobile ? "none" : STYLES.sidebar.borderRight,
+  };
+
   return (
-    <div style={{ ...STYLES.sidebar, background: COLORS.bg, borderRightColor: COLORS.sidebarBorder }}>
+    <div style={sidebarStyle}>
       <div style={{ ...STYLES.logoWrap, borderBottomColor: COLORS.sidebarBorder }}>
         <img src={logo} alt="logo" width={128} height={85} />
       </div>
