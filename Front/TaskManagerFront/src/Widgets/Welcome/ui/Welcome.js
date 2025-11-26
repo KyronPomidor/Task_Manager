@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 export function Welcome({ user, selectedCategory, categories }) {
   const [now, setNow] = useState(new Date());
 
-  // track viewport to know when it's "phone" size
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 768 : false
   );
@@ -24,22 +23,8 @@ export function Welcome({ user, selectedCategory, categories }) {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Date & time formatting
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-  const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const day = days[now.getDay()];
   const date = now.getDate();
   const month = months[now.getMonth()];
@@ -52,13 +37,12 @@ export function Welcome({ user, selectedCategory, categories }) {
   if (hours === 0) hours = 12;
   const time = `${hours}:${minutes} ${ampm}`;
 
-  // Find category name for non-inbox categories
   const categoryName =
     selectedCategory === "inbox"
       ? "Today"
       : categories.find((cat) => cat.id === selectedCategory)?.name ||
-      selectedCategory.charAt(0).toUpperCase() +
-      selectedCategory.slice(1);
+        selectedCategory.charAt(0).toUpperCase() +
+          selectedCategory.slice(1);
 
   return (
     <motion.div

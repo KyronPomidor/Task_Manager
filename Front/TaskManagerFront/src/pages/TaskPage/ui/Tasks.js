@@ -156,7 +156,6 @@ export function Tasks({
     filters
   );
 
-  // Helper functions wrapped for component use
   const wrappedGetParents = (taskId) => getParents(taskId, allTasks);
   const wrappedGetChildren = (taskId) => getChildren(taskId, allTasks);
 
@@ -212,7 +211,6 @@ export function Tasks({
         </Row>
       </SortableContext>
 
-      {/* Task Details Modal */}
       <TaskDetailsModal
         visible={detailsOpen}
         task={selectedTask}
@@ -229,7 +227,6 @@ export function Tasks({
         }}
       />
 
-      {/* Budget Modal */}
       <BudgetModal
         visible={budgetOpen}
         task={budgetTask}
@@ -248,7 +245,6 @@ export function Tasks({
         }}
       />
 
-      {/* Edit Task Modal */}
       <TaskEditModal
         visible={editOpen}
         task={editTask}
@@ -263,7 +259,6 @@ export function Tasks({
         title="Edit Task"
       />
 
-      {/* Add Task Modal */}
       <TaskEditModal
         visible={addOpen}
         task={editTask}

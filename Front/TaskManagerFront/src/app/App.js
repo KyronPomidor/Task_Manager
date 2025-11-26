@@ -11,9 +11,9 @@ import UserProfileMenu from "../Widgets/UserProfile";
 import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration";
 import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
 import aiIcon from "./ai.png";
+import menuIcon from "./menu.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
-import menu from "./menu.png";
 
 // Custom hooks
 import { useCategories } from "../hooks/useCategories";
@@ -105,6 +105,48 @@ export default function App() {
     todayStr
   );
 
+  // Content to show at the top of the sidebar on mobile (under logo)
+  const mobileTopContent = isMobile ? (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        padding: "8px 12px",
+      }}
+    >
+      <CalendarButton
+        onClick={() => {
+          setSelectedCategory("calendar");
+          setIsSidebarOpen(false);
+        }}
+      />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <img
+          src={aiIcon}
+          alt="AI"
+          style={{ width: 24, height: 24 }}
+        />
+        <Button
+          type="primary"
+          onClick={() => {
+            setIsAIAnalysisOpen(true);
+            setIsSidebarOpen(false);
+          }}
+        >
+          AI Analysis
+        </Button>
+      </div>
+      <UserProfileMenu user={user} />
+    </div>
+  ) : null;
+
   return (
     <div className="App">
       <div className="AppBody">
@@ -130,6 +172,8 @@ export default function App() {
               addCategory={addCategory}
               editCategory={editCategory}
               deleteCategory={handleDeleteCategory}
+              isMobile={false}
+              mobileTopContent={null}
             />
           )}
 
@@ -140,6 +184,8 @@ export default function App() {
                 setTasks={setTasks}
                 categories={categories}
                 updateTask={updateTask}
+                isMobile={isMobile}
+                onOpenMenu={() => setIsSidebarOpen(true)}
               />
             ) : selectedCategory === "calendar" ? (
               <Calendar
@@ -149,11 +195,11 @@ export default function App() {
               />
             ) : (
               <div className="MainScroll">
-                {/* TOP BAR – keep as is, just add menu button on mobile */}
+                {/* TOP BAR */}
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: isMobile ? "space-between" : "flex-end",
+                    justifyContent: isMobile ? "flex-start" : "flex-end",
                     alignItems: "center",
                     gap: "16px",
                     marginTop: "1vh",
@@ -161,6 +207,7 @@ export default function App() {
                     marginBottom: "10vh",
                   }}
                 >
+                  {/* MENU BUTTON - ONLY MOBILE */}
                   {isMobile && (
                     <Button
                       type="text"
@@ -176,47 +223,49 @@ export default function App() {
                       }}
                     >
                       <img
-                        src={menu}
+                        src={menuIcon}
                         alt="Menu"
                         style={{ width: 24, height: 24 }}
                       />
                     </Button>
                   )}
 
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      alignItems: "center",
-                      gap: "16px",
-                      flex: 1,
-                    }}
-                  >
-                    <CalendarButton
-                      onClick={() => setSelectedCategory("calendar")}
-                    />
+                  {/* DESKTOP-ONLY BUTTONS */}
+                  {!isMobile && (
                     <div
                       style={{
                         display: "flex",
+                        justifyContent: "flex-end",
                         alignItems: "center",
-                        gap: "8px",
+                        gap: "16px",
+                        flex: 1,
                       }}
                     >
-                      <img
-                        src={aiIcon}
-                        alt="AI"
-                        style={{ width: "24px", height: "24px" }}
+                      <CalendarButton
+                        onClick={() => setSelectedCategory("calendar")}
                       />
-                      <Button
-                        type="primary"
-                        onClick={() => setIsAIAnalysisOpen(true)}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
                       >
-                        AI Analysis
-                      </Button>
+                        <img
+                          src={aiIcon}
+                          alt="AI"
+                          style={{ width: "24px", height: "24px" }}
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => setIsAIAnalysisOpen(true)}
+                        >
+                          AI Analysis
+                        </Button>
+                      </div>
+                      <UserProfileMenu user={user} />
                     </div>
-                    <UserProfileMenu user={user} />
-                  </div>
+                  )}
                 </div>
 
                 <Welcome
@@ -296,6 +345,8 @@ export default function App() {
                   addCategory={addCategory}
                   editCategory={editCategory}
                   deleteCategory={handleDeleteCategory}
+                  isMobile={true}
+                  mobileTopContent={mobileTopContent}
                 />
               </div>
             </div>

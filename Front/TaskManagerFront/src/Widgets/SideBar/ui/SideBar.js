@@ -99,7 +99,7 @@ const STYLES = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    maxWidth: "calc(100% - 60px)", // Account for icons, task count, and actions
+    maxWidth: "calc(100% - 60px)",
     fontFamily: "'Roboto', sans-serif"
   },
 };
@@ -220,7 +220,10 @@ function Row({
                 width: 14,
                 height: 14,
                 cursor: isParent ? "pointer" : "default",
-                transform: isParent && collapsed ? "rotate(-90deg) scale(1)" : `rotate(0deg) ${arrowHovered ? "scale(1.2)" : "scale(1)"}`,
+                transform:
+                  isParent && collapsed
+                    ? "rotate(-90deg) scale(1)"
+                    : `rotate(0deg) ${arrowHovered ? "scale(1.2)" : "scale(1)"}`,
                 transition: "transform 0.2s ease, filter 0.2s ease",
                 filter: arrowHovered ? "brightness(1.2)" : "none",
               }}
@@ -230,7 +233,7 @@ function Row({
         <span style={STYLES.labelText}>{customContent || label}</span>
       </span>
 
-      {!isSystemCategory && (showActions) && (
+      {!isSystemCategory && showActions && (
         <Actions onEdit={onEdit} onDelete={onDelete} colors={colors} />
       )}
 
@@ -280,6 +283,8 @@ export function SideBar({
   addCategory,
   editCategory,
   deleteCategory,
+  isMobile = false,
+  mobileTopContent = null,
 }) {
   const [hoverId, setHoverId] = useState(null);
   const [collapsedIds, setCollapsedIds] = useState(new Set());
@@ -291,20 +296,6 @@ export function SideBar({
   const [editingId, setEditingId] = useState(null);
   const [name, setName] = useState("");
   const [parentId, setParentId] = useState("");
-
-  // ======== MOBILE / DESKTOP DETECTION (layout only) ========
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkViewport = () => {
-      if (typeof window !== "undefined") {
-        setIsMobile(window.innerWidth <= 768);
-      }
-    };
-    checkViewport();
-    window.addEventListener("resize", checkViewport);
-    return () => window.removeEventListener("resize", checkViewport);
-  }, []);
 
   const childrenByParent = useMemo(() => {
     const map = new Map();
@@ -392,9 +383,9 @@ export function SideBar({
     }
     return categories.filter(
       (c) =>
-        c.id !== "inbox" && // Exclude inbox
-        (mode !== "edit" || c.id !== editingId) && // Exclude self when editing
-        !descendants.has(c.id) // Exclude descendants to prevent loops
+        c.id !== "inbox" &&
+        (mode !== "edit" || c.id !== editingId) &&
+        !descendants.has(c.id)
     );
   }, [categories, mode, editingId, childrenByParent]);
 
@@ -443,7 +434,6 @@ export function SideBar({
     });
   }
 
-  // Define colors before return
   const COLORS = {
     blue: "#60a5fa",
     blueText: "#ffffff",
@@ -461,10 +451,6 @@ export function SideBar({
     ...STYLES.sidebar,
     background: COLORS.bg,
     borderRightColor: COLORS.sidebarBorder,
-    width: isMobile ? "100%" : STYLES.sidebar.width,
-    minWidth: isMobile ? "100%" : STYLES.sidebar.minWidth,
-    height: isMobile ? "auto" : STYLES.sidebar.height,
-    borderRight: isMobile ? "none" : STYLES.sidebar.borderRight,
   };
 
   return (
@@ -472,6 +458,18 @@ export function SideBar({
       <div style={{ ...STYLES.logoWrap, borderBottomColor: COLORS.sidebarBorder }}>
         <img src={logo} alt="logo" width={128} height={85} />
       </div>
+
+      {/* MOBILE-ONLY TOP CONTENT (Calendar, AI, profile) */}
+      {isMobile && mobileTopContent && (
+        <div
+          style={{
+            borderBottom: `1px solid ${COLORS.sidebarBorder}`,
+            marginBottom: 8,
+          }}
+        >
+          {mobileTopContent}
+        </div>
+      )}
 
       <div style={STYLES.list}>
         <Row
