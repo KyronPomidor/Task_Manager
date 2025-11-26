@@ -25,3 +25,6 @@
 
 ## 27-10-2025
 - **Category management refactor**: Extracted category-related logic into a dedicated hook (`useCategories.js`), simplifying state handling and improving modularity. Contributors: [Kirill](https://github.com/KyronPomidor), ([Commit](https://github.com/KyronPomidor/Task_Manager/commit/43672a1c7bf9380825f115b08bea1c25feb7cdfc))
+
+- ## 26-11-2025
+**The responsiveness to different screes resolutions**: Now the UI adapts for the phone resolutions as well, added the opportunity to fold unfold the sidebar on phones, which changes the UX for better responsiveness. Contributor: [Kirill](https://github.com/KyronPomidor), ([Pull Request](https://github.com/KyronPomidor/Task_Manager/pull/53))
