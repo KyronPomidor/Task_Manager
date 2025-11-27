@@ -14,6 +14,7 @@ import aiIcon from "./ai.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
 import menu from "./menu.png";
+import MapPage from "../pages/MapPage";
 
 // Custom hooks
 import { useCategories } from "../hooks/useCategories";
@@ -134,7 +135,9 @@ export default function App() {
           )}
 
           <div className="MainPanel">
-            {selectedCategory === "graphs" ? (
+            {selectedCategory === "map" ? (
+                <MapPage tasks ={tasks} categories = {categories} />
+            ) : selectedCategory === "graphs" ? (
               <TaskGraphIntegration
                 tasks={tasks}
                 setTasks={setTasks}

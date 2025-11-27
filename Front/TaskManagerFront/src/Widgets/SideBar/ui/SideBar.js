@@ -10,6 +10,7 @@ import binIcon from "./bin.png";
 import todayIcon from "./calendar.png";
 import searchIcon from "./search.png";
 import logo from "./logo.png";
+import mapIcon from "./map.png";
 
 /* ========= Styles ========= */
 const STYLES = {
@@ -551,8 +552,21 @@ export function SideBar({
             colors={COLORS}
           />
         </DroppableRow>
+          <Row
+              id="map"
+              label="Map"
+              icon={mapIcon}
+              level={0}
+              isActive={hoveredCategory === "map" || selectedCategory === "map"}
+              showActions={false}
+              onMouseEnter={() => setHoverId("map")}
+              onMouseLeave={() => setHoverId(null)}
+              onClick={() => onCategorySelect("map")}
+              colors={COLORS}
+          />
 
-        <Row
+
+          <Row
           id="done"
           label="Done"
           icon={checkIcon}
