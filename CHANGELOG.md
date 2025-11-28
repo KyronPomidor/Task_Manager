@@ -6,6 +6,15 @@
 - **Opportunity to fold unfold the sidebar on phones**: The menu button for better visibility of UI on small size screens.
 - **Changes for faster UI response**: The UX is better due to changed button positions and minor adjustments of the task cards visualization on the page.
 
+## 25-11-25
+- **Map integration (Phase 1 & 2)**: Developed the full geolocation task feature — including address input, backend support for latitude/longitude, and frontend map rendering. Implemented a standalone Map tab, task markers, priority-based custom SVG icons, and marker clustering for high-density areas. [Rustem](github.com/fxmidaaa) [55](https://github.com/KyronPomidor/Task_Manager/pull/55)
+
+- **Task-to-map linking**: Added UI logic for attaching an address to any task and displaying it in both the task details modal and the map view. [Rustem]
+
+- **UI/UX refinements**: Improved clarity of the task details modal and implemented priority-based color logic for the new map markers. [Rustem]
+
+- **General front-end improvements**: Assisted with multiple layout fixes, tested cross-component interactions, and ensured consistent behavior across the new features. [Rustem]
+
 ## 02-11-2025
 - **Snake Game enhancements**: Implemented a fully functional Snake Game component. Resolved direction change issue where rapid key presses (e.g., right to down to left in quick succession) caused improper movement or self-collision, by introducing a direction queue system to process inputs sequentially per frame. Contributors: [Mihail. P](https://github.com/varsarius)
 
