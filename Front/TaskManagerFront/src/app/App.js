@@ -255,6 +255,7 @@ export default function App() {
                   setSelectedCategory={setSelectedCategory}
                   addTask={addTask}
                   updateTask={updateTask}
+                  colors={colors}
                 />
               </div>
             )}

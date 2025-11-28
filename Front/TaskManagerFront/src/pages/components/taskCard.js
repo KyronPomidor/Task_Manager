@@ -1,3 +1,4 @@
+// src/components/TaskCard.jsx
 import React from "react";
 import { Card, Tag, Button, Tooltip } from "antd";
 import { motion, AnimatePresence } from "framer-motion";
@@ -28,6 +29,7 @@ export function TaskCard({
     handleChildIndicatorClick,
     getParents,
     getChildren,
+    colors, // ← your new unified colors object
 }) {
     const hasChildren =
         task.childrenIds &&
@@ -43,7 +45,6 @@ export function TaskCard({
         (parent) => parent.color || getDeterministicColor(parent.id)
     );
 
-    const bg = task.completed ? "#ececec" : "white";
     const isChild = parentTasks.length > 0;
     const isParent = hasChildren;
 
@@ -52,7 +53,8 @@ export function TaskCard({
             <Card
                 className={`task-card ${task.completed ? "task-card-done" : ""}`}
                 style={{
-                    background: bg,
+                    background: colors.card,
+                    color: colors.text,
                     borderLeft: `10px solid ${parentBorderColor}`,
                     minHeight: 180,
                     display: "flex",
@@ -70,17 +72,20 @@ export function TaskCard({
                             width: "100%",
                             alignItems: "center",
                             overflow: "hidden",
+                            color: colors.text,
                         }}
                     >
+                        {/* FIXED CHECKBOX */}
                         <Button
                             type="text"
+                            className="task-checkbox"
                             style={{
                                 position: "absolute",
                                 top: 17,
                                 left: 8,
                                 padding: 0,
-                                background: task.completed ? "#6BCB77" : "#fff",
-                                border: "2px solid #ccc",
+                                background: task.completed ? "#6BCB77" : colors.card,
+                                border: `2px solid ${colors.border}`,
                                 borderRadius: "50%",
                                 width: 24,
                                 height: 24,
@@ -89,35 +94,24 @@ export function TaskCard({
                                 justifyContent: "center",
                                 cursor: "pointer",
                                 zIndex: 10,
+                                transition: "all 0.2s ease",
                             }}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 toggleComplete(task.id);
                             }}
-                            onMouseEnter={(e) => {
-                                if (!task.completed) {
-                                    e.currentTarget.style.backgroundColor = "#d4d4d4ff";
-                                    e.currentTarget
-                                        .querySelector("span")
-                                        ?.style.setProperty("display", "flex", "important");
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!task.completed) {
-                                    e.currentTarget.style.backgroundColor = "#fff";
-                                    e.currentTarget
-                                        .querySelector("span")
-                                        ?.style.setProperty("display", "none", "important");
-                                }
-                            }}
                         >
                             <span
+                                className="checkmark"
                                 style={{
-                                    color: "#000000ff",
-                                    display: task.completed ? "flex" : "none",
+                                    color: task.completed ? "white" : colors.text,
+                                    fontWeight: "bold",
+                                    fontSize: "16px",
+                                    opacity: task.completed ? 1 : 0,
+                                    transition: "opacity 0.2s ease",
                                 }}
                             >
-                                ✓
+                                Check
                             </span>
                         </Button>
 
@@ -142,7 +136,7 @@ export function TaskCard({
                             >
                                 <span className={`title ${task.completed ? "done" : ""}`}>
                                     {task.title.length > 40
-                                        ? `${task.title.substring(0, 10)}...`
+                                        ? `${task.title.substring(0, 37)}...`
                                         : task.title}
                                 </span>
                                 <Tag
@@ -165,14 +159,10 @@ export function TaskCard({
                         {task.deadline && (
                             <motion.div
                                 animate={{ x: menuOpenId === task.id ? -60 : 0 }}
-                                transition={{ type: "spring", stiffness: 100, damping: 20 }}
                                 style={{
                                     fontSize: "0.75rem",
                                     color: "#60a5fa",
-                                    marginTop: "2px",
-                                    textAlign: "center",
-                                    width: "100%",
-                                    position: "relative",
+                                    marginTop: "4px",
                                 }}
                             >
                                 {task.deadline}
@@ -191,55 +181,41 @@ export function TaskCard({
                         setBudgetOpen={setBudgetOpen}
                         menuOpenId={menuOpenId}
                         setMenuOpenId={setMenuOpenId}
+                        colors={colors}
                     />
                 }
             >
                 <div
                     className="desc"
                     style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
+                        color: colors.text,
+                        opacity: 0.8,
                         textAlign: "center",
-                        minHeight: "50px",
-                        width: "97%",
+                        minHeight: 50,
                     }}
                 >
                     {task.description
                         ? task.description.length > 100
                             ? `${task.description.substring(0, 100)}...`
                             : task.description
-                        : "No description"}
+                        : <em>No description</em>}
                 </div>
 
+                {/* Dependency indicators */}
                 {isChild && (
-                    <div
-                        className="dependency-indicators"
-                        style={{
-                            position: "absolute",
-                            bottom: 8,
-                            left: 8,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            zIndex: 10,
-                        }}
-                    >
-                        <img src={dependency} style={{ width: 16, height: 16 }}></img>
+                    <div className="dependency-indicators" style={{ bottom: 8, left: 8 }}>
+                        <img src={dependency} alt="dependency" style={{ width: 16, height: 16 }} />
                         {parentTasks.map((parentTask, idx) => (
-                            <Tooltip
-                                key={idx}
-                                title={parentTask ? parentTask.title : "Unknown Parent"}
-                            >
+                            <Tooltip key={idx} title={parentTask?.title || "Parent"}>
                                 <span
                                     style={{
-                                        display: "inline-block",
                                         width: 16,
                                         height: 16,
                                         borderRadius: "50%",
                                         background: childIndicatorColors[idx],
                                         border: "2px solid #fff",
-                                        boxShadow: "0 0 0 1px #ccc",
+                                        boxShadow: "0 0 0 1px #333",
+                                        display: "inline-block",
                                         cursor: "pointer",
                                     }}
                                     onClick={() => handleChildIndicatorClick(parentTask.id)}
@@ -249,74 +225,54 @@ export function TaskCard({
                     </div>
                 )}
 
+                
+                
+                {/* Expand children button */}
                 {isParent && (
-                    <div
-                        style={{
-                            position: "absolute",
-                            bottom: 12,
-                            right: 16,
-                            zIndex: 1003,
-                        }}
-                    >
+                    <div style={{ position: "absolute", bottom: 12, right: 16, zIndex: 1003 }}>
                         <Button
                             type="text"
-                            style={{
-                                padding: 0,
-                                background: "#fff",
-                                border: "1px solid #e0e0e0",
-                                borderRadius: "50%",
-                                boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
-                                minWidth: 24,
-                                minHeight: 24,
-                                width: 24,
-                                height: 24,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                cursor: "pointer",
-                            }}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                setExpandedParentId(
-                                    expandedParentId === task.id ? null : task.id
-                                );
+                                setExpandedParentId(expandedParentId === task.id ? null : task.id);
+                            }}
+                            style={{
+                                padding: 0,
+                                width: 28,
+                                height: 28,
+                                background: colors.card,
+                                borderRadius: "50%",
                             }}
                         >
                             <img
                                 src={mainArrow}
-                                alt="Show children"
+                                alt="expand children"
                                 style={{
                                     width: 16,
                                     height: 16,
-                                    filter:
-                                        expandedParentId === task.id
-                                            ? "brightness(1.2)"
-                                            : "brightness(0.8)",
-                                    transition: "filter 0.2s",
-                                    pointerEvents: "none",
+                                    filter: expandedParentId === task.id ? "brightness(1.4)" : "brightness(0.9)",
+                                    transform: expandedParentId === task.id ? "rotate(180deg)" : "rotate(0deg)",
+                                    transition: "all 0.2s",
                                 }}
                             />
                         </Button>
                     </div>
                 )}
             </Card>
-
+                
+            {/* Expanded children overlay */}
             <AnimatePresence>
                 {expandedParentId === task.id && (
                     <>
                         <motion.div
                             initial={{ opacity: 0 }}
-                            animate={{ opacity: 0.6 }}
+                            animate={{ opacity: 0.7 }}
                             exit={{ opacity: 0 }}
                             style={{
                                 position: "fixed",
-                                top: 0,
-                                left: 0,
-                                width: "100vw",
-                                height: "100vh",
-                                background: "#1a2233",
+                                inset: 0,
+                                background: colors.bg,
                                 zIndex: 1000,
-                                pointerEvents: "auto",
                             }}
                             onClick={() => setExpandedParentId(null)}
                         />
@@ -326,17 +282,11 @@ export function TaskCard({
                             exit={{ opacity: 0, y: -20 }}
                             style={{
                                 position: "absolute",
-                                left: 0,
                                 top: "100%",
+                                left: 0,
                                 width: "100%",
-                                background: "rgba(255,255,255,0.0)",
                                 zIndex: 1002,
                                 padding: "24px 0",
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
-                                borderRadius: "0 0 12px 12px",
                             }}
                         >
                             <div
@@ -344,9 +294,9 @@ export function TaskCard({
                                     display: "flex",
                                     flexDirection: "column",
                                     alignItems: "center",
-                                    gap: 24,
-                                    width: "100%",
+                                    gap: 20,
                                     maxWidth: 340,
+                                    margin: "0 auto",
                                 }}
                                 onClick={(e) => e.stopPropagation()}
                             >
@@ -355,126 +305,32 @@ export function TaskCard({
                                     return (
                                         <Card
                                             key={child.id}
-                                            className={`task-card ${child.completed ? "task-card-done" : ""
-                                                }`}
                                             style={{
-                                                width: 320,
-                                                background: "#fff",
-                                                color: "#222e3a",
-                                                borderLeft:
+                                                width: "100%",
+                                                background: colors.card,
+                                                color: colors.text,
+                                                borderLeft: `5px solid ${
                                                     childParents.length > 0
-                                                        ? `5px solid ${childParents[childParents.length - 1].color ||
-                                                        getDeterministicColor(
-                                                            childParents[childParents.length - 1].id
-                                                        )
-                                                        }`
-                                                        : "5px solid #fff",
-                                                boxShadow: "0 2px 12px rgba(0,0,0,0.18)",
-                                                position: "relative",
-                                                margin: "0 auto",
-                                                cursor: "pointer",
+                                                        ? childParents[childParents.length - 1].color ||
+                                                          getDeterministicColor(childParents[childParents.length - 1].id)
+                                                        : "transparent"
+                                                }`,
+                                                boxShadow: "0 4px 16px rgba(0,0,0,0.2)",
                                             }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleCardClick(child);
-                                            }}
-                                            title={
-                                                <div
-                                                    style={{ textAlign: "center", color: "#222e3a" }}
-                                                >
-                                                    <span
-                                                        className={`title ${child.completed ? "done" : ""
-                                                            }`}
-                                                    >
-                                                        {child.title.length > 20
-                                                            ? `${child.title.substring(0, 20)}...`
-                                                            : child.title}
-                                                    </span>
-                                                    <Tag
-                                                        style={
-                                                            typeof priorityColor(child.priority) === "object"
-                                                                ? priorityColor(child.priority)
-                                                                : {}
-                                                        }
-                                                        color={
-                                                            typeof priorityColor(child.priority) === "string"
-                                                                ? priorityColor(child.priority)
-                                                                : undefined
-                                                        }
-                                                    >
-                                                        {child.priority}
-                                                    </Tag>
-                                                    {child.deadline && (
-                                                        <div
-                                                            style={{
-                                                                fontSize: "0.85rem",
-                                                                color: "#60a5fa",
-                                                                marginTop: 2,
-                                                            }}
-                                                        >
-                                                            {child.deadline}
-                                                            {child.deadlineTime ? ` ${child.deadlineTime}` : ""}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            }
+                                            onClick={() => handleCardClick(child)}
                                         >
-                                            <div
-                                                className="desc"
-                                                style={{
-                                                    display: "flex",
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                    textAlign: "center",
-                                                    minHeight: "50px",
-                                                    width: "100%",
-                                                }}
-                                            >
+                                            <div style={{ textAlign: "center", padding: "8px 0" }}>
+                                                <strong>{child.title}</strong>
+                                                <Tag style={{ marginLeft: 8 }}>{child.priority}</Tag>
+                                                {child.deadline && (
+                                                    <div style={{ fontSize: "0.8rem", color: "#60a5fa", marginTop: 4 }}>
+                                                        {child.deadline}
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div style={{ color: colors.text, opacity: 0.8, textAlign: "center" }}>
                                                 {child.description || "No description"}
                                             </div>
-                                            {childParents.length > 0 && (
-                                                <div
-                                                    className="dependency-indicators"
-                                                    style={{
-                                                        position: "absolute",
-                                                        bottom: 8,
-                                                        left: 8,
-                                                        display: "flex",
-                                                        alignItems: "center",
-                                                        gap: 8,
-                                                        zIndex: 10,
-                                                    }}
-                                                >
-                                                    {childParents.map((parentTask, idx) => (
-                                                        <Tooltip
-                                                            key={idx}
-                                                            title={
-                                                                parentTask
-                                                                    ? parentTask.title
-                                                                    : "Unknown Parent"
-                                                            }
-                                                        >
-                                                            <span
-                                                                style={{
-                                                                    display: "inline-block",
-                                                                    width: 16,
-                                                                    height: 16,
-                                                                    borderRadius: "50%",
-                                                                    background:
-                                                                        parentTask.color ||
-                                                                        getDeterministicColor(parentTask.id),
-                                                                    border: "2px solid #fff",
-                                                                    boxShadow: "0 0 0 1px #ccc",
-                                                                    cursor: "pointer",
-                                                                }}
-                                                                onClick={() =>
-                                                                    handleChildIndicatorClick(parentTask.id)
-                                                                }
-                                                            />
-                                                        </Tooltip>
-                                                    ))}
-                                                </div>
-                                            )}
                                         </Card>
                                     );
                                 })}

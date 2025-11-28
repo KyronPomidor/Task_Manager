@@ -32,6 +32,8 @@ export function Tasks({
   setSelectedCategory,
   addTask,
   updateTask,
+  isDarkMode,
+  colors,
 }) {
   // Modal states
   const [editOpen, setEditOpen] = useState(false);
@@ -157,8 +159,9 @@ export function Tasks({
   );
 
   // Helper functions wrapped for component use
-  const wrappedGetParents = (taskId) => getParents(taskId, allTasks);
-  const wrappedGetChildren = (taskId) => getChildren(taskId, allTasks);
+  const wrappedGetParents = (taskId) => getParents(taskId, allTasks || []);
+  const wrappedGetChildren = (taskId) => getChildren(taskId, allTasks || []);
+
 
   return (
     <div className="tasks-container">
@@ -204,6 +207,8 @@ export function Tasks({
                     handleChildIndicatorClick={handleChildClick}
                     getParents={wrappedGetParents}
                     getChildren={wrappedGetChildren}
+                    isDarkMode={isDarkMode}
+                    colors={colors}
                   />
                 )}
               </SortableTask>

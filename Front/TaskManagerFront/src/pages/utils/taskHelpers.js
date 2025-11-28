@@ -27,9 +27,13 @@ export function getValidParents(taskId, allTasks) {
 /**
  * Get parent tasks (tasks that have this taskId in their childrenIds)
  */
-export function getParents(taskId, allTasks) {
-    return allTasks.filter((t) => t.childrenIds.includes(taskId));
+export function getParents(taskId, tasks = []) {
+    if (!Array.isArray(tasks)) return [];
+    const task = tasks.find(t => t.id === taskId);
+    if (!task || !task.parentId) return [];
+    return tasks.filter(t => task.parentId.includes(t.id));
 }
+
 
 /**
  * Get children using childrenIds array

@@ -277,3 +277,46 @@
   gap: 8px;
   padding: 4px;
 }
+
+/* Dark mode root selector—use whatever your app already uses */
+.dark .task-card {
+    background: #1e1e1e !important;
+    color: #e5e5e5 !important;
+    border-left-color: rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.6) !important;
+}
+
+.dark .task-card-done {
+    background: #2b2b2b !important;
+}
+
+/* Title text */
+.dark .task-card .title {
+    color: #f0f0f0 !important;
+}
+
+/* Description */
+.dark .task-card .desc {
+    color: #d4d4d4 !important;
+}
+
+/* Priority tag override */
+.dark .ant-tag {
+    filter: brightness(0.8);
+}
+
+/* Parent indicator (colored left border) */
+.dark .task-card {
+    border-left-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.dark .task-card button {
+    background: #2b2b2b !important;
+    border-color: #555 !important;
+}
+.dark .dependency-indicators span {
+    box-shadow: 0 0 0 1px #555 !important;
+}
+.dark .task-card .ant-tag {
+    border-color: #444 !important;
+}
