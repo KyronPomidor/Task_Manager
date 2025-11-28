@@ -124,21 +124,21 @@ const STYLES = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    maxWidth: "calc(100% - 60px)",
+    maxWidth: "calc(100% - 60px)", // desktop: icons + count + actions
     fontFamily: "'Roboto', sans-serif",
   },
 };
 
 /* ========= Row styling ========= */
-function getRowStyle({ isActive, level, isShaded, isHovered, colors }) {
+function getRowStyle({ isActive, level, isShaded, isHovered, colors, isMobile }) {
   const s = {
     position: "relative",
     display: "flex",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: isMobile ? "center" : "space-between",
     gap: 8,
     padding: "10px 12px",
-    paddingLeft: 12 + level * 16,
+    paddingLeft: isMobile ? 12 : 12 + level * 16,
     margin: "0 8px",
     cursor: "pointer",
     background: "transparent",
@@ -148,6 +148,7 @@ function getRowStyle({ isActive, level, isShaded, isHovered, colors }) {
     userSelect: "none",
     transition: "background 0.15s",
     borderRadius: isActive || isHovered ? 6 : 0,
+    textAlign: isMobile ? "center" : "left",
   };
   if (isActive) {
     s.background = colors.blue;
@@ -215,6 +216,7 @@ function Row({
   count = 0,
   customContent = null,
   colors,
+  isMobile,
 }) {
   const arrowIcon = !icon ? (isParent ? mainArrow : subArrow) : null;
   const isSystemCategory =
@@ -229,6 +231,7 @@ function Row({
         isShaded,
         isHovered: !isActive && showActions,
         colors,
+        isMobile,
       })}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
@@ -238,6 +241,7 @@ function Row({
         style={{
           display: "flex",
           alignItems: "center",
+          justifyContent: isMobile ? "center" : "flex-start",
           gap: 6,
           flex: 1,
           minWidth: 0,
@@ -277,7 +281,21 @@ function Row({
             />
           </div>
         )}
-        <span style={STYLES.labelText}>{customContent || label}</span>
+        <span
+          style={{
+            ...STYLES.labelText,
+            ...(isMobile
+              ? {
+                whiteSpace: "normal",
+                textOverflow: "unset",
+                overflow: "visible",
+                maxWidth: "100%",
+              }
+              : {}),
+          }}
+        >
+          {customContent || label}
+        </span>
       </span>
 
       {!isSystemCategory && showActions && (
@@ -291,6 +309,7 @@ function Row({
             fontWeight: 600,
             opacity: 0.7,
             flexShrink: 0,
+            marginLeft: isMobile ? 8 : 0,
           }}
         >
           {count}
@@ -439,9 +458,9 @@ export function SideBar({
     }
     return categories.filter(
       (c) =>
-        c.id !== "inbox" &&
-        (mode !== "edit" || c.id !== editingId) &&
-        !descendants.has(c.id)
+        c.id !== "inbox" && // Exclude inbox
+        (mode !== "edit" || c.id !== editingId) && // Exclude self when editing
+        !descendants.has(c.id) // Exclude descendants to prevent loops
     );
   }, [categories, mode, editingId, childrenByParent]);
 
@@ -482,6 +501,7 @@ export function SideBar({
               onMouseLeave={() => setHoverId(null)}
               count={getTaskCount(cat.id)}
               colors={COLORS}
+              isMobile={isMobile}
             />
           </DroppableRow>
           {!collapsed && renderTree(cat.id, level + 1)}
@@ -490,6 +510,7 @@ export function SideBar({
     });
   }
 
+  // Define colors before return
   const COLORS = {
     blue: "#60a5fa",
     blueText: "#ffffff",
@@ -511,11 +532,11 @@ export function SideBar({
 
   const sidebarStyle = isMobile
     ? {
-        ...sidebarBaseStyle,
-        width: "100vw",
-        minWidth: "100vw",
-        borderRight: "none",
-      }
+      ...sidebarBaseStyle,
+      width: "100vw",
+      minWidth: "100vw",
+      borderRight: "none",
+    }
     : sidebarBaseStyle;
 
   return (
@@ -566,6 +587,7 @@ export function SideBar({
             )
           }
           colors={COLORS}
+          isMobile={isMobile}
         />
 
         <DroppableRow
@@ -584,6 +606,7 @@ export function SideBar({
             onClick={() => onCategorySelect("inbox")}
             count={getTaskCount("inbox")}
             colors={COLORS}
+            isMobile={isMobile}
           />
         </DroppableRow>
 
@@ -603,6 +626,7 @@ export function SideBar({
             onClick={() => onCategorySelect("today")}
             count={getTaskCount("today")}
             colors={COLORS}
+            isMobile={isMobile}
           />
         </DroppableRow>
 
@@ -621,6 +645,7 @@ export function SideBar({
             onMouseLeave={() => setHoverId(null)}
             onClick={() => onCategorySelect("graphs")}
             colors={COLORS}
+            isMobile={isMobile}
           />
         </DroppableRow>
 
@@ -636,9 +661,17 @@ export function SideBar({
           onClick={() => onCategorySelect("done")}
           count={getTaskCount("done")}
           colors={COLORS}
+          isMobile={isMobile}
         />
 
-        <div style={STYLES.categoryHeader}>My Categories</div>
+        <div
+          style={{
+            ...STYLES.categoryHeader,
+            textAlign: isMobile ? "center" : "left",
+          }}
+        >
+          My Categories
+        </div>
 
         {renderTree(null, 0)}
 
@@ -648,6 +681,8 @@ export function SideBar({
             ...STYLES.addBtn,
             background: "transparent",
             color: "#111827",
+            alignSelf: isMobile ? "center" : "stretch",
+            textAlign: "center",
           }}
           onMouseEnter={(e) =>
             (e.currentTarget.style.background = COLORS.rowHover)

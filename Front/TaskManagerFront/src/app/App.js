@@ -105,43 +105,8 @@ export default function App() {
     todayStr
   );
 
-  // Content to show at the top of the sidebar on mobile (under logo)
-  const mobileTopContent = isMobile ? (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        padding: "8px 12px",
-      }}
-    >
-      <CalendarButton
-        onClick={() => {
-          setSelectedCategory("calendar");
-          setIsSidebarOpen(false);
-        }}
-      />
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <img src={aiIcon} alt="AI" style={{ width: 24, height: 24 }} />
-        <Button
-          type="primary"
-          onClick={() => {
-            setIsAIAnalysisOpen(true);
-            setIsSidebarOpen(false);
-          }}
-        >
-          AI Analysis
-        </Button>
-      </div>
-      <UserProfileMenu user={user} />
-    </div>
-  ) : null;
+  // Sidebar mobile header content is no longer used
+  const mobileTopContent = null;
 
   return (
     <div className="App">
@@ -251,6 +216,49 @@ export default function App() {
                         style={{ width: 24, height: 24 }}
                       />
                     </Button>
+                  )}
+
+                  {/* MOBILE ICON BUTTONS: calendar, AI, profile */}
+                  {isMobile && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        marginLeft: "auto",
+                        marginRight: "2vw",
+                      }}
+                    >
+                      {/* Calendar icon-only button */}
+                      <CalendarButton
+                        onClick={() => setSelectedCategory("calendar")}
+                        iconOnly // icon-only variant for mobile
+                      />
+
+                      {/* AI icon-only button */}
+                      <Button
+                        type="text"
+                        onClick={() => setIsAIAnalysisOpen(true)}
+                        style={{
+                          padding: 0,
+                          width: 32,
+                          height: 32,
+                          borderRadius: 6,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <img
+                          src={aiIcon}
+                          alt="AI"
+                          style={{ width: 24, height: 24 }}
+                        />
+                      </Button>
+
+                      {/* Profile – existing component (usually avatar/dropdown) */}
+                      <UserProfileMenu user={user} />
+                    </div>
                   )}
 
                   {/* DESKTOP-ONLY BUTTONS */}
