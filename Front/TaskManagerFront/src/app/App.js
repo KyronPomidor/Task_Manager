@@ -128,11 +128,7 @@ export default function App() {
           gap: 8,
         }}
       >
-        <img
-          src={aiIcon}
-          alt="AI"
-          style={{ width: 24, height: 24 }}
-        />
+        <img src={aiIcon} alt="AI" style={{ width: 24, height: 24 }} />
         <Button
           type="primary"
           onClick={() => {
@@ -188,11 +184,38 @@ export default function App() {
                 onOpenMenu={() => setIsSidebarOpen(true)}
               />
             ) : selectedCategory === "calendar" ? (
-              <Calendar
-                tasks={tasks}
-                categories={categories}
-                onCardClick={(task) => setSelectedCategory(task.categoryId)}
-              />
+              <div style={{ position: "relative", height: "100%" }}>
+                {isMobile && (
+                  <Button
+                    type="text"
+                    onClick={() => setIsSidebarOpen(true)}
+                    style={{
+                      position: "absolute",
+                      top: 16,
+                      left: 16,
+                      zIndex: 1100,
+                      padding: 0,
+                      width: 36,
+                      height: 36,
+                      borderRadius: 6,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <img
+                      src={menuIcon}
+                      alt="Menu"
+                      style={{ width: 24, height: 24 }}
+                    />
+                  </Button>
+                )}
+                <Calendar
+                  tasks={tasks}
+                  categories={categories}
+                  onCardClick={(task) => setSelectedCategory(task.categoryId)}
+                />
+              </div>
             ) : (
               <div className="MainScroll">
                 {/* TOP BAR */}
@@ -323,6 +346,18 @@ export default function App() {
           {/* MOBILE SIDEBAR OVERLAY */}
           {isMobile && isSidebarOpen && (
             <div className="MobileSidebarOverlay">
+              {/* CLOSE BUTTON – same spot as main menu */}
+              <button
+                className="MobileSidebarCloseButton"
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <img
+                  src={menuIcon}
+                  alt="Close menu"
+                  style={{ width: 24, height: 24 }}
+                />
+              </button>
+
               <div
                 className="MobileSidebarBackdrop"
                 onClick={() => setIsSidebarOpen(false)}

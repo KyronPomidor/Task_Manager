@@ -58,7 +58,7 @@ const STYLES = {
     border: "none",
     cursor: "pointer",
     fontWeight: 600,
-    fontFamily: "'Roboto', sans-serif"
+    fontFamily: "'Roboto', sans-serif",
   },
   backdrop: { position: "fixed", inset: 0, zIndex: 999 },
   dialog: {
@@ -73,11 +73,36 @@ const STYLES = {
     zIndex: 1000,
   },
   field: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 },
-  input: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", fontFamily: "'Roboto', sans-serif" },
-  select: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", background: "#fff", fontFamily: "'Roboto', sans-serif" },
+  input: {
+    padding: 10,
+    borderRadius: 8,
+    border: "1px solid #ccc",
+    font: "inherit",
+    fontFamily: "'Roboto', sans-serif",
+  },
+  select: {
+    padding: 10,
+    borderRadius: 8,
+    border: "1px solid #ccc",
+    font: "inherit",
+    background: "#fff",
+    fontFamily: "'Roboto', sans-serif",
+  },
   actions: { display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 },
-  btnCancel: { padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", background: "#fafafa", cursor: "pointer" },
-  btnSave: { padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600 },
+  btnCancel: {
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: "1px solid #ddd",
+    background: "#fafafa",
+    cursor: "pointer",
+  },
+  btnSave: {
+    padding: "8px 12px",
+    borderRadius: 8,
+    border: "none",
+    cursor: "pointer",
+    fontWeight: 600,
+  },
   iconWrapper: {
     width: 20,
     height: 20,
@@ -93,14 +118,14 @@ const STYLES = {
     color: "#4d5156ff",
     fontWeight: 600,
     margin: "50px 8px 0 8px",
-    fontFamily: "'Roboto', sans-serif"
+    fontFamily: "'Roboto', sans-serif",
   },
   labelText: {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
     maxWidth: "calc(100% - 60px)",
-    fontFamily: "'Roboto', sans-serif"
+    fontFamily: "'Roboto', sans-serif",
   },
 };
 
@@ -141,7 +166,11 @@ function Actions({ onEdit, onDelete, colors }) {
   return (
     <div style={STYLES.actionWrap} onClick={(e) => e.stopPropagation()}>
       <button
-        style={{ ...STYLES.actionBtn, borderColor: colors.rowBorder, background: colors.actionBg }}
+        style={{
+          ...STYLES.actionBtn,
+          borderColor: colors.rowBorder,
+          background: colors.actionBg,
+        }}
         title="Edit"
         onMouseEnter={(e) => (e.currentTarget.style.background = colors.actionHover)}
         onMouseLeave={(e) => (e.currentTarget.style.background = colors.actionBg)}
@@ -150,7 +179,11 @@ function Actions({ onEdit, onDelete, colors }) {
         ✎
       </button>
       <button
-        style={{ ...STYLES.actionBtn, borderColor: colors.rowBorder, background: colors.actionBg }}
+        style={{
+          ...STYLES.actionBtn,
+          borderColor: colors.rowBorder,
+          background: colors.actionBg,
+        }}
         title="Delete"
         onMouseEnter={(e) => (e.currentTarget.style.background = colors.actionHover)}
         onMouseLeave={(e) => (e.currentTarget.style.background = colors.actionBg)}
@@ -190,12 +223,26 @@ function Row({
 
   return (
     <div
-      style={getRowStyle({ isActive, level, isShaded, isHovered: !isActive && showActions, colors })}
+      style={getRowStyle({
+        isActive,
+        level,
+        isShaded,
+        isHovered: !isActive && showActions,
+        colors,
+      })}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <span style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
+      <span
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
         {icon && (
           <div style={STYLES.iconWrapper}>
             <img src={icon} alt="icon" style={{ width: 20, height: 20 }} />
@@ -238,7 +285,14 @@ function Row({
       )}
 
       {count > 0 && (
-        <span style={{ fontSize: "0.85rem", fontWeight: 600, opacity: 0.7, flexShrink: 0 }}>
+        <span
+          style={{
+            fontSize: "0.85rem",
+            fontWeight: 600,
+            opacity: 0.7,
+            flexShrink: 0,
+          }}
+        >
           {count}
         </span>
       )}
@@ -259,7 +313,9 @@ function DroppableRow({ categoryId, children, isEnabled, onExpand }) {
     }
   }, [isOver, onExpand]);
 
-  const style = isOver ? { background: "#e0e7ff", borderRadius: 6, margin: "0 8px" } : { margin: "0 8px" };
+  const style = isOver
+    ? { background: "#e0e7ff", borderRadius: 6, margin: "0 8px" }
+    : { margin: "0 8px" };
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -447,11 +503,20 @@ export function SideBar({
     groupBg: "#f6f7f9",
   };
 
-  const sidebarStyle = {
+  const sidebarBaseStyle = {
     ...STYLES.sidebar,
     background: COLORS.bg,
     borderRightColor: COLORS.sidebarBorder,
   };
+
+  const sidebarStyle = isMobile
+    ? {
+        ...sidebarBaseStyle,
+        width: "100vw",
+        minWidth: "100vw",
+        borderRight: "none",
+      }
+    : sidebarBaseStyle;
 
   return (
     <div style={sidebarStyle}>
@@ -459,7 +524,7 @@ export function SideBar({
         <img src={logo} alt="logo" width={128} height={85} />
       </div>
 
-      {/* MOBILE-ONLY TOP CONTENT (Calendar, AI, profile) */}
+      {/* MOBILE EXTRAS (Calendar/AI/Profile) RIGHT UNDER LOGO */}
       {isMobile && mobileTopContent && (
         <div
           style={{
@@ -471,7 +536,7 @@ export function SideBar({
         </div>
       )}
 
-      <div style={STYLES.list}>
+      <div style={STYLES.list} className="SidebarList">
         <Row
           id="search"
           icon={searchIcon}
@@ -503,7 +568,10 @@ export function SideBar({
           colors={COLORS}
         />
 
-        <DroppableRow categoryId="inbox" isEnabled={droppableCategoryIds.has("inbox")}>
+        <DroppableRow
+          categoryId="inbox"
+          isEnabled={droppableCategoryIds.has("inbox")}
+        >
           <Row
             id="inbox"
             label="Inbox"
@@ -519,7 +587,10 @@ export function SideBar({
           />
         </DroppableRow>
 
-        <DroppableRow categoryId="today" isEnabled={droppableCategoryIds.has("today")}>
+        <DroppableRow
+          categoryId="today"
+          isEnabled={droppableCategoryIds.has("today")}
+        >
           <Row
             id="today"
             label="Today"
@@ -535,7 +606,10 @@ export function SideBar({
           />
         </DroppableRow>
 
-        <DroppableRow categoryId="graphs" isEnabled={droppableCategoryIds.has("graphs")}>
+        <DroppableRow
+          categoryId="graphs"
+          isEnabled={droppableCategoryIds.has("graphs")}
+        >
           <Row
             id="graphs"
             label="Graphs"
@@ -570,9 +644,17 @@ export function SideBar({
 
         <button
           onClick={openAdd}
-          style={{ ...STYLES.addBtn, background: "transparent", color: "#111827" }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = COLORS.rowHover)}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          style={{
+            ...STYLES.addBtn,
+            background: "transparent",
+            color: "#111827",
+          }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background = COLORS.rowHover)
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.background = "transparent")
+          }
         >
           + Add Category
         </button>
@@ -580,8 +662,15 @@ export function SideBar({
 
       {isModalOpen && (
         <>
-          <div onClick={closeModal} style={{ ...STYLES.backdrop, background: "rgba(0,0,0,0.45)" }} />
-          <div role="dialog" aria-modal="true" style={{ ...STYLES.dialog, background: "#fff" }}>
+          <div
+            onClick={closeModal}
+            style={{ ...STYLES.backdrop, background: "rgba(0,0,0,0.45)" }}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            style={{ ...STYLES.dialog, background: "#fff" }}
+          >
             <h3>{mode === "edit" ? "Edit Category" : "Add Category"}</h3>
             <label style={STYLES.field}>
               <span>Category name *</span>
@@ -613,7 +702,11 @@ export function SideBar({
               </button>
               <button
                 onClick={saveCategory}
-                style={{ ...STYLES.btnSave, background: COLORS.blue, color: COLORS.blueText }}
+                style={{
+                  ...STYLES.btnSave,
+                  background: COLORS.blue,
+                  color: COLORS.blueText,
+                }}
               >
                 Save
               </button>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../Tasks.css";
 import { TaskFilters } from "../../../Widgets/TaskFilters";
 import { Row, Col, Button, Modal } from "antd";
@@ -56,6 +56,22 @@ export function Tasks({
     deadline: "",
     deadlineTime: "",
   });
+
+  // mobile detection
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
+  useEffect(() => {
+    const onResize = () => {
+      if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth < 768);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const isInboxMainMobile = isMobile && selectedCategory === "inbox";
 
   // Custom hook for task operations
   const {
@@ -163,17 +179,42 @@ export function Tasks({
     <div className="tasks-container">
       <div
         className="composer"
-        style={{ display: "flex", alignItems: "center", gap: "16px" }}
+        style={{
+          display: "flex",
+          gap: "16px",
+          alignItems: isInboxMainMobile ? "center" : "center",
+          justifyContent: isInboxMainMobile ? "center" : "flex-start",
+          flexDirection: isInboxMainMobile ? "column" : "row",
+        }}
       >
         {selectedCategory !== "done" && (
-          <Button type="primary" onClick={handleAddNew}>
+          <Button
+            type="primary"
+            onClick={handleAddNew}
+            style={isInboxMainMobile ? { alignSelf: "center" } : undefined}
+          >
             Add
           </Button>
         )}
-        <TaskFilters filters={filters} setFilters={setFilters} />
+
+        <div
+          style={
+            isInboxMainMobile
+              ? { width: "100%", display: "flex", justifyContent: "center" }
+              : {}
+          }
+        >
+          <TaskFilters filters={filters} setFilters={setFilters} />
+        </div>
+
         {selectedCategory === "done" && (
           <span
-            style={{ fontSize: "0.9rem", color: "#4d5156", fontWeight: 600 }}
+            style={{
+              fontSize: "0.9rem",
+              color: "#4d5156",
+              fontWeight: 600,
+              marginTop: isInboxMainMobile ? 8 : 0,
+            }}
           >
             Total Expenses: ${calculateTotalExpenses(filteredAndSortedTasks)}
           </span>
