@@ -1,10 +1,10 @@
 # Changelog
 
 ## 26-11-2025
-- **Created the mobile view for the main page**: The page chenges with relation to the screen size applyed. Contributor: [Kirill](https://github.com/KyronPomidor), ([54](https://github.com/KyronPomidor/Task_Manager/pull/54))
-- **New fixed responsiveness to different screes resolutions**: Improved responsiveness across multiple screen resolutions, including phones. Contributor: [Kirill](https://github.com/KyronPomidor), ([54](https://github.com/KyronPomidor/Task_Manager/pull/54))
-- **Opportunity to fold unfold the sidebar on phones**: The menu button for better visibility of UI on small size screens. Contributor: [Kirill](https://github.com/KyronPomidor), ([54](https://github.com/KyronPomidor/Task_Manager/pull/54))
-- **Changes for faster UI response**: The UX is better due to changed button positions and minor adjustments of the task cards visualization on the page. Contributor: [Kirill](https://github.com/KyronPomidor), ([54](https://github.com/KyronPomidor/Task_Manager/pull/54))
+**Created the mobile view for the main page**: The page chenges with relation to the screen size applyed. Contributor: [Kirill](https://github.com/KyronPomidor), ([#54](https://github.com/KyronPomidor/Task_Manager/pull/54))
+- **New fixed responsiveness to different screes resolutions**: Improved responsiveness across multiple screen resolutions, including phones.
+- **Opportunity to fold unfold the sidebar on phones**: The menu button for better visibility of UI on small size screens.
+- **Changes for faster UI response**: The UX is better due to changed button positions and minor adjustments of the task cards visualization on the page.
 
 ## 02-11-2025
 - **Snake Game enhancements**: Implemented a fully functional Snake Game component. Resolved direction change issue where rapid key presses (e.g., right to down to left in quick succession) caused improper movement or self-collision, by introducing a direction queue system to process inputs sequentially per frame. Contributors: [Mihail. P](https://github.com/varsarius)
