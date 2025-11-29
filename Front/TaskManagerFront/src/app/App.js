@@ -1,5 +1,5 @@
 import "./styles/App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "antd";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
@@ -9,10 +9,9 @@ import Authorization from "../pages/authorization";
 import useAuth from "../hooks/useAuth";
 import UserProfileMenu from "../Widgets/UserProfile";
 import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration";
-import { SnakeGame } from "../pages/GraphPage/ui/SnakeGame";
-
 import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
 import aiIcon from "./ai.png";
+import menuIcon from "./menu.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
 
@@ -50,6 +49,22 @@ export default function App() {
     handleDragOver,
     handleDragEnd,
   } = useDragDrop(tasks, setTasks, updateTask, updateTaskOrder);
+
+  // ----- MOBILE DETECTION -----
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth < 768);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // Handle category deletion with task reassignment
   const handleDeleteCategory = async (id) => {
@@ -90,6 +105,9 @@ export default function App() {
     todayStr
   );
 
+  // Sidebar mobile header content is no longer used
+  const mobileTopContent = null;
+
   return (
     <div className="App">
       <div className="AppBody">
@@ -99,21 +117,26 @@ export default function App() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <SideBar
-            categories={categories}
-            selectedCategory={selectedCategory}
-            onCategorySelect={setSelectedCategory}
-            setCategories={setCategories}
-            droppableCategoryIds={droppableCategoryIds}
-            hoveredCategory={hoveredCategory}
-            setTasks={setTasks}
-            tasks={tasks}
-            searchText={searchText}
-            setSearchText={setSearchText}
-            addCategory={addCategory}
-            editCategory={editCategory}
-            deleteCategory={handleDeleteCategory}
-          />
+          {/* DESKTOP SIDEBAR – visible only when NOT mobile */}
+          {!isMobile && (
+            <SideBar
+              categories={categories}
+              selectedCategory={selectedCategory}
+              onCategorySelect={setSelectedCategory}
+              setCategories={setCategories}
+              droppableCategoryIds={droppableCategoryIds}
+              hoveredCategory={hoveredCategory}
+              setTasks={setTasks}
+              tasks={tasks}
+              searchText={searchText}
+              setSearchText={setSearchText}
+              addCategory={addCategory}
+              editCategory={editCategory}
+              deleteCategory={handleDeleteCategory}
+              isMobile={false}
+              mobileTopContent={null}
+            />
+          )}
 
           <div className="MainPanel">
             {selectedCategory === "graphs" ? (
@@ -122,55 +145,158 @@ export default function App() {
                 setTasks={setTasks}
                 categories={categories}
                 updateTask={updateTask}
+                isMobile={isMobile}
+                onOpenMenu={() => setIsSidebarOpen(true)}
               />
             ) : selectedCategory === "calendar" ? (
-              <Calendar
-                tasks={tasks}
-                categories={categories}
-                onCardClick={(task) => setSelectedCategory(task.categoryId)}
-              />
-            ) : selectedCategory === "game" ? (
-              <SnakeGame
-                tasks={tasks}
-                setTasks={setTasks}
-                categories={categories}
-                updateTask={updateTask}
-              />
+              <div style={{ position: "relative", height: "100%" }}>
+                {isMobile && (
+                  <Button
+                    type="text"
+                    onClick={() => setIsSidebarOpen(true)}
+                    style={{
+                      position: "absolute",
+                      top: 16,
+                      left: 16,
+                      zIndex: 1100,
+                      padding: 0,
+                      width: 36,
+                      height: 36,
+                      borderRadius: 6,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <img
+                      src={menuIcon}
+                      alt="Menu"
+                      style={{ width: 24, height: 24 }}
+                    />
+                  </Button>
+                )}
+                <Calendar
+                  tasks={tasks}
+                  categories={categories}
+                  onCardClick={(task) => setSelectedCategory(task.categoryId)}
+                />
+              </div>
             ) : (
               <div className="MainScroll">
+                {/* TOP BAR */}
                 <div
                   style={{
                     display: "flex",
-                    justifyContent: "flex-end",
+                    justifyContent: isMobile ? "flex-start" : "flex-end",
+                    alignItems: "center",
                     gap: "16px",
                     marginTop: "1vh",
                     marginRight: "1vw",
                     marginBottom: "10vh",
                   }}
                 >
-                  <CalendarButton
-                    onClick={() => setSelectedCategory("calendar")}
-                  />
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "8px",
-                    }}
-                  >
-                    <img
-                      src={aiIcon}
-                      alt="AI"
-                      style={{ width: "24px", height: "24px" }}
-                    />
+                  {/* MENU BUTTON - ONLY MOBILE */}
+                  {isMobile && (
                     <Button
-                      type="primary"
-                      onClick={() => setIsAIAnalysisOpen(true)}
+                      type="text"
+                      onClick={() => setIsSidebarOpen(true)}
+                      style={{
+                        padding: 0,
+                        width: 36,
+                        height: 36,
+                        borderRadius: 6,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
                     >
-                      AI Analysis
+                      <img
+                        src={menuIcon}
+                        alt="Menu"
+                        style={{ width: 24, height: 24 }}
+                      />
                     </Button>
-                  </div>
-                  <UserProfileMenu user={user} />
+                  )}
+
+                  {/* MOBILE ICON BUTTONS: calendar, AI, profile */}
+                  {isMobile && (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 12,
+                        marginLeft: "auto",
+                        marginRight: "2vw",
+                      }}
+                    >
+                      {/* Calendar icon-only button */}
+                      <CalendarButton
+                        onClick={() => setSelectedCategory("calendar")}
+                        iconOnly // icon-only variant for mobile
+                      />
+
+                      {/* AI icon-only button */}
+                      <Button
+                        type="text"
+                        onClick={() => setIsAIAnalysisOpen(true)}
+                        style={{
+                          padding: 0,
+                          width: 32,
+                          height: 32,
+                          borderRadius: 6,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <img
+                          src={aiIcon}
+                          alt="AI"
+                          style={{ width: 24, height: 24 }}
+                        />
+                      </Button>
+
+                      {/* Profile – existing component (usually avatar dropdown) */}
+                      <UserProfileMenu user={user} />
+                    </div>
+                  )}
+
+                  {/* DESKTOP-ONLY BUTTONS */}
+                  {!isMobile && (
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        gap: "16px",
+                        flex: 1,
+                      }}
+                    >
+                      <CalendarButton
+                        onClick={() => setSelectedCategory("calendar")}
+                      />
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
+                      >
+                        <img
+                          src={aiIcon}
+                          alt="AI"
+                          style={{ width: "24px", height: "24px" }}
+                        />
+                        <Button
+                          type="primary"
+                          onClick={() => setIsAIAnalysisOpen(true)}
+                        >
+                          AI Analysis
+                        </Button>
+                      </div>
+                      <UserProfileMenu user={user} />
+                    </div>
+                  )}
                 </div>
 
                 <Welcome
@@ -224,6 +350,50 @@ export default function App() {
                 );
               })()}
           </DragOverlay>
+
+          {/* MOBILE SIDEBAR OVERLAY */}
+          {isMobile && isSidebarOpen && (
+            <div className="MobileSidebarOverlay">
+              {/* CLOSE BUTTON – same spot as main menu */}
+              <button
+                className="MobileSidebarCloseButton"
+                onClick={() => setIsSidebarOpen(false)}
+              >
+                <img
+                  src={menuIcon}
+                  alt="Close menu"
+                  style={{ width: 24, height: 24 }}
+                />
+              </button>
+
+              <div
+                className="MobileSidebarBackdrop"
+                onClick={() => setIsSidebarOpen(false)}
+              />
+              <div className="MobileSidebarPanel">
+                <SideBar
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onCategorySelect={(id) => {
+                    setSelectedCategory(id);
+                    setIsSidebarOpen(false);
+                  }}
+                  setCategories={setCategories}
+                  droppableCategoryIds={droppableCategoryIds}
+                  hoveredCategory={hoveredCategory}
+                  setTasks={setTasks}
+                  tasks={tasks}
+                  searchText={searchText}
+                  setSearchText={setSearchText}
+                  addCategory={addCategory}
+                  editCategory={editCategory}
+                  deleteCategory={handleDeleteCategory}
+                  isMobile={true}
+                  mobileTopContent={mobileTopContent}
+                />
+              </div>
+            </div>
+          )}
         </DndContext>
 
         <AIAnalysisModal
