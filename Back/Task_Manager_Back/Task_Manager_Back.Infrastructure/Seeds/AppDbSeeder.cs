@@ -118,6 +118,7 @@ public static class AppDbSeeder
                 StatusId: null,
                 Priority: priority,
                 CategoryId: inbox.Id, // assign to Inbox
+                Location: null,
                 Deadline: DateTime.UtcNow.AddDays(i),
                 IsCompleted: i % 2 == 0,
                 PositionOrder: i,

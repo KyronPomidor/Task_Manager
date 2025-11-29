@@ -8,6 +8,13 @@
 - **Made the calendar vies for mobile version**: New calendar for mobile size screens.
 - **New API calls**: Added the new API calls for the frontend after changes in backend.
 
+**Add TaskLocation to track task location**: Backend now accepts LocationName and LocationCoords as optional fields. Contributor [Andrei. E](https://github.com/EXakiToR), ([#59](https://github.com/KyronPomidor/Task_Manager/pull/59))
+- **`TaskEntity`**: Added `TaskLocation` as an owned entity with methods to set and update location.  
+- **`TaskLocation.cs`**: Created a new class with properties `LocationName` and `LocationCoords`.  
+- **Request classes (`CreateTaskRequest`, `PatchTaskRequest`, `UpdateTaskRequest`)**: Added `TaskLocation` property.  
+- **Use cases (`CreateTaskUseCase`, `PatchTaskUseCase`, `UpdateTaskUseCase`)**: Updated to handle `TaskLocation`.  
+- **`AppDbContext`**: Configured `TaskLocation` as an owned entity with constraints on property lengths.  
+
 ## 25-11-25
 - **Map integration (Phase 1 & 2)**: Developed the full geolocation task feature — including address input, backend support for latitude/longitude, and frontend map rendering. Implemented a standalone Map tab, task markers, priority-based custom SVG icons, and marker clustering for high-density areas. [Rustem](github.com/fxmidaaa) [55](https://github.com/KyronPomidor/Task_Manager/pull/55)
 
