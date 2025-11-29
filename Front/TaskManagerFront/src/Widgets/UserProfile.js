@@ -5,7 +5,7 @@ import { auth } from "../firebase/firebase";
 
 const { Title, Text } = Typography;
 
-export default function UserProfile({ user }) {
+export default function UserProfile({ user, isDarkMode }) {
   const [open, setOpen] = useState(false);
   const initialName = user?.displayName || user?.email?.split("@")[0] || "User";
   const initialEmail = user?.email || "unknown@example.com";
@@ -96,9 +96,13 @@ export default function UserProfile({ user }) {
             .split(" ")
             .map((n) => n[0])
             .join("")
-            .toUpperCase()}
+            .toUpperCase()
+            .slice(0, 2)}
         </div>
-        <span>{name}</span>
+        {/* THIS IS THE ONLY LINE YOU NEED TO CHANGE */}
+        <span style={{ color: isDarkMode ? "#e5e5e5" : "#111827", fontWeight: 600 }}>
+          {name}
+        </span>
       </button>
 
       <Modal
