@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap');
+
 .App {
   text-align: center;
   background-color: #edeef4;
@@ -6,8 +7,8 @@
 
 .AppBody {
   display: flex;
-  height: 100vh; /* Ensure full viewport height */
-  overflow: hidden; /* Prevent parent from scrolling */
+  height: 100vh;
+  overflow: hidden;
 }
 
 /* Right side column */
@@ -16,17 +17,86 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  overflow: hidden; /* Prevent MainPanel from scrolling */
+  overflow: hidden;
 }
 
 /* Only Tasks scrolls */
 .MainScroll {
   flex: 1;
   z-index: 0;
-  overflow-y: auto; /* Enable vertical scroll for tasks */
+  overflow-y: auto;
   min-height: 0;
 }
 
 .task-card .ant-tag {
-  font-size: 0.65rem; /* Smaller font size for priority tags */
+  font-size: 0.65rem;
+}
+
+/* =========== MOBILE SIDEBAR OVERLAY =========== */
+.MobileSidebarOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* CLOSE BUTTON – same spot as main menu */
+.MobileSidebarCloseButton {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 1101;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.MobileSidebarBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  pointer-events: auto;
+}
+
+/* FULL-SCREEN SIDEBAR PANEL ON PHONES */
+.MobileSidebarPanel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  max-width: none;
+  background: #e8ecef;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.25);
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Hide sidebar inner scrollbar but keep scrolling possible */
+.SidebarList {
+  scrollbar-width: none; /* Firefox */
+}
+
+.SidebarList::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+/* Optional small mobile tweaks */
+@media (max-width: 768px) {
+  .tasks-container {
+    padding: 8px;
+  }
+
+  .composer {
+    width: 100%;
+  }
 }

@@ -101,3 +101,48 @@
   text-decoration: line-through;
   color: #888;
 }
+
+/* MOBILE — place arrows closer to the center */
+@media (max-width: 768px) {
+  .calendar-header {
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .calendar-header h2 {
+    font-size: 18px;
+    margin: 0 8px;
+  }
+
+  .calendar-header button {
+    font-size: 18px;
+    padding: 4px 10px;
+  }
+
+ /* Smaller day boxes */
+  .calendar-grid {
+    gap: 4px;
+  }
+
+  .day-card,
+  .day-card.empty {
+    height: 50px;           /* was 140px */
+    min-height: 50px;
+    padding: 1px;
+  }
+
+  .day-title {
+    font-size: 15px;
+    top: 4px;
+    left: 4px;
+  }
+
+  .task-item {
+    margin-bottom: 1px;
+  }
+
+  .task-title {
+    font-size: 5px;        /* smaller text inside boxes */
+    line-height: 5px;
+  }
+}
