@@ -1,12 +1,17 @@
 # Changelog
 
 ## 29-11-2025
-**Created the mobile view for the main page**: The page chenges with relation to the screen size applyed. Contributor: [Kirill](https://github.com/KyronPomidor), ([#54](https://github.com/KyronPomidor/Task_Manager/pull/54))
+**Created the mobile view for the main page**: The page changes with relation to the screen size applied. Contributor: [Kirill](https://github.com/KyronPomidor), ([#54](https://github.com/KyronPomidor/Task_Manager/pull/54))
 - **New fixed responsiveness to different screes resolutions**: Improved responsiveness across multiple screen resolutions, including phones.
-- **Opportunity to fold unfold the sidebar on phones**: The menu button for better visibility of UI on small size screens.
+- **Opportunity to fold and unfold the sidebar on phones**: The menu button for better visibility of UI on small size screens.
 - **Changes for faster UI response**: The UX is better due to changed button positions and minor adjustments of the task cards visualization on the page.
 - **Made the calendar vies for mobile version**: New calendar for mobile size screens.
 - **New API calls**: Added the new API calls for the frontend after changes in backend.
+
+**Complete dark mode feature added**: The dark mode feature is complete, covering multiple components of the app. Contributor: [Andrey U.](https://github.com/PrikolistTheSillyThing), ([#60](https://github.com/KyronPomidor/Task_Manager/pull/60))
+- **Cards dark mode**: The task cards receive the dark mode while maintaining the colors for child-parent task relations.
+- **Icons**: Multiple icons for all the components have dark mode variants now.
+- **Graph visualization**: Graph nodes, background and arrows now properly adapt to dark mode.
 
 ## 25-11-25
 - **Map integration (Phase 1 & 2)**: Developed the full geolocation task feature — including address input, backend support for latitude/longitude, and frontend map rendering. Implemented a standalone Map tab, task markers, priority-based custom SVG icons, and marker clustering for high-density areas. [Rustem](github.com/fxmidaaa) [55](https://github.com/KyronPomidor/Task_Manager/pull/55)
@@ -16,6 +21,9 @@
 - **UI/UX refinements**: Improved clarity of the task details modal and implemented priority-based color logic for the new map markers. [Rustem]
 
 - **General front-end improvements**: Assisted with multiple layout fixes, tested cross-component interactions, and ensured consistent behavior across the new features. [Rustem]
+
+## 21-11-25
+- **Basic dark mode implementation**: Created a basic dark mode for key app components, such as App and Sidebar for a more comfortable view. Contributor: [Andrey U.](https://github.com/PrikolistTheSillyThing), ([#52](https://github.com/KyronPomidor/Task_Manager/pull/52))
 
 ## 02-11-2025
 - **Snake Game enhancements**: Implemented a fully functional Snake Game component. Resolved direction change issue where rapid key presses (e.g., right to down to left in quick succession) caused improper movement or self-collision, by introducing a direction queue system to process inputs sequentially per frame. Contributors: [Mihail. P](https://github.com/varsarius)
