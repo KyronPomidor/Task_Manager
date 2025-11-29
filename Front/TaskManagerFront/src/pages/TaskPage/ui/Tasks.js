@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "../Tasks.css";
 import { TaskFilters } from "../../../Widgets/TaskFilters";
 import { Row, Col, Button, Modal } from "antd";
@@ -57,9 +57,29 @@ export function Tasks({
     deadlineTime: "",
   });
 
+  // mobile detection
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < 768 : false
+  );
+  useEffect(() => {
+    const onResize = () => {
+      if (typeof window !== "undefined") {
+        setIsMobile(window.innerWidth < 768);
+      }
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const isInboxMainMobile = isMobile && selectedCategory === "inbox";
+
   // Custom hook for task operations
-  const { toggleComplete, addBudgetItem, saveBudgetItems, handleChildIndicatorClick } =
-    useTaskOperations(allTasks, setTasks, updateTask);
+  const {
+    toggleComplete,
+    addBudgetItem,
+    saveBudgetItems,
+    handleChildIndicatorClick,
+  } = useTaskOperations(allTasks, setTasks, updateTask);
 
   // Task editing handlers
   const startEdit = (task) => {
@@ -152,7 +172,6 @@ export function Tasks({
     filters
   );
 
-  // Helper functions wrapped for component use
   const wrappedGetParents = (taskId) => getParents(taskId, allTasks);
   const wrappedGetChildren = (taskId) => getChildren(taskId, allTasks);
 
@@ -160,17 +179,46 @@ export function Tasks({
     <div className="tasks-container">
       <div
         className="composer"
-        style={{ display: "flex", alignItems: "center", gap: "16px" }}
+        style={{
+          display: "flex",
+          gap: "16px",
+          alignItems: isInboxMainMobile ? "center" : "center",
+          justifyContent: isInboxMainMobile ? "center" : "flex-start",
+          flexDirection: isInboxMainMobile ? "column" : "row",
+        }}
       >
         {selectedCategory !== "done" && (
-          <Button type="primary" onClick={handleAddNew}>
+          <Button
+            type="primary"
+            onClick={handleAddNew}
+            style={isInboxMainMobile ? { alignSelf: "center" } : undefined}
+          >
             Add
           </Button>
         )}
-        <TaskFilters filters={filters} setFilters={setFilters} />
+
+        <div
+          style={
+            isInboxMainMobile
+              ? { width: "100%", display: "flex", justifyContent: "center" }
+              : {}
+          }
+        >
+          <TaskFilters
+            filters={filters}
+            setFilters={setFilters}
+            isMobile={isInboxMainMobile}
+          />
+        </div>
+
         {selectedCategory === "done" && (
           <span
-            style={{ fontSize: "0.9rem", color: "#4d5156", fontWeight: 600 }}
+            style={{
+              fontSize: "0.9rem",
+              color: "#4d5156",
+              fontWeight: 600,
+              marginTop: isInboxMainMobile ? 8 : 0,
+            }}
           >
             Total Expenses: ${calculateTotalExpenses(filteredAndSortedTasks)}
           </span>
@@ -180,7 +228,7 @@ export function Tasks({
       <SortableContext items={filteredAndSortedTasks.map((t) => t.id)}>
         <Row gutter={[16, 16]}>
           {filteredAndSortedTasks.map((task) => (
-            <Col key={task.id} span={8}>
+            <Col key={task.id} xs={24} sm={12} md={8}>
               <SortableTask task={task} onCardClick={handleCardClick}>
                 {(dragListeners) => (
                   <TaskCard
@@ -208,7 +256,6 @@ export function Tasks({
         </Row>
       </SortableContext>
 
-      {/* Task Details Modal */}
       <TaskDetailsModal
         visible={detailsOpen}
         task={selectedTask}
@@ -225,7 +272,6 @@ export function Tasks({
         }}
       />
 
-      {/* Budget Modal */}
       <BudgetModal
         visible={budgetOpen}
         task={budgetTask}
@@ -244,7 +290,6 @@ export function Tasks({
         }}
       />
 
-      {/* Edit Task Modal */}
       <TaskEditModal
         visible={editOpen}
         task={editTask}
@@ -259,7 +304,6 @@ export function Tasks({
         title="Edit Task"
       />
 
-      {/* Add Task Modal */}
       <TaskEditModal
         visible={addOpen}
         task={editTask}
