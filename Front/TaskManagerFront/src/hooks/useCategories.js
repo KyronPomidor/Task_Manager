@@ -5,7 +5,7 @@ import {
     renameCategory,
     updateCategoryParent,
     deleteCategory as apiDeleteCategory,
-} from "../api/taskCategoryService";
+} from "../api/taskService";
 import { normalizeCategories } from "../utils/taskUtils";
 
 export function useCategories() {
