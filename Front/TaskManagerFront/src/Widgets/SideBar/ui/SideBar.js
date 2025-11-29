@@ -649,6 +649,21 @@ export function SideBar({
           />
         </DroppableRow>
 
+        <DroppableRow categoryId="game" isEnabled={droppableCategoryIds.has("game")}>
+          <Row
+            id="game"
+            label="Game"
+            icon={categoryIcon}
+            level={0}
+            isActive={hoveredCategory === "game" || selectedCategory === "game"}
+            showActions={hoverId === "game"}
+            onMouseEnter={() => setHoverId("game")}
+            onMouseLeave={() => setHoverId(null)}
+            onClick={() => onCategorySelect("game")}
+            colors={COLORS}
+          />
+        </DroppableRow>
+
         <Row
           id="done"
           label="Done"

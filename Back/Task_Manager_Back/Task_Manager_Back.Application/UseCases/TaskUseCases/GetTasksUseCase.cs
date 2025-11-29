@@ -13,10 +13,10 @@ public class GetTasksUseCase
         _taskRepository = taskRepository;
     }
 
-    public async Task<IReadOnlyList<TaskEntity>> ExecuteAsync(GetTasksRequest request)
+    public async Task<IReadOnlyList<TaskEntity>> ExecuteAsync(GetTasksByUserIdRequest request)
     {
         // Позже тут можно будет добавить фильтрацию
-        return await _taskRepository.GetAllAsync();
+        return await _taskRepository.GetAllByUserIdAsync(request.UserId);
     }
 }
 

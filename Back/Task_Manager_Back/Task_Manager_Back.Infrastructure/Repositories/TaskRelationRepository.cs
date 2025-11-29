@@ -19,7 +19,7 @@ public class TaskRelationRepository : ITaskRelationRepository
         throw new NotImplementedException();
     }
 
-    public Task<List<TaskRelation>> GetAllAsync()
+    public Task<List<TaskRelation>> GetAllByUserIdAsync(Guid userId)
     {
         throw new NotImplementedException();
     }
