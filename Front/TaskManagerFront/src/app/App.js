@@ -182,6 +182,8 @@ export default function App() {
                 setTasks={setTasks}
                 categories={categories}
                 updateTask={updateTask}
+                isDarkMode={isDarkMode}
+                colors={colors}
               />
             ) : selectedCategory === "calendar" ? (
               <Calendar

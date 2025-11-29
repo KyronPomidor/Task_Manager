@@ -9,6 +9,7 @@ import checkIcon from "./checked.png";
 import binIcon from "./bin.png";
 import todayIcon from "./calendar.png";
 import searchIcon from "./search.png";
+import editIcon from "./edit.png";
 import logo from "./logo.png";
 
 /* ========= Dark-mode aware icon style ========= */
@@ -149,13 +150,21 @@ function Actions({ onEdit, onDelete, colors, isDarkMode }) {
   return (
     <div style={STYLES.actionWrap} onClick={(e) => e.stopPropagation()}>
       <button
-        style={{ ...STYLES.actionBtn, borderColor: colors.rowBorder, background: colors.actionBg }}
+        style={{
+          ...STYLES.actionBtn,
+          borderColor: colors.rowBorder,
+          background: colors.actionBg,
+        }}
         title="Edit"
         onMouseEnter={(e) => (e.currentTarget.style.background = colors.actionHover)}
         onMouseLeave={(e) => (e.currentTarget.style.background = colors.actionBg)}
         onClick={onEdit}
       >
-        Edit
+        <img
+          src={editIcon} // ← Add this import at the top!
+          alt="edit"
+          style={iconStyle(isDarkMode, 14)}
+        />
       </button>
       <button
         style={{ ...STYLES.actionBtn, borderColor: colors.rowBorder, background: colors.actionBg }}

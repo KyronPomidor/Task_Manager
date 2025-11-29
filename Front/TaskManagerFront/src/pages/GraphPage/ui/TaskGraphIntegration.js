@@ -2,8 +2,7 @@ import { useMemo } from "react";
 import { GraphsPage } from "./GraphsPage";
 import { getDeterministicColor } from "../../../utils/colorUtils";
 
-export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask }) {
-  // Dedup helper
+export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask, isDarkMode, colors }) {
   const uniqueById = (arr) => {
     const seen = new Set();
     return arr.filter((item) => {
@@ -16,7 +15,7 @@ export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask }
   const uniqueEdges = (arr) => {
     const seen = new Set();
     return arr.filter((edge) => {
-      if (!edge.from || !edge.to || edge.from === edge.to) return false; // Skip invalid edges or self-loops
+      if (!edge.from || !edge.to || edge.from === edge.to) return false;
       const key = `${edge.from}->${edge.to}`;
       if (seen.has(key)) return false;
       seen.add(key);
@@ -24,51 +23,41 @@ export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask }
     });
   };
 
-  // Build graph data with guaranteed unique string IDs, excluding completed tasks
   const graphData = useMemo(() => {
-    // Validate tasks and filter out completed tasks
     const validTasks = tasks.filter(
       (task) =>
         task.id &&
         (typeof task.id === "string" || typeof task.id === "number") &&
         !task.completed
     );
-    if (validTasks.length !== tasks.length) {
-      console.warn("Invalid or completed tasks detected and filtered out");
-    }
 
     let nodes = validTasks.map((task) => ({
-      id: String(task.id), // Always string
+      id: String(task.id),
       label: task.title || `Task ${task.id}`,
-      // Use color from task data (from DB), fallback to deterministic color
       color: task.color || getDeterministicColor(String(task.id)),
       x: task.graphNode?.x,
       y: task.graphNode?.y,
       fixed: task.graphNode?.fixed || false,
     }));
 
-    // Build edges from childrenIds instead of parentIds
     let edges = validTasks.flatMap((task) =>
       (task.childrenIds || []).map((childId) => {
-        // Check if child task exists and is not completed
         const childTask = tasks.find((t) => String(t.id) === String(childId) && !t.completed);
         if (!childTask) return null;
         return {
-          id: `${String(task.id)}-${String(childId)}`, // Unique edge ID
-          from: String(task.id), // parent
-          to: String(childId), // child
+          id: `${String(task.id)}-${String(childId)}`,
+          from: String(task.id),
+          to: String(childId),
         };
-      }).filter((edge) => edge !== null) // Remove null entries
+      }).filter(Boolean)
     );
 
-    // Remove duplicates
     nodes = uniqueById(nodes);
     edges = uniqueEdges(edges);
 
     return { nodes, edges };
   }, [tasks]);
 
-  // Handle graph node updates
   const handleGraphUpdate = (updatedGraphData) => {
     const updatedTasks = tasks.map((task) => {
       const node = updatedGraphData.nodes.find((n) => n.id === String(task.id));
@@ -88,21 +77,20 @@ export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask }
     setTasks(updatedTasks);
   };
 
-  // Handle task creation from graph
-  const handleCreateTaskFromNode = (nodeId) => {
+  const handleCreateTaskFromNode = (nodeId, position) => {
     const taskTitle = `New Task ${Date.now()}`;
     const newTask = {
       id: `task-${Date.now()}`,
       title: taskTitle,
       description: `Task created from node ${nodeId}`,
-      color: getDeterministicColor(taskTitle), // Generate color for new task
+      color: getDeterministicColor(taskTitle),
       priority: "Medium",
       categoryId: "inbox",
       completed: false,
-      childrenIds: [], // default children array
-      parentIds: [], // keep for migration compatibility
+      childrenIds: [],
+      parentIds: [],
       budgetItems: [],
-      graphNode: { id: nodeId, x: 300, y: 300, fixed: false },
+      graphNode: { x: position?.x || 300, y: position?.y || 300, fixed: false },
     };
     setTasks((prev) => [...prev, newTask]);
   };
@@ -116,6 +104,8 @@ export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask }
         tasks={tasks}
         setTasks={setTasks}
         updateTask={updateTask}
+        isDarkMode={isDarkMode}
+        colors={colors}
       />
     </div>
   );

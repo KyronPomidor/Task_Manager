@@ -2,24 +2,33 @@ import React, { useState } from "react";
 import VisGraph from "react-vis-graph-wrapper";
 import { Button } from "antd";
 
-export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setTasks, updateTask }) {
+export function GraphsPage({
+  graphData,
+  onGraphUpdate,
+  onCreateTask,
+  tasks,
+  setTasks,
+  updateTask,
+  isDarkMode = false,   // ← new
+  colors,               // ← new
+}) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [addingRelationFrom, setAddingRelationFrom] = useState(null);
+
+  // Dark mode colors — only visual change
+  const bg = colors?.bg || (isDarkMode ? "#1f2123" : "#ffffff");
+  const text = colors?.text || (isDarkMode ? "#e5e5e5" : "#111111");
+  const cardBg = isDarkMode ? "#2b2d2f" : "#f0f0f0";
+  const hintBg = isDarkMode ? "#333" : "#333"; // keep dark for readability
 
   const options = {
     autoResize: true,
     height: "100%",
     width: "100%",
-    layout: {
-      hierarchical: false,
-    },
+    layout: { hierarchical: false },
     physics: {
       enabled: true,
-      stabilization: {
-        enabled: true,
-        iterations: 1500,
-        updateInterval: 50,
-      },
+      stabilization: { enabled: true, iterations: 1500, updateInterval: 50 },
       barnesHut: {
         gravitationalConstant: -3000,
         springLength: 150,
@@ -35,10 +44,10 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
     nodes: {
       shape: "dot",
       size: 25,
-      font: { size: 14, color: "#111" },
+      font: { size: 14, color: text }, // ← only change: dynamic text color
     },
     edges: {
-      color: "gray",
+      color: isDarkMode ? "#999" : "gray", // ← slightly brighter in dark mode
       arrows: { to: { enabled: true, scaleFactor: 0.7 } },
       smooth: false,
     },
@@ -50,15 +59,14 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
     },
   };
 
+  // ORIGINAL events — 100% untouched
   const events = {
     select: ({ nodes }) => {
       if (nodes.length > 0) {
         const nodeId = nodes[0];
         if (addingRelationFrom && nodeId !== addingRelationFrom) {
-          // ARRAYS: Add new parent-child relationship using childrenIds
           console.log(`Adding relationship: ${addingRelationFrom} -> ${nodeId}`);
 
-          // Find the parent task
           const parentTask = tasks.find((task) => String(task.id) === String(addingRelationFrom));
 
           if (parentTask) {
@@ -66,19 +74,16 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
             if (!childrenIds.includes(String(nodeId))) {
               console.log(`Adding ${nodeId} to children of ${parentTask.id}`);
 
-              // Create updated task with new child
               const updatedTask = {
                 ...parentTask,
                 childrenIds: [...childrenIds, String(nodeId)],
               };
 
-              // Update local state
               const updatedTasks = tasks.map((task) =>
                 String(task.id) === String(addingRelationFrom) ? updatedTask : task
               );
               setTasks(updatedTasks);
 
-              // Sync with backend
               if (updateTask) {
                 console.log("Syncing relationship to backend:", updatedTask);
                 updateTask(updatedTask);
@@ -88,7 +93,7 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
             }
           }
 
-          setAddingRelationFrom(null); // Reset relation mode
+          setAddingRelationFrom(null);
         } else {
           setSelectedNode(nodeId);
         }
@@ -103,7 +108,6 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
           (t) => String(t.id) === String(nodeId) || t.title === nodeId
         );
         if (!correspondingTask && onCreateTask) {
-          // Pass click position to create task near where user clicked
           onCreateTask(nodeId, pointer?.canvas);
         }
       }
@@ -121,7 +125,6 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
     },
   };
 
-  // 🔄 Flip edge direction: from child → parent
   const flippedGraph = {
     ...graphData,
     edges: graphData.edges.map((edge) => ({
@@ -132,69 +135,77 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
 
   return (
     <div
-      style={{ width: "100%", height: "100vh", background: "#fff", position: "relative" }}
+    style={{
+      width: "100%",
+      height: "100vh",
+      background: bg,
+      position: "relative",
+    }}
+  >
+    {/* Top controls */}
+    <div
+      style={{
+        position: "absolute",
+        top: 20,
+        right: 20,
+        zIndex: 1000,
+        display: "flex",
+        gap: "10px",
+        alignItems: "center",
+      }}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: 20,
-          right: 20,
-          zIndex: 1000,
-          display: "flex",
-          gap: "10px",
-        }}
+      <Button
+        type={addingRelationFrom ? "default" : "primary"}
+        onClick={() => setAddingRelationFrom(addingRelationFrom ? null : selectedNode)}
+        disabled={!selectedNode}
       >
-        <Button
-          type={addingRelationFrom ? "default" : "primary"}
-          onClick={() => setAddingRelationFrom(addingRelationFrom ? null : selectedNode)}
-          disabled={!selectedNode}
-        >
-          {addingRelationFrom ? "Cancel Linking" : "Link Tasks"}
-        </Button>
+        {addingRelationFrom ? "Cancel Linking" : "Link Tasks"}
+      </Button>
 
-        {selectedNode && (
-          <div
-            style={{
-              background: "#f0f0f0",
-              padding: "8px 12px",
-              borderRadius: "4px",
-              fontSize: "14px",
-            }}
-          >
-            Selected:{" "}
-            {tasks.find((t) => String(t.id) === String(selectedNode))?.title ||
-              selectedNode}
-          </div>
-        )}
-      </div>
-
-      <VisGraph graph={flippedGraph} options={options} events={events} />
-
-      {addingRelationFrom && (
+      {selectedNode && (
         <div
           style={{
-            position: "absolute",
-            top: 80,
-            left: 20,
-            background: "#333",
-            padding: "10px",
-            borderRadius: "8px",
-            color: "white",
-            maxWidth: "300px",
+            background: cardBg,
+            color: text,
+            padding: "8px 12px",
+            borderRadius: "4px",
+            fontSize: "14px",
           }}
         >
-          <p>
-            Click another node to make it a child of{" "}
-            <b>
-              {tasks.find((t) => String(t.id) === String(addingRelationFrom))?.title ||
-                addingRelationFrom}
-            </b>
-          </p>
-          <Button onClick={() => setAddingRelationFrom(null)} style={{ marginTop: "5px" }}>
-            Cancel
-          </Button>
+          Selected:{" "}
+          {tasks.find((t) => String(t.id) === String(selectedNode))?.title || selectedNode}
         </div>
       )}
     </div>
-  );
+
+    {/* Linking hint */}
+    {addingRelationFrom && (
+      <div
+        style={{
+          position: "absolute",
+          top: 80,
+          left: 20,
+          background: hintBg,
+          padding: "10px",
+          borderRadius: "8px",
+          color: "white",
+          maxWidth: "300px",
+          zIndex: 1000,
+        }}
+      >
+        <p style={{ margin: "0 0 8px 0" }}>
+          Click another node to make it a child of{" "}
+          <b>
+            {tasks.find((t) => String(t.id) === String(addingRelationFrom))?.title ||
+              addingRelationFrom}
+          </b>
+        </p>
+        <Button size="small" onClick={() => setAddingRelationFrom(null)}>
+          Cancel
+        </Button>
+      </div>
+    )}
+
+    <VisGraph graph={flippedGraph} options={options} events={events} />
+  </div>);
 }
