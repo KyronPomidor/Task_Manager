@@ -22,14 +22,15 @@ public class UpdateTaskUseCase
         task.Rename(request.NewTitle);
         task.UpdateDescription(request.NewDescription);
         task.ChangeStatus(request.NewStatusId);
-        task.ChangeCategory(request.NewCategoryId);
+        task.ChangeCategoryId(request.NewCategoryId);
+        task.SetLocation(request.NewLocation);
         task.ChangeDeadline(request.NewDeadline);
         task.ChangePriority(request.NewPriority);
         task.ChangeColor(request.NewColor);
         task.ChangePositionOrder(request.NewPositionOrder);
         task.SetIsCompleted(request.IsCompleted);
         task.SetIsFailed(request.IsCompleted);
-        task.SetDependsOnTasksIds(request.NewDependsOnTasksIds); // NEW
+        task.SetDependsOnTasksIds(request.NewDependsOnTasksIds);
         task.SetPrice(request.Price);
 
         await _taskRepository.UpdateAsync(task);
