@@ -256,7 +256,7 @@ export default function App() {
                         />
                       </Button>
 
-                      {/* Profile – existing component (usually avatar/dropdown) */}
+                      {/* Profile – existing component (usually avatar dropdown) */}
                       <UserProfileMenu user={user} />
                     </div>
                   )}

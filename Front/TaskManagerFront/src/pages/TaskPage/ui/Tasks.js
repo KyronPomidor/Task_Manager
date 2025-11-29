@@ -204,7 +204,11 @@ export function Tasks({
               : {}
           }
         >
-          <TaskFilters filters={filters} setFilters={setFilters} />
+          <TaskFilters
+            filters={filters}
+            setFilters={setFilters}
+            isMobile={isInboxMainMobile}
+          />
         </div>
 
         {selectedCategory === "done" && (
