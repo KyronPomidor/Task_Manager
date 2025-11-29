@@ -1,10 +1,15 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-export function Welcome({ user, selectedCategory, categories }) {
+export function Welcome({
+  user,
+  selectedCategory,
+  categories,
+  isDarkMode = false,  
+  colors,                 
+}) {
   const [now, setNow] = useState(new Date());
 
-  // track viewport to know when it's "phone" size
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" ? window.innerWidth < 768 : false
   );
@@ -27,18 +32,8 @@ export function Welcome({ user, selectedCategory, categories }) {
   // Date & time formatting
   const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const months = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
   ];
   const day = days[now.getDay()];
   const date = now.getDate();
@@ -48,17 +43,16 @@ export function Welcome({ user, selectedCategory, categories }) {
   let hours = now.getHours();
   const minutes = now.getMinutes().toString().padStart(2, "0");
   const ampm = hours >= 12 ? "PM" : "AM";
-  hours = hours % 12;
-  if (hours === 0) hours = 12;
+  hours = hours % 12 || 12;
   const time = `${hours}:${minutes} ${ampm}`;
 
-  // Find category name for non-inbox categories
   const categoryName =
     selectedCategory === "inbox"
       ? "Today"
       : categories.find((cat) => cat.id === selectedCategory)?.name ||
-      selectedCategory.charAt(0).toUpperCase() +
-      selectedCategory.slice(1);
+        selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1);
+
+  const textColor = colors?.text ?? (isDarkMode ? "#e5e5e5" : "#111827");
 
   return (
     <motion.div
@@ -70,24 +64,30 @@ export function Welcome({ user, selectedCategory, categories }) {
         justifyContent: isMobile ? "center" : "space-between",
         marginLeft: isMobile ? 0 : "1.5vw",
         marginRight: "1.5vw",
+        color: textColor,                     // <-- dynamic text colour
       }}
     >
       <section style={{ textAlign: isMobile ? "center" : "left" }}>
         <p
           style={{
             margin: 0,
-            color: "black",
+            color: textColor,
             fontSize: "3rem",
+            fontWeight: 300,
             fontFamily: "'Roboto', sans-serif",
           }}
         >
           {categoryName}
         </p>
+
         {selectedCategory === "inbox" && (
           <p
             style={{
-              fontFamily: "'Roboto', sans-serif",
+              margin: "8px 0 0",
+              color: textColor,
               fontSize: "1.5rem",
+              opacity: 0.85,
+              fontFamily: "'Roboto', sans-serif",
             }}
           >
             {day} {date} {month} {year} | {time}

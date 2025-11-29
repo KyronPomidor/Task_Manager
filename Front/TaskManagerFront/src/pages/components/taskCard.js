@@ -111,7 +111,7 @@ export function TaskCard({
                                     transition: "opacity 0.2s ease",
                                 }}
                             >
-                                Check
+                                ✓
                             </span>
                         </Button>
 

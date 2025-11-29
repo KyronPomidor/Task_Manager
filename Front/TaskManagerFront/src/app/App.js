@@ -205,6 +205,7 @@ export default function App() {
                 >
                   <CalendarButton
                     onClick={() => setSelectedCategory("calendar")}
+                    isDarkMode={isDarkMode}
                   />
                   <div
                     style={{
@@ -217,7 +218,12 @@ export default function App() {
                     <img
                       src={aiIcon}
                       alt="AI"
-                      style={{ width: "24px", height: "24px" }}
+                      style={{
+                        width: "24px",
+                        height: "24px",
+                        filter: isDarkMode ? "invert(100%) brightness(200%)" : "none",
+                        transition: "filter 0.2s ease",
+                      }}
                     />
                     <Button
                       type="primary"
@@ -243,6 +249,8 @@ export default function App() {
                   user={user}
                   selectedCategory={selectedCategory}
                   categories={categories}
+                  isDarkMode={isDarkMode}
+                  colors={colors}
                 />
 
                 <Tasks
