@@ -8,7 +8,7 @@ using Task_Manager_Back.Application.Queries.TaskCategories;
 namespace Task_Manager_Back.Api.Controllers;
 
 
-[Route("api/[controller]")]
+[Route("api/categories")]
 [ApiController]
 public class TaskCategoryController : ControllerBase
 {
@@ -52,6 +52,9 @@ public class TaskCategoryController : ControllerBase
     /// <response code="200">Returns the list of task categories.</response>
     /// <response code="400">If the request is invalid.</response>
     /// <response code="500">If there is an internal server error.</response>
+    /// 
+
+    // link that should be used: /api/categories/user/{userId}
     [HttpGet("user/{userId}")]
     public async Task<IActionResult> GetAllByUserId([FromRoute] Guid userId)
     {
@@ -59,5 +62,21 @@ public class TaskCategoryController : ControllerBase
         var categories = await _mediator.Send(query);
         return Ok(categories);
     }
+
+    // example of returning data:
+    //   [
+    //     {
+    //       "parentCategoryId": null,
+    //       "color": "#dddfff",
+    //       "positionOrder": 0,
+    //       "id": "6b6001ff-8abd-4bd5-aef9-d2d39a7bdcd8",
+    //       "userId": "283118eb-f3c5-4447-afa2-f5a93762a5e3",
+    //       "title": "firsttittlw",
+    //       "description": "someDescription",
+    //
+    //       "categories": [],
+    //       "tasks": []
+    //     }
+    //   ]
 
 }
