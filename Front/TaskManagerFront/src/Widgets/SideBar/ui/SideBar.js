@@ -58,7 +58,7 @@ const STYLES = {
     border: "none",
     cursor: "pointer",
     fontWeight: 600,
-    fontFamily: "'Roboto', sans-serif",
+    fontFamily: "'Roboto', sans-serif"
   },
   backdrop: { position: "fixed", inset: 0, zIndex: 999 },
   dialog: {
@@ -73,36 +73,11 @@ const STYLES = {
     zIndex: 1000,
   },
   field: { display: "flex", flexDirection: "column", gap: 6, marginBottom: 12 },
-  input: {
-    padding: 10,
-    borderRadius: 8,
-    border: "1px solid #ccc",
-    font: "inherit",
-    fontFamily: "'Roboto', sans-serif",
-  },
-  select: {
-    padding: 10,
-    borderRadius: 8,
-    border: "1px solid #ccc",
-    font: "inherit",
-    background: "#fff",
-    fontFamily: "'Roboto', sans-serif",
-  },
+  input: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", fontFamily: "'Roboto', sans-serif" },
+  select: { padding: 10, borderRadius: 8, border: "1px solid #ccc", font: "inherit", background: "#fff", fontFamily: "'Roboto', sans-serif" },
   actions: { display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 },
-  btnCancel: {
-    padding: "8px 12px",
-    borderRadius: 8,
-    border: "1px solid #ddd",
-    background: "#fafafa",
-    cursor: "pointer",
-  },
-  btnSave: {
-    padding: "8px 12px",
-    borderRadius: 8,
-    border: "none",
-    cursor: "pointer",
-    fontWeight: 600,
-  },
+  btnCancel: { padding: "8px 12px", borderRadius: 8, border: "1px solid #ddd", background: "#fafafa", cursor: "pointer" },
+  btnSave: { padding: "8px 12px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 600 },
   iconWrapper: {
     width: 20,
     height: 20,
@@ -118,27 +93,27 @@ const STYLES = {
     color: "#4d5156ff",
     fontWeight: 600,
     margin: "50px 8px 0 8px",
-    fontFamily: "'Roboto', sans-serif",
+    fontFamily: "'Roboto', sans-serif"
   },
   labelText: {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    maxWidth: "calc(100% - 60px)", // desktop: icons + count + actions
-    fontFamily: "'Roboto', sans-serif",
+    maxWidth: "calc(100% - 60px)", // Account for icons, task count, and actions
+    fontFamily: "'Roboto', sans-serif"
   },
 };
 
 /* ========= Row styling ========= */
-function getRowStyle({ isActive, level, isShaded, isHovered, colors, isMobile }) {
+function getRowStyle({ isActive, level, isShaded, isHovered, colors }) {
   const s = {
     position: "relative",
     display: "flex",
     alignItems: "center",
-    justifyContent: isMobile ? "center" : "space-between",
+    justifyContent: "space-between",
     gap: 8,
     padding: "10px 12px",
-    paddingLeft: isMobile ? 12 : 12 + level * 16,
+    paddingLeft: 12 + level * 16,
     margin: "0 8px",
     cursor: "pointer",
     background: "transparent",
@@ -148,7 +123,6 @@ function getRowStyle({ isActive, level, isShaded, isHovered, colors, isMobile })
     userSelect: "none",
     transition: "background 0.15s",
     borderRadius: isActive || isHovered ? 6 : 0,
-    textAlign: isMobile ? "center" : "left",
   };
   if (isActive) {
     s.background = colors.blue;
@@ -167,11 +141,7 @@ function Actions({ onEdit, onDelete, colors }) {
   return (
     <div style={STYLES.actionWrap} onClick={(e) => e.stopPropagation()}>
       <button
-        style={{
-          ...STYLES.actionBtn,
-          borderColor: colors.rowBorder,
-          background: colors.actionBg,
-        }}
+        style={{ ...STYLES.actionBtn, borderColor: colors.rowBorder, background: colors.actionBg }}
         title="Edit"
         onMouseEnter={(e) => (e.currentTarget.style.background = colors.actionHover)}
         onMouseLeave={(e) => (e.currentTarget.style.background = colors.actionBg)}
@@ -180,11 +150,7 @@ function Actions({ onEdit, onDelete, colors }) {
         ✎
       </button>
       <button
-        style={{
-          ...STYLES.actionBtn,
-          borderColor: colors.rowBorder,
-          background: colors.actionBg,
-        }}
+        style={{ ...STYLES.actionBtn, borderColor: colors.rowBorder, background: colors.actionBg }}
         title="Delete"
         onMouseEnter={(e) => (e.currentTarget.style.background = colors.actionHover)}
         onMouseLeave={(e) => (e.currentTarget.style.background = colors.actionBg)}
@@ -216,7 +182,6 @@ function Row({
   count = 0,
   customContent = null,
   colors,
-  isMobile,
 }) {
   const arrowIcon = !icon ? (isParent ? mainArrow : subArrow) : null;
   const isSystemCategory =
@@ -225,28 +190,12 @@ function Row({
 
   return (
     <div
-      style={getRowStyle({
-        isActive,
-        level,
-        isShaded,
-        isHovered: !isActive && showActions,
-        colors,
-        isMobile,
-      })}
+      style={getRowStyle({ isActive, level, isShaded, isHovered: !isActive && showActions, colors })}
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <span
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: isMobile ? "center" : "flex-start",
-          gap: 6,
-          flex: 1,
-          minWidth: 0,
-        }}
-      >
+      <span style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0 }}>
         {icon && (
           <div style={STYLES.iconWrapper}>
             <img src={icon} alt="icon" style={{ width: 20, height: 20 }} />
@@ -271,47 +220,22 @@ function Row({
                 width: 14,
                 height: 14,
                 cursor: isParent ? "pointer" : "default",
-                transform:
-                  isParent && collapsed
-                    ? "rotate(-90deg) scale(1)"
-                    : `rotate(0deg) ${arrowHovered ? "scale(1.2)" : "scale(1)"}`,
+                transform: isParent && collapsed ? "rotate(-90deg) scale(1)" : `rotate(0deg) ${arrowHovered ? "scale(1.2)" : "scale(1)"}`,
                 transition: "transform 0.2s ease, filter 0.2s ease",
                 filter: arrowHovered ? "brightness(1.2)" : "none",
               }}
             />
           </div>
         )}
-        <span
-          style={{
-            ...STYLES.labelText,
-            ...(isMobile
-              ? {
-                whiteSpace: "normal",
-                textOverflow: "unset",
-                overflow: "visible",
-                maxWidth: "100%",
-              }
-              : {}),
-          }}
-        >
-          {customContent || label}
-        </span>
+        <span style={STYLES.labelText}>{customContent || label}</span>
       </span>
 
-      {!isSystemCategory && showActions && (
+      {!isSystemCategory && (showActions) && (
         <Actions onEdit={onEdit} onDelete={onDelete} colors={colors} />
       )}
 
       {count > 0 && (
-        <span
-          style={{
-            fontSize: "0.85rem",
-            fontWeight: 600,
-            opacity: 0.7,
-            flexShrink: 0,
-            marginLeft: isMobile ? 8 : 0,
-          }}
-        >
+        <span style={{ fontSize: "0.85rem", fontWeight: 600, opacity: 0.7, flexShrink: 0 }}>
           {count}
         </span>
       )}
@@ -332,9 +256,7 @@ function DroppableRow({ categoryId, children, isEnabled, onExpand }) {
     }
   }, [isOver, onExpand]);
 
-  const style = isOver
-    ? { background: "#e0e7ff", borderRadius: 6, margin: "0 8px" }
-    : { margin: "0 8px" };
+  const style = isOver ? { background: "#e0e7ff", borderRadius: 6, margin: "0 8px" } : { margin: "0 8px" };
 
   return (
     <div ref={setNodeRef} style={style}>
@@ -358,8 +280,6 @@ export function SideBar({
   addCategory,
   editCategory,
   deleteCategory,
-  isMobile = false,
-  mobileTopContent = null,
 }) {
   const [hoverId, setHoverId] = useState(null);
   const [collapsedIds, setCollapsedIds] = useState(new Set());
@@ -501,7 +421,6 @@ export function SideBar({
               onMouseLeave={() => setHoverId(null)}
               count={getTaskCount(cat.id)}
               colors={COLORS}
-              isMobile={isMobile}
             />
           </DroppableRow>
           {!collapsed && renderTree(cat.id, level + 1)}
@@ -524,40 +443,13 @@ export function SideBar({
     groupBg: "#f6f7f9",
   };
 
-  const sidebarBaseStyle = {
-    ...STYLES.sidebar,
-    background: COLORS.bg,
-    borderRightColor: COLORS.sidebarBorder,
-  };
-
-  const sidebarStyle = isMobile
-    ? {
-      ...sidebarBaseStyle,
-      width: "100vw",
-      minWidth: "100vw",
-      borderRight: "none",
-    }
-    : sidebarBaseStyle;
-
   return (
-    <div style={sidebarStyle}>
+    <div style={{ ...STYLES.sidebar, background: COLORS.bg, borderRightColor: COLORS.sidebarBorder }}>
       <div style={{ ...STYLES.logoWrap, borderBottomColor: COLORS.sidebarBorder }}>
         <img src={logo} alt="logo" width={128} height={85} />
       </div>
 
-      {/* MOBILE EXTRAS (Calendar/AI/Profile) RIGHT UNDER LOGO */}
-      {isMobile && mobileTopContent && (
-        <div
-          style={{
-            borderBottom: `1px solid ${COLORS.sidebarBorder}`,
-            marginBottom: 8,
-          }}
-        >
-          {mobileTopContent}
-        </div>
-      )}
-
-      <div style={STYLES.list} className="SidebarList">
+      <div style={STYLES.list}>
         <Row
           id="search"
           icon={searchIcon}
@@ -587,13 +479,9 @@ export function SideBar({
             )
           }
           colors={COLORS}
-          isMobile={isMobile}
         />
 
-        <DroppableRow
-          categoryId="inbox"
-          isEnabled={droppableCategoryIds.has("inbox")}
-        >
+        <DroppableRow categoryId="inbox" isEnabled={droppableCategoryIds.has("inbox")}>
           <Row
             id="inbox"
             label="Inbox"
@@ -606,14 +494,10 @@ export function SideBar({
             onClick={() => onCategorySelect("inbox")}
             count={getTaskCount("inbox")}
             colors={COLORS}
-            isMobile={isMobile}
           />
         </DroppableRow>
 
-        <DroppableRow
-          categoryId="today"
-          isEnabled={droppableCategoryIds.has("today")}
-        >
+        <DroppableRow categoryId="today" isEnabled={droppableCategoryIds.has("today")}>
           <Row
             id="today"
             label="Today"
@@ -626,14 +510,10 @@ export function SideBar({
             onClick={() => onCategorySelect("today")}
             count={getTaskCount("today")}
             colors={COLORS}
-            isMobile={isMobile}
           />
         </DroppableRow>
 
-        <DroppableRow
-          categoryId="graphs"
-          isEnabled={droppableCategoryIds.has("graphs")}
-        >
+        <DroppableRow categoryId="graphs" isEnabled={droppableCategoryIds.has("graphs")}>
           <Row
             id="graphs"
             label="Graphs"
@@ -645,7 +525,21 @@ export function SideBar({
             onMouseLeave={() => setHoverId(null)}
             onClick={() => onCategorySelect("graphs")}
             colors={COLORS}
-            isMobile={isMobile}
+          />
+        </DroppableRow>
+
+        <DroppableRow categoryId="game" isEnabled={droppableCategoryIds.has("game")}>
+          <Row
+            id="game"
+            label="Game"
+            icon={categoryIcon}
+            level={0}
+            isActive={hoveredCategory === "game" || selectedCategory === "game"}
+            showActions={hoverId === "game"}
+            onMouseEnter={() => setHoverId("game")}
+            onMouseLeave={() => setHoverId(null)}
+            onClick={() => onCategorySelect("game")}
+            colors={COLORS}
           />
         </DroppableRow>
 
@@ -661,35 +555,17 @@ export function SideBar({
           onClick={() => onCategorySelect("done")}
           count={getTaskCount("done")}
           colors={COLORS}
-          isMobile={isMobile}
         />
 
-        <div
-          style={{
-            ...STYLES.categoryHeader,
-            textAlign: isMobile ? "center" : "left",
-          }}
-        >
-          My Categories
-        </div>
+        <div style={STYLES.categoryHeader}>My Categories</div>
 
         {renderTree(null, 0)}
 
         <button
           onClick={openAdd}
-          style={{
-            ...STYLES.addBtn,
-            background: "transparent",
-            color: "#111827",
-            alignSelf: isMobile ? "center" : "stretch",
-            textAlign: "center",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = COLORS.rowHover)
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = "transparent")
-          }
+          style={{ ...STYLES.addBtn, background: "transparent", color: "#111827" }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = COLORS.rowHover)}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
           + Add Category
         </button>
@@ -697,15 +573,8 @@ export function SideBar({
 
       {isModalOpen && (
         <>
-          <div
-            onClick={closeModal}
-            style={{ ...STYLES.backdrop, background: "rgba(0,0,0,0.45)" }}
-          />
-          <div
-            role="dialog"
-            aria-modal="true"
-            style={{ ...STYLES.dialog, background: "#fff" }}
-          >
+          <div onClick={closeModal} style={{ ...STYLES.backdrop, background: "rgba(0,0,0,0.45)" }} />
+          <div role="dialog" aria-modal="true" style={{ ...STYLES.dialog, background: "#fff" }}>
             <h3>{mode === "edit" ? "Edit Category" : "Add Category"}</h3>
             <label style={STYLES.field}>
               <span>Category name *</span>
@@ -737,11 +606,7 @@ export function SideBar({
               </button>
               <button
                 onClick={saveCategory}
-                style={{
-                  ...STYLES.btnSave,
-                  background: COLORS.blue,
-                  color: COLORS.blueText,
-                }}
+                style={{ ...STYLES.btnSave, background: COLORS.blue, color: COLORS.blueText }}
               >
                 Save
               </button>

@@ -23,7 +23,7 @@ export function useTasks(categories, selectedCategory) {
 
   // Fetch tasks when categories are loaded
   useEffect(() => {
-    if (!categories || categories.length === 0 ) return;
+    if (categories.length <= 1) return;
 
     const loadTasks = async () => {
       try {

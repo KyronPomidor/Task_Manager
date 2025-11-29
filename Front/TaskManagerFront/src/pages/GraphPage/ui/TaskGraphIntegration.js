@@ -2,14 +2,8 @@ import { useMemo } from "react";
 import { GraphsPage } from "./GraphsPage";
 import { getDeterministicColor } from "../../../utils/colorUtils";
 
-export function TaskGraphIntegration({
-  tasks,
-  setTasks,
-  categories,
-  updateTask,
-  isMobile,
-  onOpenMenu,
-}) {
+export function TaskGraphIntegration({ tasks, setTasks, categories, updateTask }) {
+  // Dedup helper
   const uniqueById = (arr) => {
     const seen = new Set();
     return arr.filter((item) => {
@@ -22,7 +16,7 @@ export function TaskGraphIntegration({
   const uniqueEdges = (arr) => {
     const seen = new Set();
     return arr.filter((edge) => {
-      if (!edge.from || !edge.to || edge.from === edge.to) return false;
+      if (!edge.from || !edge.to || edge.from === edge.to) return false; // Skip invalid edges or self-loops
       const key = `${edge.from}->${edge.to}`;
       if (seen.has(key)) return false;
       seen.add(key);
@@ -30,45 +24,51 @@ export function TaskGraphIntegration({
     });
   };
 
+  // Build graph data with guaranteed unique string IDs, excluding completed tasks
   const graphData = useMemo(() => {
+    // Validate tasks and filter out completed tasks
     const validTasks = tasks.filter(
       (task) =>
         task.id &&
         (typeof task.id === "string" || typeof task.id === "number") &&
         !task.completed
     );
+    if (validTasks.length !== tasks.length) {
+      console.warn("Invalid or completed tasks detected and filtered out");
+    }
 
     let nodes = validTasks.map((task) => ({
-      id: String(task.id),
+      id: String(task.id), // Always string
       label: task.title || `Task ${task.id}`,
+      // Use color from task data (from DB), fallback to deterministic color
       color: task.color || getDeterministicColor(String(task.id)),
       x: task.graphNode?.x,
       y: task.graphNode?.y,
       fixed: task.graphNode?.fixed || false,
     }));
 
-    let edges = validTasks
-      .flatMap((task) =>
-        (task.childrenIds || []).map((childId) => {
-          const childTask = tasks.find(
-            (t) => String(t.id) === String(childId) && !t.completed
-          );
-          if (!childTask) return null;
-          return {
-            id: `${String(task.id)}-${String(childId)}`,
-            from: String(task.id),
-            to: String(childId),
-          };
-        })
-      )
-      .filter((edge) => edge !== null);
+    // Build edges from childrenIds instead of parentIds
+    let edges = validTasks.flatMap((task) =>
+      (task.childrenIds || []).map((childId) => {
+        // Check if child task exists and is not completed
+        const childTask = tasks.find((t) => String(t.id) === String(childId) && !t.completed);
+        if (!childTask) return null;
+        return {
+          id: `${String(task.id)}-${String(childId)}`, // Unique edge ID
+          from: String(task.id), // parent
+          to: String(childId), // child
+        };
+      }).filter((edge) => edge !== null) // Remove null entries
+    );
 
+    // Remove duplicates
     nodes = uniqueById(nodes);
     edges = uniqueEdges(edges);
 
     return { nodes, edges };
   }, [tasks]);
 
+  // Handle graph node updates
   const handleGraphUpdate = (updatedGraphData) => {
     const updatedTasks = tasks.map((task) => {
       const node = updatedGraphData.nodes.find((n) => n.id === String(task.id));
@@ -88,18 +88,19 @@ export function TaskGraphIntegration({
     setTasks(updatedTasks);
   };
 
+  // Handle task creation from graph
   const handleCreateTaskFromNode = (nodeId) => {
     const taskTitle = `New Task ${Date.now()}`;
     const newTask = {
       id: `task-${Date.now()}`,
       title: taskTitle,
       description: `Task created from node ${nodeId}`,
-      color: getDeterministicColor(taskTitle),
+      color: getDeterministicColor(taskTitle), // Generate color for new task
       priority: "Medium",
       categoryId: "inbox",
       completed: false,
-      childrenIds: [],
-      parentIds: [],
+      childrenIds: [], // default children array
+      parentIds: [], // keep for migration compatibility
       budgetItems: [],
       graphNode: { id: nodeId, x: 300, y: 300, fixed: false },
     };
@@ -115,8 +116,6 @@ export function TaskGraphIntegration({
         tasks={tasks}
         setTasks={setTasks}
         updateTask={updateTask}
-        isMobile={isMobile}
-        onOpenMenu={onOpenMenu}
       />
     </div>
   );
