@@ -8,6 +8,12 @@
 - **Made the calendar vies for mobile version**: New calendar for mobile size screens.
 - **New API calls**: Added the new API calls for the frontend after changes in backend.
 
+**Add TaskLocation to track task location**: Backend now accepts LocationName and LocationCoords as optional fields. Contributor [Andrei. E](https://github.com/EXakiToR), ([#59](https://github.com/KyronPomidor/Task_Manager/pull/59))
+- **`TaskEntity`**: Added `TaskLocation` as an owned entity with methods to set and update location.  
+- **`TaskLocation.cs`**: Created a new class with properties `LocationName` and `LocationCoords`.  
+- **Request classes (`CreateTaskRequest`, `PatchTaskRequest`, `UpdateTaskRequest`)**: Added `TaskLocation` property.  
+- **Use cases (`CreateTaskUseCase`, `PatchTaskUseCase`, `UpdateTaskUseCase`)**: Updated to handle `TaskLocation`.  
+- **`AppDbContext`**: Configured `TaskLocation` as an owned entity with constraints on property lengths.  
 **Complete dark mode feature added**: The dark mode feature is complete, covering multiple components of the app. Contributor: [Andrey U.](https://github.com/PrikolistTheSillyThing), ([#60](https://github.com/KyronPomidor/Task_Manager/pull/60))
 - **Cards dark mode**: The task cards receive the dark mode while maintaining the colors for child-parent task relations.
 - **Icons**: Multiple icons for all the components have dark mode variants now.

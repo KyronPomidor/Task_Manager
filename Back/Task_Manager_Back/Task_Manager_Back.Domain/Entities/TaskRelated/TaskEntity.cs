@@ -10,6 +10,7 @@ public class TaskEntity
     public Guid UserId { get; private set; }
     public Guid? StatusId { get; private set; }
     public Guid CategoryId { get; private set; }
+    public TaskLocation? Location { get; private set; }
     public List<Guid> DependsOnTasksIds { get; private set; } = new();
     public string Title { get; private set; } = string.Empty;
     public string? Description { get; private set; }
@@ -42,8 +43,9 @@ public class TaskEntity
         StatusId = @params.StatusId;
         Priority = @params.Priority;
         CategoryId = ValidationHelper.ValidateGuid(@params.CategoryId, nameof(@params.CategoryId));
+        Location = @params.Location;
 
-        Title = ValidationHelper.ValidateStringField(@params.Title, 1, 100, nameof(@params.Title), "Title");
+        Rename(@params.Title);
         Description = @params.Description;
         Color = ValidationHelper.ValidateHexColor(@params.Color, nameof(@params.Color));
         Deadline = @params.Deadline.HasValue
@@ -71,6 +73,7 @@ public class TaskEntity
             StatusId = state.StatusId,
             Priority = state.Priority,
             CategoryId = state.CategoryId,
+            Location = state.Location,
             Deadline = state.Deadline,
             IsCompleted = state.IsCompleted,
             IsFailed = state.IsFailed,
@@ -94,13 +97,18 @@ public class TaskEntity
 
         ShopItems.Clear();
     }
-    // add color methods
-    public void Rename(string title) => Title = ValidationHelper.ValidateStringField(title, 1, 100, nameof(title), "Title");
-    public void UpdateDescription(string? description) => Description = description;
-    public void ChangeColor(string color) => Color = ValidationHelper.ValidateHexColor(color, nameof(color));
-    public void ChangeStatus(Guid? statusId) => StatusId = statusId;
-    public void ChangePriority(TaskPriority priority) => Priority = priority;
-    public void ChangeCategory(Guid categoryId) => CategoryId = ValidationHelper.ValidateGuid(categoryId, nameof(categoryId));
+    public void Rename(string title)
+        => Title = ValidationHelper.ValidateStringField(title, 1, 100, nameof(title), "Title");
+    public void UpdateDescription(string? description)
+        => Description = description;
+    public void ChangeColor(string color)
+        => Color = ValidationHelper.ValidateHexColor(color, nameof(color));
+    public void ChangeStatus(Guid? statusId)
+        => StatusId = statusId;
+    public void ChangePriority(TaskPriority priority)
+        => Priority = priority;
+    public void ChangeCategoryId(Guid categoryId)
+        => CategoryId = ValidationHelper.ValidateGuid(categoryId, nameof(categoryId));
     public void SetPrice(int price) => Price = ValidationHelper.ValidateNonNegative<int>(price, nameof(price));
     public void ChangeDeadline(DateTime? deadline)
     {
@@ -109,11 +117,10 @@ public class TaskEntity
         else
             Deadline = null;
     }
-    public void ChangePositionOrder(int positionOrder) => PositionOrder = positionOrder;
+    public void ChangePositionOrder(int positionOrder)
+        => PositionOrder = positionOrder;
     public void SetIsCompleted(bool value)
-    {
-        IsCompleted = value;
-    }
+        => IsCompleted = value;
     public void MarkCompleted()
     {
         if (IsCompleted) throw new InvalidOperationException("Task is already completed");
@@ -121,9 +128,7 @@ public class TaskEntity
         IsCompleted = true;
     }
     public void SetIsFailed(bool value)
-    {
-        IsFailed = value;
-    }
+        => IsFailed = value;
     public void MarkFailed()
     {
         if (IsFailed) throw new InvalidOperationException("Task is already failed");
@@ -132,9 +137,7 @@ public class TaskEntity
     }
 
     public void SetDependsOnTasksIds(List<Guid> ids)
-    {
-        DependsOnTasksIds = ids ?? new();
-    }
+        => DependsOnTasksIds = ids ?? new();
 
     public void AddAttachment(TaskAttachment attachment)
     {
@@ -200,6 +203,8 @@ public class TaskEntity
                    ?? throw new InvalidOperationException("TaskLabel not found");
         Labels.Remove(label);
     }
+    public void SetLocation(TaskLocation location)
+        => Location = location;
 }
 
 public record TaskEntityCreateParams(
@@ -210,11 +215,12 @@ public record TaskEntityCreateParams(
     Guid? StatusId,
     TaskPriority? Priority,
     Guid CategoryId,
+    TaskLocation? Location,
     DateTime? Deadline,
     bool IsCompleted,
     int PositionOrder,
     int Price,
-    List<Guid>? DependsOnTasksIds // NEW
+    List<Guid>? DependsOnTasksIds
 );
 public record TaskEntityState(
     Guid Id,
@@ -225,6 +231,8 @@ public record TaskEntityState(
     Guid? StatusId,
     TaskPriority? Priority,
     Guid CategoryId,
+    TaskLocation? Location,
+    Guid? LocationId,
     DateTime? Deadline,
     bool IsCompleted,
     bool IsFailed,
@@ -234,5 +242,5 @@ public record TaskEntityState(
     List<TaskReminder> Reminders,
     List<TaskRelation> TaskRelations,
     List<ShopItem> ShopItems,
-    List<Guid>? DependsOnTasksIds // NEW
+    List<Guid>? DependsOnTasksIds
 );
