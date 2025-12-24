@@ -132,8 +132,33 @@ export function TaskDetailsModal({
                 task.categoryId}
             </Text>
           </div>
+            {/* Address */}
+            <div style={{ marginBottom: "12px" }}>
+                <Text strong style={{ color: "#4d5156" }}>
+                    Address:
+                </Text>
+                <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
+                    {task.location && task.location.trim() !== ""
+                        ? task.location
+                        : "No address provided"}
+                </Text>
+            </div>
 
-          {parentTasks.length > 0 && (
+            {/* Coordinates (only if present) */}
+            {task.latitude && task.longitude && (
+                <div style={{ marginBottom: "12px" }}>
+                    <Text strong style={{ color: "#4d5156" }}>
+                        Coordinates:
+                    </Text>
+                    <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
+                        {task.latitude}, {task.longitude}
+                    </Text>
+                </div>
+            )}
+
+
+
+            {parentTasks.length > 0 && (
             <div style={{ marginBottom: "12px" }}>
               <Text strong style={{ color: "#4d5156" }}>
                 Parent Tasks:
