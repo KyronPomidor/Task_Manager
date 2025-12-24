@@ -33,6 +33,13 @@ public class AppDbContext : IdentityDbContext
             .HasValue<TaskInbox>("Inbox")
             .HasValue<TaskUserCategory>("UserCategory");
 
+        // Configure TaskLocation as owned entity by TaskEntity
+        builder.Entity<TaskEntity>().OwnsOne(t => t.Location, location =>
+        {
+            location.Property(l => l.LocationName).HasMaxLength(100);
+            location.Property(l => l.LocationCoords).HasMaxLength(100);
+        });
+
         builder.Entity<TaskInbox>().Property(c => c.Title).HasMaxLength(100);
         builder.Entity<TaskUserCategory>().Property(c => c.Color).HasMaxLength(7);
 

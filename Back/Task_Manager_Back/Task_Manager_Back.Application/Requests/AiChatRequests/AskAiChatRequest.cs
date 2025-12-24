@@ -2,6 +2,7 @@
 
 namespace Task_Manager_Back.Application.Requests.AiChatRequests;
 public record AskAiChatRequest(
-    string Prompt
+    string Prompt,
+    Guid UserId
 
 ) : IRequest<string>;

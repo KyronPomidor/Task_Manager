@@ -20,6 +20,6 @@ public class GetTaskUserCategoriesHandler
         GetTaskUserCategoriesRequest request,
         CancellationToken cancellationToken)
     {
-        return await _useCase.ExecuteAsync(cancellationToken);
+        return await _useCase.ExecuteAsync(request, cancellationToken);
     }
 }

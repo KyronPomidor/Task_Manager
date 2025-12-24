@@ -27,14 +27,15 @@ public class TaskEntityController : Controller
     }
 
     /// <summary>
-    /// Get all tasks.
+    /// Get all tasks for a specific user.
     /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
+    [HttpGet("user/{userId:guid}")]
+    public async Task<IActionResult> GetAllByUserId(Guid userId)
     {
-        var tasks = await _mediator.Send(new GetTasksRequest());
+        var tasks = await _mediator.Send(new GetTasksByUserIdRequest(userId));
         return Ok(tasks);
     }
+
 
     /// <summary>
     /// Get a specific task by Id.

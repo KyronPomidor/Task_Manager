@@ -23,6 +23,7 @@ public class CreateTaskUseCase
             StatusId: request.StatusId,
             Priority: request.Priority,
             CategoryId: request.CategoryId,
+            Location: request.Location,
             IsCompleted: request.IsCompleted ?? false,
             Deadline: request.Deadline,
             Price: request.Price ?? default,

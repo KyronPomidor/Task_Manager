@@ -277,3 +277,38 @@
   gap: 8px;
   padding: 4px;
 }
+
+.task-card {
+  background-color: var(--card-bg, white);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+  width: 100%;
+  position: relative;
+}
+
+/* ... existing styles unchanged ... */
+
+.tasks-container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: 'Roboto', sans-serif;
+}
+
+/* ... rest of your existing CSS ... */
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  .tasks-container {
+    padding: 8px;
+  }
+
+  .composer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

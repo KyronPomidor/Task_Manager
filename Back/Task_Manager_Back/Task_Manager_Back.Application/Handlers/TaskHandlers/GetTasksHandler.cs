@@ -4,7 +4,7 @@ using Task_Manager_Back.Application.UseCases.TaskUseCases;
 using Task_Manager_Back.Domain.Entities.TaskRelated;
 
 namespace Task_Manager_Back.Application.Handlers.TaskHandlers;
-public class GetTasksHandler : IRequestHandler<GetTasksRequest, IReadOnlyList<TaskEntity>>
+public class GetTasksHandler : IRequestHandler<GetTasksByUserIdRequest, IReadOnlyList<TaskEntity>>
 {
     private readonly GetTasksUseCase _getTasksUseCase;
 
@@ -13,7 +13,7 @@ public class GetTasksHandler : IRequestHandler<GetTasksRequest, IReadOnlyList<Ta
         _getTasksUseCase = getTasksUseCase;
     }
 
-    public async Task<IReadOnlyList<TaskEntity>> Handle(GetTasksRequest request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<TaskEntity>> Handle(GetTasksByUserIdRequest request, CancellationToken cancellationToken)
     {
         var tasks = await _getTasksUseCase.ExecuteAsync(request);
         return tasks;

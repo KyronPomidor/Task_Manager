@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FilterOutlined } from "@ant-design/icons";
 
-export function TaskFilters({ filters, setFilters }) {
+export function TaskFilters({ filters, setFilters, isMobile = false }) {
     const [open, setOpen] = useState(false);
 
     const toggleOpen = (e) => {
@@ -47,7 +47,7 @@ export function TaskFilters({ filters, setFilters }) {
                 </select>
             ),
         },
-        
+
         {
             label: "Deadline",
             control: (
@@ -68,7 +68,15 @@ export function TaskFilters({ filters, setFilters }) {
     ];
 
     return (
-        <div style={{ position: "relative", display: "flex", alignItems: "center"  }}>
+        <div
+            style={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: isMobile ? "center" : "flex-start",
+                width: isMobile ? "100%" : "auto"
+            }}
+        >
             {/* Filter icon button */}
             <button
                 onClick={toggleOpen}
@@ -82,7 +90,7 @@ export function TaskFilters({ filters, setFilters }) {
                     border: "1px solid #ccc",
                     background: "white",
                     cursor: "pointer",
-                    marginLeft: "12px", // right from Add button
+                    marginLeft: isMobile ? "0px" : "12px", // right from Add button or to the zero margin on phones
                     zIndex: 2,
                 }}
             >
@@ -97,18 +105,39 @@ export function TaskFilters({ filters, setFilters }) {
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -30 }}
                         transition={{ duration: 0.3 }}
-                        style={{
-                            position: "absolute",   // overlay, no layout shift
-                            left: "60px",           // start to the right of button
-                            top:  "-10%",
-                            display: "flex",
-                            gap: "20px",
-                            background: "white",
-                            padding: "4px 8px",
-                            borderRadius: "8px",
-                            boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-                            zIndex: 1,
-                        }}
+                        style={
+                            isMobile
+                                ? {
+                                    position: "absolute",
+                                    top: "100%",                 // right under the button
+                                    left: "18%",                 // center of wrapper
+                                    transform: "translateX(-50%)",
+                                    display: "flex",
+                                    flexDirection: "column",     // one filter per row
+                                    gap: "12px",
+                                    background: "white",
+                                    padding: "8px 10px",
+                                    borderRadius: "8px",
+                                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                                    zIndex: 1000,                // above cards
+                                    minWidth: "220px",
+                                }
+                                : {
+                                    position: "absolute",        // desktop: same as before
+                                    left: "60px",
+                                    top: "-10%",
+                                    display: "flex",
+                                    gap: "20px",
+                                    background: "white",
+                                    padding: "4px 8px",
+                                    borderRadius: "8px",
+                                    boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
+                                    zIndex: 1000,
+                                }
+                        }
+
+
+
                     >
                         {filterItems.map((item, i) => (
                             <motion.div
@@ -122,7 +151,14 @@ export function TaskFilters({ filters, setFilters }) {
                                     display: "flex",
                                     alignItems: "center",
                                     gap: "6px",
+                                    ...(isMobile
+                                        ? {
+                                            width: "100%",
+                                            justifyContent: "space-between",
+                                        }
+                                        : {}),
                                 }}
+
                             >
                                 <span style={{ fontWeight: 600 }}>{item.label}:</span>
                                 {item.control}

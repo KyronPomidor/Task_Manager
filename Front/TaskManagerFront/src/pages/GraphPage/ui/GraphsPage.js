@@ -1,8 +1,18 @@
 import React, { useState } from "react";
 import VisGraph from "react-vis-graph-wrapper";
 import { Button } from "antd";
+import menuIcon from "./menu.png";
 
-export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setTasks, updateTask }) {
+export function GraphsPage({
+  graphData,
+  onGraphUpdate,
+  onCreateTask,
+  tasks,
+  setTasks,
+  updateTask,
+  isMobile,
+  onOpenMenu,
+}) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [addingRelationFrom, setAddingRelationFrom] = useState(null);
 
@@ -55,40 +65,32 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
       if (nodes.length > 0) {
         const nodeId = nodes[0];
         if (addingRelationFrom && nodeId !== addingRelationFrom) {
-          // ARRAYS: Add new parent-child relationship using childrenIds
-          console.log(`Adding relationship: ${addingRelationFrom} -> ${nodeId}`);
-
-          // Find the parent task
-          const parentTask = tasks.find((task) => String(task.id) === String(addingRelationFrom));
+          const parentTask = tasks.find(
+            (task) => String(task.id) === String(addingRelationFrom)
+          );
 
           if (parentTask) {
             const childrenIds = parentTask.childrenIds || [];
             if (!childrenIds.includes(String(nodeId))) {
-              console.log(`Adding ${nodeId} to children of ${parentTask.id}`);
-
-              // Create updated task with new child
               const updatedTask = {
                 ...parentTask,
                 childrenIds: [...childrenIds, String(nodeId)],
               };
 
-              // Update local state
               const updatedTasks = tasks.map((task) =>
-                String(task.id) === String(addingRelationFrom) ? updatedTask : task
+                String(task.id) === String(addingRelationFrom)
+                  ? updatedTask
+                  : task
               );
               setTasks(updatedTasks);
 
-              // Sync with backend
               if (updateTask) {
-                console.log("Syncing relationship to backend:", updatedTask);
                 updateTask(updatedTask);
               }
-            } else {
-              console.log(`${nodeId} already a child of ${parentTask.id}`);
             }
           }
 
-          setAddingRelationFrom(null); // Reset relation mode
+          setAddingRelationFrom(null);
         } else {
           setSelectedNode(nodeId);
         }
@@ -103,7 +105,6 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
           (t) => String(t.id) === String(nodeId) || t.title === nodeId
         );
         if (!correspondingTask && onCreateTask) {
-          // Pass click position to create task near where user clicked
           onCreateTask(nodeId, pointer?.canvas);
         }
       }
@@ -121,7 +122,6 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
     },
   };
 
-  // 🔄 Flip edge direction: from child → parent
   const flippedGraph = {
     ...graphData,
     edges: graphData.edges.map((edge) => ({
@@ -132,8 +132,36 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
 
   return (
     <div
-      style={{ width: "100%", height: "100vh", background: "#fff", position: "relative" }}
+      style={{
+        width: "100%",
+        height: "100vh",
+        background: "#fff",
+        position: "relative",
+      }}
     >
+      {/* MOBILE MENU BUTTON */}
+      {isMobile && (
+        <button
+          onClick={onOpenMenu}
+          style={{
+            position: "absolute",
+            top: 20,
+            left: 20,
+            zIndex: 1100,
+            background: "transparent",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+          }}
+        >
+          <img
+            src={menuIcon}
+            alt="menu"
+            style={{ width: 28, height: 28 }}
+          />
+        </button>
+      )}
+
       <div
         style={{
           position: "absolute",
@@ -146,7 +174,9 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
       >
         <Button
           type={addingRelationFrom ? "default" : "primary"}
-          onClick={() => setAddingRelationFrom(addingRelationFrom ? null : selectedNode)}
+          onClick={() =>
+            setAddingRelationFrom(addingRelationFrom ? null : selectedNode)
+          }
           disabled={!selectedNode}
         >
           {addingRelationFrom ? "Cancel Linking" : "Link Tasks"}
@@ -186,8 +216,9 @@ export function GraphsPage({ graphData, onGraphUpdate, onCreateTask, tasks, setT
           <p>
             Click another node to make it a child of{" "}
             <b>
-              {tasks.find((t) => String(t.id) === String(addingRelationFrom))?.title ||
-                addingRelationFrom}
+              {tasks.find(
+                (t) => String(t.id) === String(addingRelationFrom)
+              )?.title || addingRelationFrom}
             </b>
           </p>
           <Button onClick={() => setAddingRelationFrom(null)} style={{ marginTop: "5px" }}>
