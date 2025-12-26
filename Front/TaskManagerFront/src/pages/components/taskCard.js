@@ -28,6 +28,7 @@ export function TaskCard({
     handleChildIndicatorClick,
     getParents,
     getChildren,
+    isDark = false,
 }) {
     const hasChildren =
         task.childrenIds &&
@@ -225,7 +226,7 @@ export function TaskCard({
                             zIndex: 10,
                         }}
                     >
-                        <img src={dependency} style={{ width: 16, height: 16 }}></img>
+                        <img src={dependency} alt="Dependency" style={{ width: 16, height: 16 }}></img>
                         {parentTasks.map((parentTask, idx) => (
                             <Tooltip
                                 key={idx}

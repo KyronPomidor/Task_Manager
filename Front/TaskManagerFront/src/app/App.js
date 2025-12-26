@@ -1,6 +1,6 @@
 import "./styles/App.css";
 import { useState, useEffect } from "react";
-import { Button } from "antd";
+import { Button, Switch } from "antd";
 import { SideBar } from "../Widgets/SideBar";
 import { Tasks } from "../pages/TaskPage";
 import { Welcome } from "../Widgets/Welcome";
@@ -14,7 +14,6 @@ import aiIcon from "./ai.png";
 import menuIcon from "./menu.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
-import menu from "./menu.png";
 import MapPage from "../pages/MapPage";
 
 // Custom hooks
@@ -38,6 +37,7 @@ export default function App() {
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const [searchText, setSearchText] = useState("");
   const [isAIAnalysisOpen, setIsAIAnalysisOpen] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   const { tasks, setTasks, addTask, updateTask, updateTaskOrder } = useTasks(
     categories,
@@ -111,7 +111,7 @@ export default function App() {
   const mobileTopContent = null;
 
   return (
-    <div className="App">
+    <div className={`App ${isDark ? 'dark' : ''}`}>
       <div className="AppBody">
         <DndContext
           collisionDetection={closestCenter}
@@ -137,12 +137,13 @@ export default function App() {
               deleteCategory={handleDeleteCategory}
               isMobile={false}
               mobileTopContent={null}
+              isDark={isDark}
             />
           )}
 
           <div className="MainPanel">
             {selectedCategory === "map" ? (
-                <MapPage tasks ={tasks} categories = {categories} />
+              <MapPage tasks={tasks} categories={categories} isDark={isDark} />
             ) : selectedCategory === "graphs" ? (
               <TaskGraphIntegration
                 tasks={tasks}
@@ -151,6 +152,7 @@ export default function App() {
                 updateTask={updateTask}
                 isMobile={isMobile}
                 onOpenMenu={() => setIsSidebarOpen(true)}
+                isDark={isDark}
               />
             ) : selectedCategory === "calendar" ? (
               <div style={{ position: "relative", height: "100%" }}>
@@ -183,6 +185,7 @@ export default function App() {
                   tasks={tasks}
                   categories={categories}
                   onCardClick={(task) => setSelectedCategory(task.categoryId)}
+                  isDark={isDark}
                 />
               </div>
             ) : (
@@ -233,6 +236,13 @@ export default function App() {
                         marginRight: "2vw",
                       }}
                     >
+                      <Switch
+                        checked={isDark}
+                        onChange={setIsDark}
+                        size="small"
+                        checkedChildren="🌙"
+                        unCheckedChildren="☀️"
+                      />
                       {/* Calendar icon-only button */}
                       <CalendarButton
                         onClick={() => setSelectedCategory("calendar")}
@@ -261,7 +271,7 @@ export default function App() {
                       </Button>
 
                       {/* Profile – existing component (usually avatar dropdown) */}
-                      <UserProfileMenu user={user} />
+                      <UserProfileMenu user={user} isDark={isDark} />
                     </div>
                   )}
 
@@ -276,6 +286,10 @@ export default function App() {
                         flex: 1,
                       }}
                     >
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ fontSize: "14px", color: isDark ? "#fff" : "#000" }}>Dark Mode</span>
+                        <Switch checked={isDark} onChange={setIsDark} />
+                      </div>
                       <CalendarButton
                         onClick={() => setSelectedCategory("calendar")}
                       />
@@ -298,7 +312,7 @@ export default function App() {
                           AI Analysis
                         </Button>
                       </div>
-                      <UserProfileMenu user={user} />
+                      <UserProfileMenu user={user} isDark={isDark} />
                     </div>
                   )}
                 </div>
@@ -307,6 +321,7 @@ export default function App() {
                   user={user}
                   selectedCategory={selectedCategory}
                   categories={categories}
+                  isDark={isDark}
                 />
 
                 <Tasks
@@ -319,6 +334,7 @@ export default function App() {
                   setSelectedCategory={setSelectedCategory}
                   addTask={addTask}
                   updateTask={updateTask}
+                  isDark={isDark}
                 />
               </div>
             )}
@@ -394,6 +410,7 @@ export default function App() {
                   deleteCategory={handleDeleteCategory}
                   isMobile={true}
                   mobileTopContent={mobileTopContent}
+                  isDark={isDark}
                 />
               </div>
             </div>

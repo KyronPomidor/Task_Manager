@@ -12,6 +12,7 @@ export function GraphsPage({
   updateTask,
   isMobile,
   onOpenMenu,
+  isDark = false,
 }) {
   const [selectedNode, setSelectedNode] = useState(null);
   const [addingRelationFrom, setAddingRelationFrom] = useState(null);
@@ -135,7 +136,7 @@ export function GraphsPage({
       style={{
         width: "100%",
         height: "100vh",
-        background: "#fff",
+        background: isDark ? "#1f2937" : "#fff",
         position: "relative",
       }}
     >

@@ -32,6 +32,7 @@ export function Tasks({
   setSelectedCategory,
   addTask,
   updateTask,
+  isDark = false,
 }) {
   // Modal states
   const [editOpen, setEditOpen] = useState(false);
@@ -248,6 +249,7 @@ export function Tasks({
                     handleChildIndicatorClick={handleChildClick}
                     getParents={wrappedGetParents}
                     getChildren={wrappedGetChildren}
+                    isDark={isDark}
                   />
                 )}
               </SortableTask>

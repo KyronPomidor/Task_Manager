@@ -1,6 +1,6 @@
 import { Menu, Dropdown } from "antd";
 
-export default function UserProfileMenu({ user, onLogout }) {
+export default function UserProfileMenu({ user, onLogout, isDark = false }) {
   const menu = (
     <Menu>
       <Menu.Item key="logout" onClick={onLogout}>
@@ -28,7 +28,7 @@ export default function UserProfileMenu({ user, onLogout }) {
           style={{ width: 32, height: 32, borderRadius: "50%" }}
         />
         {user?.displayName && (
-          <span style={{ fontWeight: 500 }}>{user.displayName}</span>
+          <span style={{ fontWeight: 500, color: isDark ? "#f9fafb" : "#000" }}>{user.displayName}</span>
         )}
       </div>
     </Dropdown>
