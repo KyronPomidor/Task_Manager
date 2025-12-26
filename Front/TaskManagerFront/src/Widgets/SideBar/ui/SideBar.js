@@ -143,17 +143,17 @@ function getRowStyle({ isActive, level, isShaded, isHovered, colors, isMobile })
     margin: "0 8px",
     cursor: "pointer",
     background: "transparent",
-    color: "#111827",
+    color: colors.textColor,
     fontWeight: 500,
     borderBottom: `1px solid ${colors.rowBorder}`,
     userSelect: "none",
     transition: "background 0.15s",
     borderRadius: isActive || isHovered ? 6 : 0,
-    textAlign: isMobile ? "center" : "left",
+    textAlign: "center",
   };
   if (isActive) {
     s.background = colors.blue;
-    s.color = "#111827";
+    s.color = colors.blueText;
     s.fontWeight = 600;
   } else if (isShaded) {
     s.background = colors.groupBg;
@@ -361,6 +361,7 @@ export function SideBar({
   deleteCategory,
   isMobile = false,
   mobileTopContent = null,
+  isDark = false,
 }) {
   const [hoverId, setHoverId] = useState(null);
   const [collapsedIds, setCollapsedIds] = useState(new Set());
@@ -512,7 +513,19 @@ export function SideBar({
   }
 
   // Define colors before return
-  const COLORS = {
+  const COLORS = isDark ? {
+    blue: "#1e40af",
+    blueText: "#ffffff",
+    rowHover: "#374151",
+    rowBorder: "#4b5563",
+    bg: "#1f2937",
+    sidebarBorder: "#374151",
+    actionBg: "#374151",
+    actionHover: "#4b5563",
+    gray: "#6b7280",
+    groupBg: "#111827",
+    textColor: "#f9fafb",
+  } : {
     blue: "#60a5fa",
     blueText: "#ffffff",
     rowHover: "#d1d5db",
@@ -523,6 +536,7 @@ export function SideBar({
     actionHover: "#e5e7eb",
     gray: "#ececec",
     groupBg: "#f6f7f9",
+    textColor: "#111827",
   };
 
   const sidebarBaseStyle = {
@@ -546,7 +560,6 @@ export function SideBar({
         <img src={logo} alt="logo" width={128} height={85} />
       </div>
 
-      {/* MOBILE EXTRAS (Calendar/AI/Profile) RIGHT UNDER LOGO */}
       {isMobile && mobileTopContent && (
         <div
           style={{
@@ -649,21 +662,22 @@ export function SideBar({
             isMobile={isMobile}
           />
         </DroppableRow>
-          <Row
-              id="map"
-              label="Map"
-              icon={mapIcon}
-              level={0}
-              isActive={hoveredCategory === "map" || selectedCategory === "map"}
-              showActions={false}
-              onMouseEnter={() => setHoverId("map")}
-              onMouseLeave={() => setHoverId(null)}
-              onClick={() => onCategorySelect("map")}
-              colors={COLORS}
-          />
+        <Row
+          id="map"
+          label="Map"
+          icon={mapIcon}
+          level={0}
+          isActive={hoveredCategory === "map" || selectedCategory === "map"}
+          showActions={false}
+          onMouseEnter={() => setHoverId("map")}
+          onMouseLeave={() => setHoverId(null)}
+          onClick={() => onCategorySelect("map")}
+          colors={COLORS}
+          isMobile={isMobile}
+        />
 
 
-          <Row
+        <Row
           id="done"
           label="Done"
           icon={checkIcon}
@@ -681,7 +695,8 @@ export function SideBar({
         <div
           style={{
             ...STYLES.categoryHeader,
-            textAlign: isMobile ? "center" : "left",
+            textAlign: "center",
+            color: isDark ? "#b7b7b7ff" : "#4d5156ff",
           }}
         >
           My Categories
@@ -694,7 +709,7 @@ export function SideBar({
           style={{
             ...STYLES.addBtn,
             background: "transparent",
-            color: "#111827",
+            color: isDark ? "#f9fafb" : "#111827",
             alignSelf: isMobile ? "center" : "stretch",
             textAlign: "center",
           }}

@@ -5,6 +5,10 @@
   background-color: #edeef4;
 }
 
+.App.dark {
+  background-color: #1f2937;
+}
+
 .AppBody {
   display: flex;
   height: 100vh;

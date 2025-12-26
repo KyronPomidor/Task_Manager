@@ -5,7 +5,7 @@ import { auth } from "../firebase/firebase";
 
 const { Title, Text } = Typography;
 
-export default function UserProfile({ user }) {
+export default function UserProfile({ user, isDark = false }) {
   const [open, setOpen] = useState(false);
   const initialName = user?.displayName || user?.email?.split("@")[0] || "User";
   const initialEmail = user?.email || "unknown@example.com";
@@ -98,7 +98,7 @@ export default function UserProfile({ user }) {
             .join("")
             .toUpperCase()}
         </div>
-        <span>{name}</span>
+        <span style={{ color: isDark ? "#f9fafb" : "#000" }}>{name}</span>
       </button>
 
       <Modal
@@ -118,7 +118,7 @@ export default function UserProfile({ user }) {
           >
             Logout
           </Button>,
-          
+
           <Button
             key="save"
             type="primary"

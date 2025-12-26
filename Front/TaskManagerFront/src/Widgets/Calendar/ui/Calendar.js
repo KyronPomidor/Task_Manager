@@ -4,9 +4,9 @@ import dayjs from "dayjs";
 import { getDeterministicColor } from "../../../utils/colorUtils";
 import "../styles/Calendar.css";
 
-export default function CalendarPage({ tasks, onCardClick }) {
+export default function CalendarPage({ tasks, onCardClick, isDark = false }) {
   const [calendarTasks, setCalendarTasks] = useState({});
-  const [viewDate, setViewDate] = useState(dayjs()); 
+  const [viewDate, setViewDate] = useState(dayjs());
 
   useEffect(() => {
     const tasksByDate = {};
@@ -26,7 +26,7 @@ export default function CalendarPage({ tasks, onCardClick }) {
   const currentMonth = viewDate.month(); // use viewDate, not today
   const currentYear = viewDate.year();
   const daysInMonth = viewDate.daysInMonth();
-  const firstDayOfMonth = dayjs(`${currentYear}-${currentMonth + 1}-1`).day(); 
+  const firstDayOfMonth = dayjs(`${currentYear}-${currentMonth + 1}-1`).day();
   const totalDays = Math.ceil((firstDayOfMonth + daysInMonth) / 7) * 7;
 
   const days = [];
@@ -70,7 +70,7 @@ export default function CalendarPage({ tasks, onCardClick }) {
               key={dateStr}
               className="day-card"
               bodyStyle={{ padding: 8 }}
-              style={{ background: "#fff" }}
+              style={{ background: isDark ? "#374151" : "#fff" }}
             >
               <div className={`day-title ${isToday ? "today" : ""}`}>
                 {day.format("D")}
@@ -90,9 +90,8 @@ export default function CalendarPage({ tasks, onCardClick }) {
                     onClick={() => onCardClick(task)}
                   >
                     <span
-                      className={`task-title ${
-                        task.completed ? "done" : ""
-                      }`}
+                      className={`task-title ${task.completed ? "done" : ""
+                        }`}
                     >
                       {task.title}
                     </span>

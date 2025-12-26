@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
-export function Welcome({ user, selectedCategory, categories }) {
+export function Welcome({ user, selectedCategory, categories, isDark = false }) {
   const [now, setNow] = useState(new Date());
 
   const [isMobile, setIsMobile] = useState(
@@ -41,8 +41,8 @@ export function Welcome({ user, selectedCategory, categories }) {
     selectedCategory === "inbox"
       ? "Today"
       : categories.find((cat) => cat.id === selectedCategory)?.name ||
-        selectedCategory.charAt(0).toUpperCase() +
-          selectedCategory.slice(1);
+      selectedCategory.charAt(0).toUpperCase() +
+      selectedCategory.slice(1);
 
   return (
     <motion.div
@@ -60,7 +60,7 @@ export function Welcome({ user, selectedCategory, categories }) {
         <p
           style={{
             margin: 0,
-            color: "black",
+            color: isDark ? "#f9fafb" : "black",
             fontSize: "3rem",
             fontFamily: "'Roboto', sans-serif",
           }}
@@ -72,6 +72,7 @@ export function Welcome({ user, selectedCategory, categories }) {
             style={{
               fontFamily: "'Roboto', sans-serif",
               fontSize: "1.5rem",
+              color: isDark ? "#f9fafb" : "black",
             }}
           >
             {day} {date} {month} {year} | {time}

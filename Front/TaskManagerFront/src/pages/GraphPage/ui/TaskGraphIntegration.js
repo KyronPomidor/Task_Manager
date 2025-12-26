@@ -9,6 +9,7 @@ export function TaskGraphIntegration({
   updateTask,
   isMobile,
   onOpenMenu,
+  isDark = false,
 }) {
   const uniqueById = (arr) => {
     const seen = new Set();
@@ -117,6 +118,7 @@ export function TaskGraphIntegration({
         updateTask={updateTask}
         isMobile={isMobile}
         onOpenMenu={onOpenMenu}
+        isDark={isDark}
       />
     </div>
   );
