@@ -32,11 +32,13 @@ public class PatchTaskUseCase
         if (request.CategoryId.HasValue)
             task.ChangeCategoryId(request.CategoryId.Value);
 
-        if(request.Location?.LocationName != null)
-            task.Location?.ChangeName(request.Location.LocationName);
-
-        if (request.Location?.LocationCoords != null)
-            task.Location?.ChangeCoords(request.Location.LocationCoords);
+        if (request.Location != null)
+        {
+            task.UpdateLocation(
+                request.Location.LocationName,
+                request.Location.LocationCoords
+            );
+        }
 
         if (request.Deadline.HasValue)
             task.ChangeDeadline(request.Deadline.Value);

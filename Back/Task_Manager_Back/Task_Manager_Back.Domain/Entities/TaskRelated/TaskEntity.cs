@@ -203,6 +203,23 @@ public class TaskEntity
                    ?? throw new InvalidOperationException("TaskLabel not found");
         Labels.Remove(label);
     }
+    public void UpdateLocation(string? name, string? coords)
+    {
+        if (name == null && coords == null)
+            return;
+
+        if (Location == null)
+            Location = new TaskLocation(name, coords);
+        else
+        {
+            if (name != null)
+                Location.ChangeName(name);
+
+            if (coords != null)
+                Location.ChangeCoords(coords);
+        }
+    }
+
     public void SetLocation(TaskLocation location)
         => Location = location;
 }
