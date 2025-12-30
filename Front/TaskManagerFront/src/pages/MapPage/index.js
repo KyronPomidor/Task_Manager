@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -46,8 +46,39 @@ export default function MapPage({ tasks, categories }) {
     const defaultCenter = [47.0105, 28.8638];
 
     const tasksWithCoords = tasks.filter(
-        (t) => t.latitude && t.longitude
+        (t) => t.latitude != null &&
+            t.longitude != null &&
+            !isNaN(t.latitude) &&
+            !isNaN(t.longitude) &&
+            !t.completed
     );
+
+    useEffect(() => {
+        const style = document.createElement('style');
+        style.innerHTML = `
+            .marker-cluster-small div,
+            .marker-cluster-medium div,
+            .marker-cluster-large div {
+                background-color: #3b82f6 !important;
+                font-size: 20px !important;
+                font-weight: bold !important;
+                width: 50px !important;
+                height: 50px !important;
+                line-height: 50px !important;
+            }
+            
+            .marker-cluster-small,
+            .marker-cluster-medium,
+            .marker-cluster-large {
+                background-color: rgba(59, 130, 246, 0.3) !important;
+            }
+        `;
+        document.head.appendChild(style);
+
+        return () => {
+            document.head.removeChild(style);
+        };
+    }, []);
 
     return (
         <div style={{ height: "100vh", width: "100%" }}>
@@ -62,7 +93,6 @@ export default function MapPage({ tasks, categories }) {
             >
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution="&copy; OpenStreetMap contributors"
                 />
 
                 <MarkerClusterGroup chunkedLoading>
@@ -99,5 +129,6 @@ export default function MapPage({ tasks, categories }) {
                 onEdit={() => setIsDetailsOpen(false)}
             />
         </div>
+
     );
 }

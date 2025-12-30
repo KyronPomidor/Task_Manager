@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import VisGraph from "react-vis-graph-wrapper";
 import { Button } from "antd";
-import menuIcon from "./menu.png";
 
 export function GraphsPage({
   graphData,
@@ -140,28 +139,6 @@ export function GraphsPage({
         position: "relative",
       }}
     >
-      {/* MOBILE MENU BUTTON */}
-      {isMobile && (
-        <button
-          onClick={onOpenMenu}
-          style={{
-            position: "absolute",
-            top: 20,
-            left: 20,
-            zIndex: 1100,
-            background: "transparent",
-            border: "none",
-            padding: 0,
-            cursor: "pointer",
-          }}
-        >
-          <img
-            src={menuIcon}
-            alt="menu"
-            style={{ width: 28, height: 28 }}
-          />
-        </button>
-      )}
 
       <div
         style={{

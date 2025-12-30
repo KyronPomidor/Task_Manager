@@ -29,44 +29,42 @@ export function TaskEditModal({
 }) {
   if (!task) return null;
 
-    const geocodeAddress = async () => {
-        if (!task.location || task.location.trim() === "") {
-            message.error("Please enter an address first.");
-            return;
-        }
+  const geocodeAddress = async () => {
+    if (!task.location || task.location.trim() === "") {
+      message.error("Please enter an address first.");
+      return;
+    }
 
-        try {
-            const query = encodeURIComponent(task.location.trim());
-            const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}`;
+    try {
+      const query = encodeURIComponent(task.location.trim());
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${query}`;
 
-            const res = await fetch(url);
-            const data = await res.json();
+      const res = await fetch(url);
+      const data = await res.json();
 
-            if (!data || data.length === 0) {
-                message.error("No coordinates found for this address.");
-                return;
-            }
+      if (!data || data.length === 0) {
+        message.error("No coordinates found for this address.");
+        return;
+      }
 
-            const place = data[0]; // Берём первый результат
+      const place = data[0];
+      const lat = Number(place.lat);
+      const lon = Number(place.lon);
 
-            const lat = Number(place.lat);
-            const lon = Number(place.lon);
+      onChange({
+        ...task,
+        latitude: lat,
+        longitude: lon,
+      });
 
-            onChange({
-                ...task,
-                latitude: lat,
-                longitude: lon,
-            });
+      message.success("Coordinates found!");
+    } catch (err) {
+      console.error(err);
+      message.error("Error while searching coordinates.");
+    }
+  };
 
-            message.success("Coordinates found!");
-        } catch (err) {
-            console.error(err);
-            message.error("Error while searching coordinates.");
-        }
-    };
-
-
-    return (
+  return (
     <Modal
       title={
         <Title level={4} style={{ margin: 0, color: "#1a2233" }}>
@@ -128,6 +126,7 @@ export function TaskEditModal({
               placeholder="Enter task title"
             />
           </Form.Item>
+          
           <Form.Item label="Description">
             <Input.TextArea
               value={task.description}
@@ -138,7 +137,9 @@ export function TaskEditModal({
               placeholder="Enter task description"
             />
           </Form.Item>
+          
           <Divider style={{ margin: "16px 0" }} />
+          
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Priority">
@@ -167,7 +168,9 @@ export function TaskEditModal({
               </Form.Item>
             </Col>
           </Row>
+          
           <Divider style={{ margin: "16px 0" }} />
+          
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Deadline (Date)">
@@ -214,54 +217,56 @@ export function TaskEditModal({
               ))}
             </Select>
           </Form.Item>
-            <Divider style={{ margin: "16px 0" }} />
-            <Form.Item label="Address / Location">
-                <div style={{ display: "flex", gap: 8 }}>
-                    <Input
-                        value={task.location || ""}
-                        onChange={(e) => onChange({ ...task, location: e.target.value })}
-                        placeholder="Enter address"
-                    />
-                    <Button onClick={geocodeAddress}>Find</Button>
-                </div>
-            </Form.Item>
-            <Row gutter={16}>
-                <Col span={12}>
-                    <Form.Item label="Latitude">
-                        <Input
-                            type="number"
-                            step="0.000001"
-                            value={task.latitude ?? ""}
-                            onChange={(e) =>
-                                onChange({
-                                    ...task,
-                                    latitude: e.target.value === "" ? null : Number(e.target.value),
-                                })
-                            }
-                            placeholder="47.0105"
-                        />
-                    </Form.Item>
-                </Col>
-
-                <Col span={12}>
-                    <Form.Item label="Longitude">
-                        <Input
-                            type="number"
-                            step="0.000001"
-                            value={task.longitude ?? ""}
-                            onChange={(e) =>
-                                onChange({
-                                    ...task,
-                                    longitude:
-                                        e.target.value === "" ? null : Number(e.target.value),
-                                })
-                            }
-                            placeholder="28.8638"
-                        />
-                    </Form.Item>
-                </Col>
-            </Row>
-
+          
+          <Divider style={{ margin: "16px 0" }} />
+          
+          <Form.Item label="Address / Location">
+            <div style={{ display: "flex", gap: 8 }}>
+              <Input
+                value={task.location || ""}
+                onChange={(e) => onChange({ ...task, location: e.target.value })}
+                placeholder="Enter address (e.g., Chisinau, Moldova)"
+              />
+              <Button onClick={geocodeAddress} type="default">
+                Find
+              </Button>
+            </div>
+          </Form.Item>
+          
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item label="Latitude">
+                <Input
+                  type="number"
+                  step="0.000001"
+                  value={task.latitude !== null && task.latitude !== undefined ? task.latitude : ""}
+                  onChange={(e) =>
+                    onChange({
+                      ...task,
+                      latitude: e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
+                  placeholder="47.0105"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label="Longitude">
+                <Input
+                  type="number"
+                  step="0.000001"
+                  value={task.longitude !== null && task.longitude !== undefined ? task.longitude : ""}
+                  onChange={(e) =>
+                    onChange({
+                      ...task,
+                      longitude: e.target.value === "" ? null : Number(e.target.value),
+                    })
+                  }
+                  placeholder="28.8638"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
         </Form>
       </Card>
     </Modal>
