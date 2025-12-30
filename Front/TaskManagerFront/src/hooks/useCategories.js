@@ -32,7 +32,13 @@ export function useCategories() {
                     const byId = new Map();
                     [...normalized, ...tempCats].forEach((c) => byId.set(c.id, c));
 
-                    return [inbox, ...byId.values()];
+                    const newCategories = [inbox, ...byId.values()];
+
+                    if (JSON.stringify(prev) === JSON.stringify(newCategories)) {
+                        return prev; 
+                    }
+
+                    return newCategories;
                 });
             } catch (error) {
                 // Error already logged in service

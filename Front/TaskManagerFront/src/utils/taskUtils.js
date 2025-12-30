@@ -55,11 +55,34 @@ export function mapTaskFromBackend(task, validCategoryIds) {
   // Use color from backend, or generate deterministic color as fallback
   const taskColor = task.color || getDeterministicColor(String(task.id));
 
+  // Parse coordinates - handle both nested object and flat fields
+  let latitude = null;
+  let longitude = null;
+  let locationName = "";
+  
+  // Check if location is nested object
+  if (task.location && typeof task.location === 'object') {
+    locationName = task.location.locationName || "";
+    if (task.location.locationCoords) {
+      const coords = task.location.locationCoords.split(',');
+      latitude = coords[0] ? Number(coords[0].trim()) : null;
+      longitude = coords[1] ? Number(coords[1].trim()) : null;
+    }
+  } else {
+    // Check if location is flat fields
+    locationName = task.locationName || "";
+    if (task.locationCoords) {
+      const coords = task.locationCoords.split(',');
+      latitude = coords[0] ? Number(coords[0].trim()) : null;
+      longitude = coords[1] ? Number(coords[1].trim()) : null;
+    }
+  }
+
   return {
     id: String(task.id),
     title: task.title,
     description: task.description || "",
-    color: taskColor, // Store the color
+    color: taskColor,
     priority:
       task.priority === 0 || task.priority === null
         ? "Low"
@@ -83,6 +106,9 @@ export function mapTaskFromBackend(task, validCategoryIds) {
     positionOrder: task.positionOrder ?? 0,
     price: Number(task.price) || 0,
     budgetItems: Array.isArray(task.budgetItems) ? task.budgetItems : [],
+    location: locationName,
+    latitude: latitude,
+    longitude: longitude,
   };
 }
 
@@ -92,12 +118,12 @@ export function mapTaskFromBackend(task, validCategoryIds) {
 export function createTempTask(newTask, selectedCategory) {
   // Generate deterministic color based on title
   const taskColor = newTask.color || getDeterministicColor(newTask.title || `temp-${Date.now()}`);
-  
+
   return {
     id: `temp-${Date.now()}`,
     title: newTask.title,
     description: newTask.description || "",
-    color: taskColor, // Include color in temp task
+    color: taskColor,
     priority: newTask.priority || "Medium",
     deadline: newTask.deadline || null,
     deadlineTime: newTask.deadlineTime || null,
@@ -109,6 +135,9 @@ export function createTempTask(newTask, selectedCategory) {
     positionOrder: 0,
     price: newTask.price || 0,
     budgetItems: newTask.budgetItems || [],
+    location: newTask.location || "",
+    latitude: newTask.latitude || null,
+    longitude: newTask.longitude || null,
   };
 }
 
@@ -160,6 +189,7 @@ export function filterTasksByCategory(tasks, selectedCategory, todayStr) {
       if (
         selectedCategory !== "graphs" &&
         selectedCategory !== "calendar" &&
+        selectedCategory !== "map" &&
         t.categoryId !== selectedCategory
       )
         return false;

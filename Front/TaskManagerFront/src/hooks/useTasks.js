@@ -30,7 +30,7 @@ export function useTasks(categories, selectedCategory) {
         const data = await fetchTasks();
         const validCategoryIds = categories.map((c) => c.id);
         const mapped = data.map((t) => mapTaskFromBackend(t, validCategoryIds));
-        const sorted = mapped.sort((a, b) => a.positionOrder - b.positionOrder);
+        const sorted = mapped.sort((a, b) => a.positionOrder - b.positionOrder); 
         setTasks(sorted);
       } catch {
         setTasks([]);

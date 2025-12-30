@@ -19,14 +19,13 @@ export const fetchTasks = async () => {
 };
 
 export const createTask = async (taskData) => {
-    // Generate deterministic color for this task
     const taskColor = getDeterministicColor(taskData.title || `task-${Date.now()}`);
-    
+
     const backendTask = {
         userId: FIXED_USER_ID,
         title: taskData.title,
         description: taskData.description || null,
-        color: taskData.color || taskColor, // Use provided color or generate one
+        color: taskData.color || taskColor,
         statusId: null,
         priority:
             taskData.priority === "Low"
@@ -47,7 +46,12 @@ export const createTask = async (taskData) => {
         price: taskData.price || 0,
         budgetItems: taskData.budgetItems || [],
         dependsOnTasksIds: taskData.childrenIds || [],
-
+        location: {
+            locationName: taskData.location || null,
+            locationCoords: (taskData.latitude != null && taskData.longitude != null)
+                ? `${taskData.latitude},${taskData.longitude}`
+                : null
+        },
     };
 
     try {
@@ -67,7 +71,7 @@ export const updateTask = async (updatedTask) => {
     let backendCategoryId = null;
     if (
         updatedTask.categoryId &&
-        !["inbox", "done", "today", "graphs", "calendar"].includes(
+        !["inbox", "done", "today", "graphs", "calendar", "map"].includes(
             updatedTask.categoryId
         )
     ) {
@@ -81,7 +85,7 @@ export const updateTask = async (updatedTask) => {
         taskId: updatedTask.id,
         title: updatedTask.title || null,
         description: updatedTask.description || null,
-        color: updatedTask.color || null, // Include color in updates
+        color: updatedTask.color || null,
         statusId: null,
         categoryId: backendCategoryId,
         deadline:
@@ -107,6 +111,12 @@ export const updateTask = async (updatedTask) => {
                 sum: item.sum,
             })) || [],
         dependsOnTasksIds: updatedTask.childrenIds || [],
+        location: {
+            locationName: updatedTask.location || null,
+            locationCoords: (updatedTask.latitude != null && updatedTask.longitude != null)
+                ? `${updatedTask.latitude},${updatedTask.longitude}`
+                : null
+        },
     };
 
     try {
@@ -116,6 +126,7 @@ export const updateTask = async (updatedTask) => {
             backendTask,
             { headers: { "Content-Type": "application/json" } }
         );
+        console.log("Backend update response:", response.data);
         return response.data;
     } catch (error) {
         console.error("Backend update failed:", error.response?.data || error.message);
