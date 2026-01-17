@@ -8,16 +8,22 @@ import {
 } from "../api/taskCategoryService";
 import { normalizeCategories } from "../utils/taskUtils";
 
-export function useCategories() {
+export function useCategories(userGuid) {
     const [categories, setCategories] = useState([
         { id: "inbox", name: "Inbox", parentId: null },
     ]);
 
-    // Fetch categories on mount
+    // Fetch categories when userGuid changes
     useEffect(() => {
+        if (!userGuid) {
+            console.log("⏳ Waiting for userGuid before loading categories");
+            return;
+        }
+
         const loadCategories = async () => {
             try {
-                const data = await fetchCategories();
+                console.log("📂 Loading categories for user:", userGuid);
+                const data = await fetchCategories(userGuid);
                 const normalized = normalizeCategories(data);
 
                 setCategories((prev) => {
@@ -41,12 +47,12 @@ export function useCategories() {
                     return newCategories;
                 });
             } catch (error) {
-                // Error already logged in service
+                console.error("❌ Failed to load categories:", error);
             }
         };
 
         loadCategories();
-    }, []);
+    }, [userGuid]); // Reload when user changes
 
     // Add category
     const addCategory = async (title, parentId = null) => {
