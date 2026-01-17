@@ -1,7 +1,7 @@
 # Changelog
 
 ## 17-01-2026
-**GUID sent to backend is unique**: The new GUID for new users is fetched from google firebase used for registration. Contributor: [Kirill](https://github.com/KyronPomidor), ([#66] (https://github.com/KyronPomidor/Task_Manager/pull/66))
+**GUID sent to backend is unique**: The new GUID for new users is fetched from google firebase used for registration. Contributor: [Kirill](https://github.com/KyronPomidor), ([#66](https://github.com/KyronPomidor/Task_Manager/pull/66))
 
 ## 29-11-2025
 **Created the mobile view for the main page**: The page changes with relation to the screen size applied. Contributor: [Kirill](https://github.com/KyronPomidor), ([#54](https://github.com/KyronPomidor/Task_Manager/pull/54))
