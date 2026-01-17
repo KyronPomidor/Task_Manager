@@ -15,6 +15,7 @@ import menuIcon from "./menu.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
 import MapPage from "../pages/MapPage";
+import useUserGuid from "../hooks/useUserGuid";
 
 // Custom hooks
 import { useCategories } from "../hooks/useCategories";
@@ -24,6 +25,7 @@ import { filterTasksByCategory } from "../utils/taskUtils";
 
 export default function App() {
   const { user, loading } = useAuth();
+  const userGuid = useUserGuid(user);
 
   // State management via custom hooks
   const {
@@ -32,7 +34,7 @@ export default function App() {
     addCategory,
     editCategory,
     deleteCategory,
-  } = useCategories();
+  } = useCategories(userGuid);
 
   const [selectedCategory, setSelectedCategory] = useState("inbox");
   const [searchText, setSearchText] = useState("");
@@ -41,7 +43,8 @@ export default function App() {
 
   const { tasks, setTasks, addTask, updateTask, updateTaskOrder } = useTasks(
     categories,
-    selectedCategory
+    selectedCategory,
+    userGuid  
   );
 
   const {
@@ -178,7 +181,7 @@ export default function App() {
                 />
               </div>
             ) : selectedCategory === "graphs" ? (
-               <div style={{ position: "relative", height: "100%" }}>
+              <div style={{ position: "relative", height: "100%" }}>
                 {isMobile && !isSidebarOpen && (
                   <Button
                     type="text"
@@ -215,10 +218,10 @@ export default function App() {
                   isDark={isDark}
                 />
               </div>
-              
+
             ) : selectedCategory === "calendar" ? (
               <div style={{ position: "relative", height: "100%" }}>
-                {isMobile && !isSidebarOpen &&(
+                {isMobile && !isSidebarOpen && (
                   <Button
                     type="text"
                     onClick={() => setIsSidebarOpen(true)}
@@ -265,7 +268,7 @@ export default function App() {
                   }}
                 >
                   {/* MENU BUTTON - ONLY MOBILE */}
-                  {isMobile && !isSidebarOpen &&(
+                  {isMobile && !isSidebarOpen && (
                     <Button
                       type="text"
                       onClick={() => setIsSidebarOpen(true)}
@@ -438,38 +441,38 @@ export default function App() {
           </DragOverlay>
 
           {/* MOBILE SIDEBAR OVERLAY */}
-            {isMobile && isSidebarOpen && (
-              <div className="MobileSidebarOverlay">
-                {/* CLOSE BUTTON – same spot as main menu */}
-                <div
-                  className="MobileSidebarBackdrop"
-                  onClick={() => setIsSidebarOpen(false)}
+          {isMobile && isSidebarOpen && (
+            <div className="MobileSidebarOverlay">
+              {/* CLOSE BUTTON – same spot as main menu */}
+              <div
+                className="MobileSidebarBackdrop"
+                onClick={() => setIsSidebarOpen(false)}
+              />
+              <div className="MobileSidebarPanel">
+                <SideBar
+                  categories={categories}
+                  selectedCategory={selectedCategory}
+                  onCategorySelect={(id) => {
+                    setSelectedCategory(id);
+                    setIsSidebarOpen(false);
+                  }}
+                  setCategories={setCategories}
+                  droppableCategoryIds={droppableCategoryIds}
+                  hoveredCategory={hoveredCategory}
+                  setTasks={setTasks}
+                  tasks={tasks}
+                  searchText={searchText}
+                  setSearchText={setSearchText}
+                  addCategory={addCategory}
+                  editCategory={editCategory}
+                  deleteCategory={handleDeleteCategory}
+                  isMobile={true}
+                  mobileTopContent={mobileTopContent}
+                  isDark={isDark}
                 />
-                <div className="MobileSidebarPanel">
-                  <SideBar
-                    categories={categories}
-                    selectedCategory={selectedCategory}
-                    onCategorySelect={(id) => {
-                      setSelectedCategory(id);
-                      setIsSidebarOpen(false);
-                    }}
-                    setCategories={setCategories}
-                    droppableCategoryIds={droppableCategoryIds}
-                    hoveredCategory={hoveredCategory}
-                    setTasks={setTasks}
-                    tasks={tasks}
-                    searchText={searchText}
-                    setSearchText={setSearchText}
-                    addCategory={addCategory}
-                    editCategory={editCategory}
-                    deleteCategory={handleDeleteCategory}
-                    isMobile={true}
-                    mobileTopContent={mobileTopContent}
-                    isDark={isDark}
-                  />
-                </div>
               </div>
-            )}
+            </div>
+          )}
         </DndContext>
 
         <AIAnalysisModal

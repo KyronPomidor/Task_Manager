@@ -11,7 +11,7 @@ import {
   migrateParentIdsToChildren,
 } from "../utils/taskUtils";
 
-export function useTasks(categories, selectedCategory) {
+export function useTasks(categories, selectedCategory, userGuid) {
   const [tasks, setTasks] = useState([]);
 
   // Buffer for updates made while a task still has a temporary id.
@@ -21,24 +21,35 @@ export function useTasks(categories, selectedCategory) {
   // Track tasks that are being created to prevent race conditions
   const creatingTasksRef = useRef(new Set());
 
-  // Fetch tasks when categories are loaded
+  // Fetch tasks when categories are loaded AND userGuid is available
   useEffect(() => {
-    if (!categories || categories.length === 0 ) return;
+    if (!categories || categories.length === 0) {
+      console.log("⏳ Waiting for categories before loading tasks");
+      return;
+    }
+    
+    if (!userGuid) {
+      console.log("⏳ Waiting for userGuid before loading tasks");
+      return;
+    }
 
     const loadTasks = async () => {
       try {
-        const data = await fetchTasks();
+        console.log("📋 Loading tasks for user:", userGuid);
+        const data = await fetchTasks(userGuid);
         const validCategoryIds = categories.map((c) => c.id);
         const mapped = data.map((t) => mapTaskFromBackend(t, validCategoryIds));
         const sorted = mapped.sort((a, b) => a.positionOrder - b.positionOrder); 
         setTasks(sorted);
-      } catch {
+        console.log("✅ Tasks loaded:", sorted.length);
+      } catch (error) {
+        console.error("❌ Failed to load tasks:", error);
         setTasks([]);
       }
     };
 
     loadTasks();
-  }, [categories]);
+  }, [categories, userGuid]); // Reload when categories OR user changes
 
   // Re-map children after tasks change (if needed)
   useEffect(() => {
