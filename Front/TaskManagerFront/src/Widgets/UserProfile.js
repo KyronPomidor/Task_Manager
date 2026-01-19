@@ -155,7 +155,7 @@ export default function UserProfile({ user, isDark = false }) {
         <Card
           bordered={false}
           style={{
-            background: "#ffffff",
+            background: isDark ? "#d1d5db" : "#ffffff",
             borderRadius: "8px",
             boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           }}

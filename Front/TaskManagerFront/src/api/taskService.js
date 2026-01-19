@@ -7,8 +7,6 @@ const FIXED_INBOX_ID = "00000000-0000-0000-0000-000000000001";
 
 // Convert Firebase UID to deterministic GUID format
 const firebaseUidToGuid = (uid) => {
-    
-    // Create a deterministic GUID based on the UID
     const uid1 = uid.substring(0, 8).padEnd(8, '0');
     const uid2 = uid.substring(8, 12).padEnd(4, '0');
     const uid3 = uid.substring(12, 16).padEnd(4, '0');
@@ -106,13 +104,15 @@ export const createTask = async (taskData) => {
         price: taskData.price || 0,
         budgetItems: taskData.budgetItems || [],
         dependsOnTasksIds: taskData.childrenIds || [],
-        location: {
-            locationName: taskData.location || null,
-            locationCoords: (taskData.latitude != null && taskData.longitude != null)
-                ? `${taskData.latitude},${taskData.longitude}`
-                : null
-        },
     };
+
+    // Only add location if it has valid data
+    if (taskData.location && taskData.latitude != null && taskData.longitude != null) {
+        backendTask.location = {
+            locationName: taskData.location,
+            locationCoords: `${taskData.latitude},${taskData.longitude}`
+        };
+    }
 
     try {
         console.log("Sending new task to backend:", backendTask);
@@ -171,13 +171,15 @@ export const updateTask = async (updatedTask) => {
                 sum: item.sum,
             })) || [],
         dependsOnTasksIds: updatedTask.childrenIds || [],
-        location: {
-            locationName: updatedTask.location || null,
-            locationCoords: (updatedTask.latitude != null && updatedTask.longitude != null)
-                ? `${updatedTask.latitude},${updatedTask.longitude}`
-                : null
-        },
     };
+
+    // Only add location if it has valid data
+    if (updatedTask.location && updatedTask.latitude != null && updatedTask.longitude != null) {
+        backendTask.location = {
+            locationName: updatedTask.location,
+            locationCoords: `${updatedTask.latitude},${updatedTask.longitude}`
+        };
+    }
 
     try {
         console.log("Sending update (PATCH) to backend:", backendTask);

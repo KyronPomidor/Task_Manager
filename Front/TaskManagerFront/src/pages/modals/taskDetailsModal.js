@@ -17,6 +17,7 @@ export function TaskDetailsModal({
   getParents,
   onClose,
   onEdit,
+  isDark = false,
 }) {
   if (!task) return null;
 
@@ -51,23 +52,25 @@ export function TaskDetailsModal({
       width={600}
       styles={{
         header: {
-          background: "#e6f4ff",
+          background: isDark ? "#d1d5db" : "#e6f4ff",
           padding: "16px 24px",
           borderRadius: "8px 8px 0 0",
         },
         body: {
           padding: "24px",
-          background: "#f9fafb",
+          background: isDark ? "#d1d5db" : "#f9fafb",
           borderRadius: "0 0 8px 8px",
         },
         content: {
           padding: 0,
           borderRadius: "8px",
           boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          background: isDark ? "#d1d5db" : undefined,
         },
         footer: {
           padding: "16px",
           borderRadius: "0 0 8px 8px",
+          background: isDark ? "#d1d5db" : undefined,
         },
       }}
     >
@@ -75,7 +78,7 @@ export function TaskDetailsModal({
         <Card
           bordered={false}
           style={{
-            background: "#ffffff",
+            background: isDark ? "#d6d9dd" : "#ffffff",
             borderRadius: "8px",
             boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
           }}
@@ -132,36 +135,36 @@ export function TaskDetailsModal({
                 task.categoryId}
             </Text>
           </div>
-            {/* Address */}
-            <div style={{ marginBottom: "12px" }}>
-                <Text strong style={{ color: "#4d5156" }}>
-                    Address:
-                </Text>
-                <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
-                    {task.location && task.location.trim() !== ""
-                        ? task.location
-                        : "No address provided"}
-                </Text>
-            </div>
+          {/* Address */}
+          <div style={{ marginBottom: "12px" }}>
+            <Text strong style={{ color: "#4d5156" }}>
+              Address:
+            </Text>
+            <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
+              {task.location && task.location.trim() !== ""
+                ? task.location
+                : "No address provided"}
+            </Text>
+          </div>
 
-            {/* Coordinates (only if present) */}
-            {task.latitude && task.longitude && (
-                <div style={{ marginBottom: "12px" }}>
-                    <Text strong style={{ color: "#4d5156" }}>
-                        Coordinates:
-                    </Text>
-                    <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
-                        {task.latitude}, {task.longitude}
-                    </Text>
-                </div>
-            )}
-
-
-
-            {parentTasks.length > 0 && (
+          {/* Coordinates (only if present) */}
+          {task.latitude && task.longitude && (
             <div style={{ marginBottom: "12px" }}>
               <Text strong style={{ color: "#4d5156" }}>
-                Parent Tasks:
+                Coordinates:
+              </Text>
+              <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
+                {task.latitude}, {task.longitude}
+              </Text>
+            </div>
+          )}
+
+
+
+          {parentTasks.length > 0 && (
+            <div style={{ marginBottom: "12px" }}>
+              <Text strong style={{ color: "#4d5156" }}>
+                Blocks:
               </Text>
               <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
                 {parentTasks
@@ -178,7 +181,7 @@ export function TaskDetailsModal({
           {task.childrenIds && task.childrenIds.length > 0 && (
             <div style={{ marginBottom: "12px" }}>
               <Text strong style={{ color: "#4d5156" }}>
-                Child Tasks:
+                Blocked by:
               </Text>
               <Text style={{ marginLeft: "8px", color: "#4d5156" }}>
                 {allTasks

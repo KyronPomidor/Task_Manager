@@ -11,6 +11,7 @@ import UserProfileMenu from "../Widgets/UserProfile";
 import { TaskGraphIntegration } from "../pages/GraphPage/ui/TaskGraphIntegration";
 import { AIAnalysisModal } from "../Widgets/AIAnalysis/AIAnalysisModal";
 import aiIcon from "./ai.png";
+import aiWhiteIcon from "../Widgets/AIAnalysis/ai_white.png";
 import menuIcon from "./menu.png";
 import CalendarButton from "../Widgets/Calendar/CalendarButton";
 import Calendar from "../Widgets/Calendar/ui/Calendar";
@@ -44,7 +45,7 @@ export default function App() {
   const { tasks, setTasks, addTask, updateTask, updateTaskOrder } = useTasks(
     categories,
     selectedCategory,
-    userGuid  
+    userGuid
   );
 
   const {
@@ -333,7 +334,7 @@ export default function App() {
                         }}
                       >
                         <img
-                          src={aiIcon}
+                          src={isDark ? aiWhiteIcon : aiIcon}
                           alt="AI"
                           style={{ width: 24, height: 24 }}
                         />
@@ -361,6 +362,7 @@ export default function App() {
                       </div>
                       <CalendarButton
                         onClick={() => setSelectedCategory("calendar")}
+                        isDark={isDark}
                       />
                       <div
                         style={{
@@ -370,7 +372,7 @@ export default function App() {
                         }}
                       >
                         <img
-                          src={aiIcon}
+                          src={isDark ? aiWhiteIcon : aiIcon}
                           alt="AI"
                           style={{ width: "24px", height: "24px" }}
                         />

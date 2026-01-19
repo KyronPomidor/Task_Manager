@@ -43,16 +43,16 @@ export default function CalendarPage({ tasks, onCardClick, isDark = false }) {
   const goNextMonth = () => setViewDate(viewDate.add(1, "month"));
 
   return (
-    <div className="calendar-container">
+    <div className="calendar-container" style={{ color: isDark ? "#fff" : "#000" }}>
       <div className="calendar-header">
         <button onClick={goPrevMonth}>{"<"}</button>
-        <h2>{viewDate.format("MMMM YYYY")}</h2>
-        <button onClick={goNextMonth}>{">"}</button>
+        <h2 style={{ color: isDark ? "#fff" : "#000" }}>{viewDate.format("MMMM YYYY")}</h2>
+        <button onClick={goNextMonth}>{">"}️</button>
       </div>
 
       <div className="calendar-grid">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-          <div key={day} className="day-header">
+          <div key={day} className="day-header" style={{ background: isDark ? "#374151" : "#f0f0f0", color: isDark ? "#fff" : "#000" }}>
             {day}
           </div>
         ))}
