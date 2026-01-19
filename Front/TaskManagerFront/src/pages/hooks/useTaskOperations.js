@@ -24,7 +24,7 @@ export function useTaskOperations(
                 if (children.some((c) => !c.completed)) {
                     Modal.warning({
                         title: "Cannot complete task",
-                        content: "This parent task still has unfinished child tasks.",
+                        content: "This task is blocked by another task.",
                     });
                     return prev;
                 }

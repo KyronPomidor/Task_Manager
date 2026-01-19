@@ -272,6 +272,7 @@ export function Tasks({
           setDetailsOpen(false);
           startEdit(selectedTask);
         }}
+        isDark={isDark}
       />
 
       <BudgetModal

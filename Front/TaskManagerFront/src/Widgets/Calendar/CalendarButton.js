@@ -1,8 +1,9 @@
 import { Button } from "antd";
 import calendarIcon from "./calendar_view.png";
+import calendarWhiteIcon from "./calendar_white.png";
 
-export default function CalendarButton({ onClick, iconOnly = false }) {
-  // Mobile view part 
+export default function CalendarButton({ onClick, iconOnly = false, isDark = false }) {
+  const icon = isDark ? calendarWhiteIcon : calendarIcon;
   if (iconOnly) {
     return (
       <button
@@ -20,7 +21,7 @@ export default function CalendarButton({ onClick, iconOnly = false }) {
         }}
       >
         <img
-          src={calendarIcon}
+          src={icon}
           alt="Calendar"
           style={{ width: 24, height: 24 }}
         />
@@ -32,7 +33,7 @@ export default function CalendarButton({ onClick, iconOnly = false }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
       <img
-        src={calendarIcon}
+        src={icon}
         alt="Calendar Icon"
         style={{ width: "24px", height: "24px" }}
       />

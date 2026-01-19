@@ -53,7 +53,7 @@ export function TaskCard({
             <Card
                 className={`task-card ${task.completed ? "task-card-done" : ""}`}
                 style={{
-                    background: bg,
+                    background: isDark ? "#d1d5db" : bg,
                     borderLeft: `10px solid ${parentBorderColor}`,
                     minHeight: 180,
                     display: "flex",
@@ -192,6 +192,7 @@ export function TaskCard({
                         setBudgetOpen={setBudgetOpen}
                         menuOpenId={menuOpenId}
                         setMenuOpenId={setMenuOpenId}
+                        isDark={isDark}
                     />
                 }
             >
@@ -263,7 +264,7 @@ export function TaskCard({
                             type="text"
                             style={{
                                 padding: 0,
-                                background: "#fff",
+                                background: isDark ? "#e0e0e0" : "#fff",
                                 border: "1px solid #e0e0e0",
                                 borderRadius: "50%",
                                 boxShadow: "0 2px 8px rgba(0,0,0,0.10)",
@@ -360,7 +361,7 @@ export function TaskCard({
                                                 }`}
                                             style={{
                                                 width: 320,
-                                                background: "#fff",
+                                                background: isDark ? "#d1d5db" : "#fff",
                                                 color: "#222e3a",
                                                 borderLeft:
                                                     childParents.length > 0

@@ -36,7 +36,7 @@ const markerIcons = {
     }),
 };
 
-export default function MapPage({ tasks, categories }) {
+export default function MapPage({ tasks, categories, isDark = false }) {
     const [selectedTask, setSelectedTask] = useState(null);
     const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
@@ -127,6 +127,7 @@ export default function MapPage({ tasks, categories }) {
                 getParents={getParents}
                 onClose={() => setIsDetailsOpen(false)}
                 onEdit={() => setIsDetailsOpen(false)}
+                isDark={isDark}
             />
         </div>
 

@@ -26,6 +26,7 @@ export function TaskEditModal({
   onSave,
   onClose,
   title = "Edit Task",
+  isDark = false,
 }) {
   if (!task) return null;
 
@@ -88,13 +89,13 @@ export function TaskEditModal({
       width={600}
       styles={{
         header: {
-          background: "#e6f4ff",
+          background: isDark ? "#d1d5db" : "#e6f4ff",
           padding: "16px 24px",
           borderRadius: "8px 8px 0 0",
         },
         body: {
           padding: "24px",
-          background: "#f9fafb",
+          background: isDark ? "#d1d5db" : "#f9fafb",
           borderRadius: "0 0 8px 8px",
           maxHeight: "70vh",
           overflowY: "auto",
@@ -113,7 +114,7 @@ export function TaskEditModal({
       <Card
         bordered={false}
         style={{
-          background: "#ffffff",
+          background: isDark ? "#d1d5db" : "#ffffff",
           borderRadius: "8px",
           boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
         }}
@@ -126,7 +127,7 @@ export function TaskEditModal({
               placeholder="Enter task title"
             />
           </Form.Item>
-          
+
           <Form.Item label="Description">
             <Input.TextArea
               value={task.description}
@@ -137,9 +138,9 @@ export function TaskEditModal({
               placeholder="Enter task description"
             />
           </Form.Item>
-          
+
           <Divider style={{ margin: "16px 0" }} />
-          
+
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Priority">
@@ -168,9 +169,9 @@ export function TaskEditModal({
               </Form.Item>
             </Col>
           </Row>
-          
+
           <Divider style={{ margin: "16px 0" }} />
-          
+
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Deadline (Date)">
@@ -201,7 +202,7 @@ export function TaskEditModal({
             </Col>
           </Row>
 
-          <Form.Item label="Child Tasks">
+          <Form.Item label="Blocked by">
             <Select
               mode="multiple"
               value={task.childrenIds || []}
@@ -217,9 +218,9 @@ export function TaskEditModal({
               ))}
             </Select>
           </Form.Item>
-          
+
           <Divider style={{ margin: "16px 0" }} />
-          
+
           <Form.Item label="Address / Location">
             <div style={{ display: "flex", gap: 8 }}>
               <Input
@@ -232,7 +233,7 @@ export function TaskEditModal({
               </Button>
             </div>
           </Form.Item>
-          
+
           <Row gutter={16}>
             <Col span={12}>
               <Form.Item label="Latitude">

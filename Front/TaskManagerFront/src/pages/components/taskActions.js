@@ -11,6 +11,7 @@ export function TaskActions({
     setBudgetOpen,
     menuOpenId,
     setMenuOpenId,
+    isDark = false,
 }) {
     const open = menuOpenId === task.id;
 
@@ -67,7 +68,7 @@ export function TaskActions({
                 size="small"
                 shape="circle"
                 onClick={toggleMenu}
-                style={{ zIndex: 2 }}
+                style={{ zIndex: 2, background: isDark ? "#e0e0e0" : undefined }}
             />
             <AnimatePresence>
                 {open &&
@@ -88,7 +89,7 @@ export function TaskActions({
                             onClick={(e) => e.stopPropagation()}
                             onPointerDown={(e) => e.stopPropagation()}
                         >
-                            <Button size="small" onClick={action.onClick}>
+                            <Button size="small" onClick={action.onClick} style={{ background: isDark ? "#d1d5db" : undefined }}>
                                 {action.label}
                             </Button>
                         </motion.div>

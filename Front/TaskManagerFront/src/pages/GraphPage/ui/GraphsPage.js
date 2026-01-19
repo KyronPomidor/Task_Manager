@@ -45,7 +45,7 @@ export function GraphsPage({
     nodes: {
       shape: "dot",
       size: 25,
-      font: { size: 14, color: "#111" },
+      font: { size: 14, color: isDark ? "#fff" : "#111" },
     },
     edges: {
       color: "gray",
@@ -156,6 +156,7 @@ export function GraphsPage({
             setAddingRelationFrom(addingRelationFrom ? null : selectedNode)
           }
           disabled={!selectedNode}
+          style={{ color: isDark ? "#fff" : undefined }}
         >
           {addingRelationFrom ? "Cancel Linking" : "Link Tasks"}
         </Button>
@@ -163,10 +164,11 @@ export function GraphsPage({
         {selectedNode && (
           <div
             style={{
-              background: "#f0f0f0",
+              background: isDark ? "#374151" : "#f0f0f0",
               padding: "8px 12px",
               borderRadius: "4px",
               fontSize: "14px",
+              color: isDark ? "#fff" : "#000",
             }}
           >
             Selected:{" "}
