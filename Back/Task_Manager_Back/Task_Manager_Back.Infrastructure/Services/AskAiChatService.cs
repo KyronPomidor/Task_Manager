@@ -26,13 +26,13 @@ public class AskAiChatService : IAskAiChatService
     {
         var request = new
         {
-            model = _model, // e.g. "sonar"
+            model = _model, //nemotron-3-nano-30b-a3b, free
             messages = new[]
             {
                 new { role = "system", content = "You are a helpful task manager assistant. Respond accordingly only to the prompts related to tasks that user has." },
                 new { role = "user", content = prompt }
             },
-            max_tokens = 200
+            max_tokens = 1200
         };
 
         var json = JsonSerializer.Serialize(request);
