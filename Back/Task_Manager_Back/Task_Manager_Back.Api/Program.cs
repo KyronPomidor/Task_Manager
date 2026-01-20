@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://localhost:7167", "http://localhost:5053", "http://localhost:3000")
+        policy.WithOrigins("http://localhost", "https://localhost:7167", "http://localhost:5053", "http://localhost:3000", "http://localhost:0000", "http://mihcraft.com", "http://anytask.mihcraft.com")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
