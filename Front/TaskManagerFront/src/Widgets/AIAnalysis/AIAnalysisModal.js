@@ -2,10 +2,11 @@ import React, { useState, useEffect } from "react";
 import { Modal, Input, Button, Card, Typography, Spin } from "antd";
 import { getCurrentUserId } from "../../api/taskService"; 
 import axios from "axios";
+import { fetchTasks } from "../../api/taskService";
 
 const { Title } = Typography;
 
-export function AIAnalysisModal({ visible, onClose }) {
+export function AIAnalysisModal({ visible, onClose, onTasksUpdate }) {
   const [inputText, setInputText] = useState("");
   const [outputText, setOutputText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,6 +30,16 @@ export function AIAnalysisModal({ visible, onClose }) {
         setOutputText(data.reply);
       } else {
         setOutputText(typeof data === "string" ? data : JSON.stringify(data));
+      }
+
+      // Refresh tasks from database after AI answers
+      if (onTasksUpdate) {
+        try {
+          const updatedTasks = await fetchTasks();
+          onTasksUpdate(updatedTasks);
+        } catch (error) {
+          console.error("Failed to refresh tasks:", error);
+        }
       }
     } catch (err) {
       setOutputText("❌ Error: " + (err.response?.data || err.message));
