@@ -12,7 +12,7 @@ const firebaseUidToGuid = (uid) => {
     const uid3 = uid.substring(12, 16).padEnd(4, '0');
     const uid4 = uid.substring(16, 20).padEnd(4, '0');
     const uid5 = uid.substring(20).padEnd(12, '0');
-    
+
     // Convert to hex and ensure proper length
     const toHex = (str) => {
         let result = '';
@@ -21,13 +21,13 @@ const firebaseUidToGuid = (uid) => {
         }
         return result;
     };
-    
+
     const part1 = toHex(uid1).substring(0, 8);
     const part2 = toHex(uid2).substring(0, 4);
     const part3 = toHex(uid3).substring(0, 4);
     const part4 = toHex(uid4).substring(0, 4);
     const part5 = toHex(uid5).substring(0, 12);
-    
+
     return `${part1}-${part2}-${part3}-${part4}-${part5}`;
 };
 
@@ -35,7 +35,7 @@ const firebaseUidToGuid = (uid) => {
 const getCurrentUserId = async () => {
     return new Promise((resolve, reject) => {
         const user = auth.currentUser;
-        
+
         if (user) {
             const guid = firebaseUidToGuid(user.uid);
             console.log("Current Firebase User:", user);
@@ -212,6 +212,28 @@ export const updateTaskOrder = async (id, positionOrder) => {
     } catch (error) {
         console.error(
             `⚠ Order update failed for ${id}:`,
+            error.response?.data || error.message
+        );
+        throw error;
+    }
+};
+
+export const deleteTasksByIds = async (taskIds) => {
+    if (!taskIds || taskIds.length === 0) {
+        console.warn("No task IDs provided for deletion");
+        return;
+    }
+
+    try {
+        const deletePromises = taskIds.map((id) =>
+            axios.delete(`${API_BASE_URL}/tasks/${id}`)
+        );
+        const responses = await Promise.all(deletePromises);
+        console.log("✅ Tasks deleted successfully:", responses);
+        return responses;
+    } catch (error) {
+        console.error(
+            "⚠ Task deletion failed:",
             error.response?.data || error.message
         );
         throw error;

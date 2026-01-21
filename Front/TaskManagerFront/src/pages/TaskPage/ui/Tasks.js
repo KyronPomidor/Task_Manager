@@ -21,6 +21,7 @@ import {
   calculateTotalExpenses,
 } from "../../utils/taskHelpers";
 import { useTaskOperations } from "../../hooks/useTaskOperations";
+import { deleteTasksByIds } from "../../../api/taskService";
 
 export function Tasks({
   filteredTasks,
@@ -165,6 +166,45 @@ export function Tasks({
     );
   };
 
+  // Delete all done tasks handler
+  const handleDeleteDoneTasks = () => {
+    if (filteredAndSortedTasks.length === 0) {
+      Modal.info({
+        title: "No tasks to delete",
+        content: "There are no tasks in the Done category.",
+      });
+      return;
+    }
+
+    Modal.confirm({
+      title: "Delete All Done Tasks",
+      content: `Are you sure you want to delete all ${filteredAndSortedTasks.length} task(s) in the Done category?`,
+      okText: "Delete",
+      okType: "danger",
+      cancelText: "Cancel",
+      onOk() {
+        const taskIds = filteredAndSortedTasks.map((task) => task.id);
+        deleteTasksByIds(taskIds)
+          .then(() => {
+            Modal.success({
+              title: "Success",
+              content: "All done tasks have been deleted successfully.",
+            });
+            // Remove deleted tasks from the state
+            setTasks((prev) =>
+              prev.filter((t) => !taskIds.includes(t.id))
+            );
+          })
+          .catch((error) => {
+            Modal.error({
+              title: "Error",
+              content: `Failed to delete tasks: ${error.message}`,
+            });
+          });
+      },
+    });
+  };
+
   // Filter and sort tasks
   const filteredAndSortedTasks = filterTasks(
     filteredTasks || [],
@@ -213,16 +253,30 @@ export function Tasks({
         </div>
 
         {selectedCategory === "done" && (
-          <span
-            style={{
-              fontSize: "0.9rem",
-              color: "#4d5156",
-              fontWeight: 600,
-              marginTop: isInboxMainMobile ? 8 : 0,
-            }}
-          >
-            Total Expenses: ${calculateTotalExpenses(filteredAndSortedTasks)}
-          </span>
+          <>
+            <Button
+              danger
+              onClick={handleDeleteDoneTasks}
+              style={{
+                marginTop: isInboxMainMobile ? 8 : 0,
+                backgroundColor: "#ff4d4f",
+                borderColor: "#ff4d4f",
+                color: "#fff",
+              }}
+            >
+              Delete Tasks
+            </Button>
+            <span
+              style={{
+                fontSize: "0.9rem",
+                color: "#4d5156",
+                fontWeight: 600,
+                marginTop: isInboxMainMobile ? 8 : 0,
+              }}
+            >
+              Total Expenses: ${calculateTotalExpenses(filteredAndSortedTasks)}
+            </span>
+          </>
         )}
       </div>
 
