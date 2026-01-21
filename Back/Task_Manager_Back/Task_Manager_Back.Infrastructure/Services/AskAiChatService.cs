@@ -17,7 +17,7 @@ public class AskAiChatService : IAskAiChatService
     public AskAiChatService(HttpClient httpClient, IConfiguration config)
     {
         _httpClient = httpClient;
-        _apiKey = config["AI:ApiKey"] ?? string.Empty;
+        _apiKey = "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";
         _baseUrl = config["AI:BaseUrl"] ?? string.Empty;
         _model = config["AI:Model"] ?? string.Empty;
     }
