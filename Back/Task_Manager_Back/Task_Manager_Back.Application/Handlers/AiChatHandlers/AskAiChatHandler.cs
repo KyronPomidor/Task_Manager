@@ -35,7 +35,7 @@ public class AskAiChatHandler : IRequestHandler<AskAiChatRequest, string>
         sb.AppendLine("User question: " + request.Prompt);
 
         // Ask AI
-        string response = await _aiChatService.AskAsync(sb.ToString());
+        string response = await _aiChatService.AskAsync(sb.ToString(), request.UserId);
         return response;
     }
 }

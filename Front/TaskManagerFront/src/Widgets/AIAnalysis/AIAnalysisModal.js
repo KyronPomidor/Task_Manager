@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Input, Button, Card, Typography, Spin } from "antd";
+import { getCurrentUserId } from "../../api/taskService"; 
 import axios from "axios";
 
 const { Title } = Typography;
@@ -12,9 +13,15 @@ export function AIAnalysisModal({ visible, onClose }) {
   const handleSend = async () => {
     setLoading(true);
     try {
+      const userId = await getCurrentUserId();
+      
       const { data } = await axios.post(
         "http://localhost:5053/api/ai-chat/ask",
-        { prompt: inputText },
+        {
+          prompt: inputText,
+          userId: userId,
+        },
+        
         { headers: { "Content-Type": "application/json" } }
       );
 

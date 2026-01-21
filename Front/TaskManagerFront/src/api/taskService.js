@@ -221,3 +221,4 @@ export const updateTaskOrder = async (id, positionOrder) => {
 // ==================== CONSTANTS ====================
 
 export { FIXED_INBOX_ID };
+export { getCurrentUserId };
