@@ -22,7 +22,7 @@ import useUserGuid from "../hooks/useUserGuid";
 import { useCategories } from "../hooks/useCategories";
 import { useTasks } from "../hooks/useTasks";
 import { useDragDrop } from "../hooks/useDragDrop";
-import { filterTasksByCategory, mapTaskFromBackend } from "../utils/taskUtils";
+import { filterTasksByCategory } from "../utils/taskUtils";
 
 export default function App() {
   const { user, loading } = useAuth();
@@ -93,14 +93,6 @@ export default function App() {
       setTasks(prevTasks);
       setSelectedCategory(prevSelected);
     }
-  };
-
-  // Handle AI analysis update - refresh tasks from database
-  const handleAITasksUpdate = (updatedTasksFromDB) => {
-    const validCategoryIds = categories.map((c) => c.id);
-    const mapped = updatedTasksFromDB.map((t) => mapTaskFromBackend(t, validCategoryIds));
-    const sorted = mapped.sort((a, b) => a.positionOrder - b.positionOrder);
-    setTasks(sorted);
   };
 
   // Loading and auth states
@@ -488,7 +480,22 @@ export default function App() {
         <AIAnalysisModal
           visible={isAIAnalysisOpen}
           onClose={() => setIsAIAnalysisOpen(false)}
-          onTasksUpdate={handleAITasksUpdate}
+          onRefresh={async () => {
+            // Reload tasks and categories by triggering dependency updates
+            setTasks(await (await import("../api/taskService")).fetchTasks(userGuid));
+            const catData = await (await import("../api/taskCategoryService")).fetchCategories(userGuid);
+            const { normalizeCategories } = await import("../utils/taskUtils");
+            const normalized = normalizeCategories(catData);
+            setCategories((prev) => {
+              const inbox = prev.find((c) => c.id === "inbox") || {
+                id: "inbox",
+                name: "Inbox",
+                parentId: null,
+              };
+              const newCategories = [inbox, ...normalized];
+              return newCategories;
+            });
+          }}
         />
       </div>
     </div>
