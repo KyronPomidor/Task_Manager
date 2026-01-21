@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Org.BouncyCastle.Bcpg;
 using Task_Manager_Back.Application.IServices;
 
 public class AskAiChatService : IAskAiChatService
@@ -14,6 +15,7 @@ public class AskAiChatService : IAskAiChatService
     private readonly string _aiBaseUrl;
     private readonly string _model;
     private readonly string _backendBaseUrl;
+    private Guid UserId;
 
     public AskAiChatService(HttpClient httpClient, IConfiguration config)
     {
@@ -24,15 +26,17 @@ public class AskAiChatService : IAskAiChatService
         _backendBaseUrl = "http://localhost:5053/api";
     }
 
-    public async Task<string> AskAsync(string prompt)
+    public async Task<string> AskAsync(string prompt, Guid userId)
     {
-        var aiJson = await CallAi(prompt);
-        return await ExecutePlan(aiJson);
+        //---
+        UserId = userId;
+        var aiJson = await CallAi(prompt, userId);
+        return await ExecutePlan(aiJson, userId);
     }
 
     // ================= AI =================
 
-    private async Task<string> CallAi(string prompt)
+    private async Task<string> CallAi(string prompt, Guid userId)
     {
         var request = new
         {
@@ -93,7 +97,7 @@ Rules:
 
     // ================= EXECUTION =================
 
-    private async Task<string> ExecutePlan(string aiJson)
+    private async Task<string> ExecutePlan(string aiJson, Guid userId)
     {
         using var doc = JsonDocument.Parse(aiJson);
         var root = doc.RootElement;
@@ -101,7 +105,6 @@ Rules:
         var message = root.GetProperty("message").GetString() ?? "";
         var actions = root.GetProperty("actions");
 
-        var userId = GetUserId();               // demo
         Guid? currentCategoryId = null;
         int position = 0;
 
@@ -206,6 +209,6 @@ Rules:
     private Guid GetUserId()
     {
         // replace with auth context later
-        return Guid.Parse("39714763-624d-5931-6435-4a4e6e704e61");
+        return UserId;
     }
 }
